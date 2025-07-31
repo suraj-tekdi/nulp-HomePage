@@ -1,0 +1,129 @@
+/* AboutUsVision Component */
+.vision {
+  background-color: #ffffff;
+  padding: 80px 0;
+  position: relative;
+}
+
+.vision__container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.vision__content {
+  display: flex;
+  align-items: center;
+  gap: 60px;
+}
+
+/* Left Side - Text */
+.vision__left {
+  flex: 1;
+  max-width: 500px;
+}
+
+.vision__header {
+  margin-bottom: 30px;
+}
+
+.vision__accent {
+  color: #F39C12;
+  
+}
+
+.vision__title {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #031749;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.vision__text {
+  font-size: 1.2rem;
+  line-height: 1.8;
+  color: #333;
+}
+
+.vision__text p {
+  margin: 0;
+  font-weight: 400;
+}
+
+.vision__text strong {
+  color: #031749;
+  font-weight: 700;
+}
+
+/* Right Side - Image */
+.vision__right {
+  flex: 1;
+  max-width: 600px;
+}
+
+.vision__imageWrapper {
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  transform: perspective(1000px) rotateY(-5deg);
+  transition: transform 0.3s ease;
+}
+
+.vision__imageWrapper:hover {
+  transform: perspective(1000px) rotateY(0deg);
+}
+
+.vision__image {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 20px;
+}
+
+/* Responsive Design */
+@media (max-width: 968px) {
+  .vision {
+    padding: 60px 0;
+  }
+  
+  .vision__content {
+    flex-direction: column;
+    gap: 40px;
+    text-align: center;
+  }
+  
+  .vision__title {
+    font-size: 2.5rem;
+  }
+  
+  .vision__text {
+    font-size: 1.1rem;
+  }
+  
+  .vision__imageWrapper {
+    transform: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .vision {
+    padding: 40px 0;
+  }
+  
+  .vision__container {
+    padding: 0 15px;
+  }
+  
+  .vision__title {
+    font-size: 2rem;
+  }
+  
+  .vision__text {
+    font-size: 1rem;
+  }
+  
+  .vision__accent {
+    font-size: 1rem;
+  }
+} 

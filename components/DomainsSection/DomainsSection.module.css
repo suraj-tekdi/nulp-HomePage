@@ -1,0 +1,319 @@
+/* DomainsSection Component - BEM Methodology */
+.domains {
+  background-color: #FFF8DF;
+  padding: var(--spacing-xxl) 0;
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+.primary{
+  font-weight: 700 !important;
+}
+
+.domains__container {
+  max-width: auto;
+  margin: 0 auto;
+  padding: 0 var(--spacing-lg);
+  position: relative;
+}
+
+/* Section Title */
+.domains__title {
+  font-size: 48px;
+  font-weight: 400;
+  text-align: center;
+  color: var(--color-neutral-dark);
+  margin-bottom: var(--spacing-xl);
+  line-height: 1.2;
+}
+
+.domains__title__highlight {
+  color: var(--color-primary-dark-blue);
+  position: relative;
+}
+
+.domains__title__highlight::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-primary-blue) 0%, var(--color-primary-dark-blue) 100%);
+  border-radius: 2px;
+}
+
+/* Carousel Container */
+.domains__carousel {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
+/* Navigation Arrows */
+.domains__arrow {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  border: none;
+  background-color: #F39C12;
+  color: black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-md);
+  z-index: 5;
+  flex-shrink: 0;
+}
+
+.domains__arrow:hover:not(:disabled) {
+  background-color: #E67E22;
+  transform: scale(1.05);
+  box-shadow: var(--shadow-lg);
+}
+
+.domains__arrow:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  background-color: #BDC3C7;
+}
+
+.domains__arrow--left {
+  margin-right: var(--spacing-md);
+}
+
+.domains__arrow--right {
+  margin-left: var(--spacing-md);
+}
+
+/* Domains Track */
+.domains__track {
+  display: flex;
+  gap: var(--spacing-md);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: var(--spacing-md) 0;
+  flex: 1;
+}
+
+.domains__track::-webkit-scrollbar {
+  display: none;
+}
+
+/* Domain Item - Horizontal Card Layout */
+.domains__item {
+  flex: 0 0 180px;
+  width: 180px;
+  height: 80px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  cursor: pointer;
+  scroll-snap-align: start;
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-lg);
+  background-color: transparent;
+  border: 1px solid transparent;
+  gap: var(--spacing-sm);
+}
+
+.domains__item:hover {
+  transform: translateY(-2px);
+  background-color: #ffffff;
+  border: 2px solid #FFC700;
+  box-shadow: var(--shadow-sm);
+}
+
+.domains__item--selected {
+  background-color: #ffffff;
+  border: 2px solid #FFC700;
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.domains__item--selected .domains__icon {
+  background-color: rgba(243, 156, 18, 0.1);
+}
+
+/* ensure text stays black */
+.domains__item--selected .domains__text {
+  color: var(--color-neutral-dark);
+  font-weight: 600;
+}
+
+/* Domain Icon */
+.domains__icon {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ffffff;
+  border-radius: var(--border-radius-md);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+/* keep icon background white on hover/selected */
+.domains__item:hover .domains__icon,
+.domains__item--selected .domains__icon {
+  background-color: #ffffff;
+}
+
+/* Domain Image */
+.domains__image {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  transition: transform 0.3s ease-out;
+}
+
+.domains__item:hover .domains__image {
+  transform: scale(1.05);
+}
+
+/* Domain Label */
+.domains__label {
+  flex: 1;
+  text-align: left;
+}
+
+.domains__text {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-neutral-dark);
+  line-height: 1.3;
+  margin: 0;
+  text-align: left;
+  transition: none;
+}
+
+/* remove hover color change on text */
+.domains__item:hover .domains__text {
+  color: var(--color-neutral-dark);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .domains__container {
+    max-width: 100%;
+    padding: 0 var(--spacing-md);
+  }
+  .domains__title {
+    font-size: 2.2rem;
+  }
+}
+
+@media (max-width: 968px) {
+  .domains {
+    padding: var(--spacing-xl) 0;
+  }
+  .domains__title {
+    font-size: 2rem;
+    margin-bottom: var(--spacing-lg);
+  }
+  .domains__carousel {
+    gap: var(--spacing-sm);
+  }
+  .domains__arrow {
+    width: 40px;
+    height: 40px;
+  }
+  .domains__track {
+    gap: var(--spacing-sm);
+  }
+  .domains__item {
+    flex: 0 0 160px;
+    width: 160px;
+    height: 70px;
+  }
+  .domains__icon {
+    width: 50px;
+    height: 50px;
+  }
+  .domains__image {
+    width: 35px;
+    height: 35px;
+  }
+  .domains__text {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 640px) {
+  .domains {
+    padding: var(--spacing-lg) 0;
+  }
+  .domains__title {
+    font-size: 1.8rem;
+  }
+  .domains__carousel {
+    gap: var(--spacing-xs);
+  }
+  .domains__arrow {
+    width: 35px;
+    height: 35px;
+  }
+  .domains__track {
+    gap: var(--spacing-xs);
+    padding: var(--spacing-sm) 0;
+  }
+  .domains__item {
+    flex: 0 0 140px;
+    width: 140px;
+    height: 60px;
+    padding: var(--spacing-xs);
+  }
+  .domains__icon {
+    width: 45px;
+    height: 45px;
+  }
+  .domains__image {
+    width: 30px;
+    height: 30px;
+  }
+  .domains__text {
+    font-size: 11px;
+  }
+}
+
+/* Animation for smooth reveal */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---- New Arrow Styles ---- */
+
+/* yellow circle for arrow */
+.domains__arrow {
+  background-color: #FFC700 !important;
+    z-index: 3;
+}
+
+/* faint rectangular gradient behind arrow */
+.domains__arrow {
+  position: relative;
+  z-index: 2;
+}
+
+
+
+/* ensure the icon renders on top */
+.domains__arrow svg {
+  position: relative;
+  z-index: 3;
+}

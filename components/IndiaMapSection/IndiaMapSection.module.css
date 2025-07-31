@@ -1,0 +1,610 @@
+/* IndiaMapSection Component - BEM Methodology */
+.mapSection {
+  background-color: #F8FFFE;
+  padding: 60px 30px;
+  position: relative;
+}
+
+.mapSection__container {
+  margin: 0 auto;
+  padding: 0 20px;
+  position: relative;
+}
+
+/* Section Header */
+.mapSection__header {
+  text-align: start;
+  margin-bottom: var(--spacing-xxl);
+}
+
+.mapSection__title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--color-neutral-dark);
+  margin-bottom: var(--spacing-sm);
+  line-height: 1.2;
+}
+
+.mapSection__title__highlight {
+  color: #0097B2;
+  font-weight: 700;
+}
+
+.mapSection__subtitle {
+  font-size: 1.2rem;
+  color: var(--color-neutral-medium);
+  margin: 0;
+  opacity: 0.8;
+}
+
+/* Main Content Layout */
+.mapSection__content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: start;
+  margin-top: 40px;
+}
+
+/* Left Sidebar - Map */
+.mapSection__map {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+
+
+.mapSection__mapContainer {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 30px;
+  margin-bottom: 20px;
+}
+
+.mapSection__mapWrapper {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  max-width: 1200px;
+}
+
+.mapSection__svgMapContainer {
+  width: 100%;
+  max-width: 1200px;
+  height: auto;
+}
+
+.mapSection__svgMap {
+  width: 100% !important;
+  height: auto !important;
+  max-height: 1200px;
+  min-height: 600px;
+}
+
+/* Override react-svg-map default styles */
+.mapSection__svgMap svg {
+  width: 100%;
+  height: auto;
+  max-height: 1200px;
+  min-height: 600px;
+}
+
+/* Style the individual states */
+.mapSection__svgMap path {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  fill: rgba(179, 204, 222, 0.29);
+  stroke: #90D8FF;
+  stroke-width: 1;
+}
+
+.mapSection__svgMap path:hover {
+  fill: rgba(179, 204, 222, 0.5) !important;
+  stroke: #90D8FF !important;
+  stroke-width: 2;
+}
+
+/* Highlight only our specific states */
+.mapSection__svgMap path[id="mh"],
+.mapSection__svgMap path[id="ka"],
+.mapSection__svgMap path[id="up"],
+.mapSection__svgMap path[id="wb"],
+.mapSection__svgMap path[id="hp"] {
+  fill: #054365;
+  stroke: #90D8FF;
+  stroke-width: 2;
+}
+
+.mapSection__svgMap path[id="mh"]:hover,
+.mapSection__svgMap path[id="ka"]:hover,
+.mapSection__svgMap path[id="up"]:hover,
+.mapSection__svgMap path[id="wb"]:hover,
+.mapSection__svgMap path[id="hp"]:hover {
+  fill: rgba(5, 67, 101, 0.8) !important;
+}
+
+/* Active state styling - will be applied via JavaScript */
+.mapSection__svgMap path.selected {
+  fill: #054365 !important;
+  stroke: #90D8FF !important;
+  stroke-width: 3 !important;
+}
+
+
+
+/* State Name - Left of Map */
+.mapSection__stateNameLeft {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  margin-top: 20px;
+  min-width: 120px;
+}
+
+/* Instruction Text - Below Map */
+.mapSection__stateInfo {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.mapSection__instructionText {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0 0 15px 0;
+}
+
+/* States Legend */
+.mapSection__statesLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.mapSection__stateLegendItem {
+  padding: 8px 15px;
+  background: white;
+  color: #0097B2;
+  border: 2px solid #0097B2;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.mapSection__stateLegendItem:hover {
+  background: #0097B2;
+  color: white;
+  transform: translateY(-1px);
+}
+
+.mapSection__stateLegendItem.active {
+  background: #0097B2;
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 151, 178, 0.3);
+}
+
+/* Right Sidebar - Gallery */
+.mapSection__gallery {
+  display: flex;
+  flex-direction: column;
+  min-height: 600px;
+  height: 100%;
+}
+
+.mapSection__currentState {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.mapSection__currentState h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #0097B2;
+  margin: 0;
+}
+
+.gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+}
+
+.gallery__item {
+  flex: 1;
+}
+
+.gallery__image {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.gallery__image img {
+  width: 100%;
+  height: 280px;
+  object-fit: cover;
+  display: block;
+}
+
+/* First and last images smaller containers */
+.gallery__item:nth-child(1) .gallery__image,
+.gallery__item:nth-child(3) .gallery__image {
+  width: 95%;
+  margin: 0 auto;
+  border-radius: 12px;
+}
+
+.gallery__item:nth-child(1) .gallery__image img,
+.gallery__item:nth-child(3) .gallery__image img {
+  width: 100%;
+  margin: 0;
+}
+
+/* Middle image bigger */
+.gallery__item:nth-child(2) .gallery__image img {
+  height: 220px;
+  width: 100%;
+}
+
+/* Auto-Scroll Gallery Styles */
+.gallery__autoScroll {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0px;
+  padding: 40px 0;
+  height: 100%;
+  justify-content: center;
+  min-height: 600px;
+  overflow: hidden;
+  position: relative;
+}
+
+.gallery__scrollItem {
+  transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+  will-change: transform;
+}
+
+.gallery__scrollImage {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+.gallery__scrollImage img {
+  width: 100%;
+  object-fit: cover;
+  display: block;
+  transition: none;
+}
+
+/* Top Image - Slides up */
+.gallery__scrollItem--top {
+  transform: translateY(-10px) scale(0.78);
+  opacity: 0.4;
+}
+
+.gallery__scrollItem--top .gallery__scrollImage {
+  width: 450px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.gallery__scrollItem--top .gallery__scrollImage img {
+  height: 180px;
+}
+
+/* Center Image - Main focus */
+.gallery__scrollItem--center {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+  z-index: 2;
+  margin: 8px 0;
+}
+
+.gallery__scrollItem--center .gallery__scrollImage {
+  width: 580px;
+  box-shadow: 0 20px 40px rgba(0, 151, 178, 0.2), 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.gallery__scrollItem--center .gallery__scrollImage img {
+  height: 300px;
+}
+
+/* Bottom Image - Slides down */
+.gallery__scrollItem--bottom {
+  transform: translateY(10px) scale(0.78);
+  opacity: 0.4;
+}
+
+.gallery__scrollItem--bottom .gallery__scrollImage {
+  width: 500px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.gallery__scrollItem--bottom .gallery__scrollImage img {
+  height: 180px;
+}
+
+/* Subtle hover effect */
+.gallery__scrollImage:hover {
+  transform: scale(1.05);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* No Images Message */
+.mapSection__noImages {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+  min-height: 300px;
+}
+
+.mapSection__noImages p {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+/* No Gallery Available Message */
+.mapSection__noGallery {
+  text-align: center;
+  padding: 30px 20px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 2px dashed #ccc;
+  color: #555;
+}
+
+.mapSection__noGalleryIcon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+  opacity: 0.6;
+}
+
+.mapSection__noGallery h4 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 12px 0;
+}
+
+.mapSection__noGallery p {
+  margin: 8px 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #666;
+}
+
+.mapSection__noGallery p strong {
+  color: #0097B2;
+  font-weight: 600;
+}
+
+/* Responsive Design */
+@media (max-width: 968px) {
+  .mapSection {
+    padding: 40px 0;
+  }
+  
+  .mapSection__title {
+    font-size: 2rem;
+  }
+  
+  .mapSection__subtitle {
+    font-size: 1.1rem;
+  }
+  
+  .mapSection__content {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  
+  .mapSection__mapContainer {
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+  }
+  
+  .mapSection__stateNameLeft {
+    text-align: center;
+    margin-top: 0;
+  }
+  
+  .mapSection__mapWrapper {
+    max-width: 400px;
+  }
+  
+  .mapSection__svgMapContainer,
+  .mapSection__svgMap,
+  .mapSection__svgMap svg {
+    max-height: 450px;
+  }
+  
+  .gallery__image img {
+    height: 160px;
+  }
+  
+  .gallery__item:nth-child(1) .gallery__image,
+  .gallery__item:nth-child(3) .gallery__image {
+    width: 85%;
+    margin: 0 auto;
+    border-radius: 12px;
+  }
+  
+  .gallery__item:nth-child(1) .gallery__image img,
+  .gallery__item:nth-child(3) .gallery__image img {
+    width: 100%;
+    margin: 0;
+  }
+  
+    .gallery__item:nth-child(2) .gallery__image img {
+    height: 200px;
+    width: 100%;
+  }
+
+  /* Auto-Scroll Gallery - Mobile */
+  .gallery__autoScroll {
+    min-height: 460px;
+    gap: 12px;
+    padding: 30px 0;
+  }
+
+
+
+  .gallery__scrollItem--center {
+    transform: translateY(0) scale(1);
+    margin: 6px 0;
+  }
+
+
+
+  .gallery__scrollItem--center .gallery__scrollImage {
+    width: 500px;
+  }
+
+  .gallery__scrollItem--center .gallery__scrollImage img {
+    height: 240px;
+  }
+
+  .gallery__scrollItem--top .gallery__scrollImage,
+  .gallery__scrollItem--bottom .gallery__scrollImage {
+    width: 450px;
+  }
+
+  .gallery__scrollItem--top .gallery__scrollImage img,
+  .gallery__scrollItem--bottom .gallery__scrollImage img {
+    height: 150px;
+  }
+
+  .mapSection__statesLegend {
+    gap: 6px;
+  }
+
+  .mapSection__stateLegendItem {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .mapSection {
+    padding: 30px 0;
+  }
+  
+  .mapSection__container {
+    padding: 0 15px;
+  }
+  
+  .mapSection__title {
+    font-size: 1.8rem;
+  }
+  
+  .mapSection__subtitle {
+    font-size: 1rem;
+  }
+  
+  .mapSection__mapContainer {
+    gap: 10px;
+  }
+  
+  .mapSection__stateNameLeft {
+    font-size: 1.3rem;
+  }
+  
+  .mapSection__mapWrapper {
+    max-width: 320px;
+  }
+  
+  .mapSection__svgMapContainer,
+  .mapSection__svgMap,
+  .mapSection__svgMap svg {
+    max-height: 360px;
+  }
+  
+  .gallery__image img {
+    height: 140px;
+  }
+  
+  .gallery__item:nth-child(1) .gallery__image,
+  .gallery__item:nth-child(3) .gallery__image {
+    width: 85%;
+    margin: 0 auto;
+    border-radius: 10px;
+  }
+  
+  .gallery__item:nth-child(1) .gallery__image img,
+  .gallery__item:nth-child(3) .gallery__image img {
+    width: 100%;
+    margin: 0;
+  }
+  
+    .gallery__item:nth-child(2) .gallery__image img {
+    height: 170px;
+    width: 100%;
+  }
+
+  /* Auto-Scroll Gallery - Small Mobile */
+  .gallery__autoScroll {
+    min-height: 420px;
+    gap: 10px;
+    padding: 25px 0;
+  }
+
+  .gallery__scrollItem--top {
+    transform: translateY(-6px) scale(0.78);
+  }
+
+  .gallery__scrollItem--center {
+    transform: translateY(0) scale(1);
+    margin: 4px 0;
+  }
+
+  .gallery__scrollItem--bottom {
+    transform: translateY(6px) scale(0.78);
+  }
+
+  .gallery__scrollItem--center .gallery__scrollImage {
+    width: 380px;
+  }
+
+  .gallery__scrollItem--center .gallery__scrollImage img {
+    height: 200px;
+  }
+
+  .gallery__scrollItem--top .gallery__scrollImage,
+  .gallery__scrollItem--bottom .gallery__scrollImage {
+    width: 290px;
+  }
+
+  .gallery__scrollItem--top .gallery__scrollImage img,
+  .gallery__scrollItem--bottom .gallery__scrollImage img {
+    height: 130px;
+  }
+
+  .mapSection__statesLegend {
+    gap: 4px;
+    margin-top: 8px;
+  }
+
+  .mapSection__stateLegendItem {
+    padding: 5px 10px;
+    font-size: 0.75rem;
+  }
+}
+
+ 

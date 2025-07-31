@@ -1,0 +1,288 @@
+/* Launch Video Section - BEM Methodology */
+.launchVideo {
+  padding: 2rem;
+  background: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+
+.launchVideo__container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-xl);
+  position: relative;
+  z-index: 2;
+}
+
+/* Section Header */
+.launchVideo__header {
+  text-align: center;
+  margin-bottom: var(--spacing-xxxl);
+}
+
+.launchVideo__title {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--color-primary-dark-blue);
+  margin-bottom: var(--spacing-md);
+  position: relative;
+}
+
+.launchVideo__title::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: var(--color-primary-yellow);
+  border-radius: 2px;
+}
+
+.launchVideo__subtitle {
+  font-size: 1.2rem;
+  color: var(--color-text-secondary);
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Main Content Layout */
+.launchVideo__content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+
+/* Left Side - Video */
+.launchVideo__videoWrapper {
+  position: relative;
+}
+
+.launchVideo__videoContainer {
+  position: relative;
+  width: 100%;
+  height: 0;
+  padding-bottom: 56.25%; /* 16:9 aspect ratio */
+  border-radius: 30px;
+  overflow: hidden;
+  box-shadow: var(--shadow-xl);
+  background: var(--color-neutral-dark);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.launchVideo__videoContainer:hover {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.launchVideo__video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: var(--border-radius-xl);
+}
+
+/* Right Side - Stats Grid */
+.launchVideo__statsWrapper {
+  position: relative;
+}
+
+.launchVideo__statsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: var(--spacing-md);
+  max-width: 600px;
+}
+
+.launchVideo__statCard {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: var(--spacing-lg);
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 1.2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.launchVideo__statCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  border-color: #ddd;
+}
+
+.launchVideo__statIcon {
+  width: 24px;
+  height: 24px;
+  margin-bottom: var(--spacing-xs);
+  opacity: 0.7;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.launchVideo__statCard:hover .launchVideo__statIcon {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+.launchVideo__statIcon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.launchVideo__statNumber {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #054365;
+  line-height: 1;
+  margin-bottom: var(--spacing-xs);
+}
+
+.launchVideo__statLabel {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #555;
+  line-height: 1.2;
+  text-align: center;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .launchVideo {
+    padding: var(--spacing-xxl) var(--spacing-lg);
+  }
+  
+  .launchVideo__container {
+    padding: 0 var(--spacing-lg);
+  }
+  
+  .launchVideo__content {
+    gap: 3rem;
+  }
+  
+  .launchVideo__title {
+    font-size: 2.5rem;
+  }
+  
+  .launchVideo__statsGrid {
+    max-width: 550px;
+  }
+  
+  .launchVideo__statCard {
+    padding: var(--spacing-md);
+  }
+  
+  .launchVideo__statNumber {
+    font-size: 1.8rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .launchVideo {
+    padding: var(--spacing-xl) var(--spacing-md);
+  }
+  
+  .launchVideo__container {
+    padding: 0 var(--spacing-md);
+  }
+  
+  .launchVideo__content {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+  
+  .launchVideo__title {
+    font-size: 2.2rem;
+  }
+  
+  .launchVideo__subtitle {
+    font-size: 1.1rem;
+  }
+  
+  .launchVideo__statsGrid {
+    max-width: 100%;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: var(--spacing-md);
+    margin: 0 auto;
+  }
+  
+  .launchVideo__statCard {
+    padding: var(--spacing-md);
+  }
+  
+  .launchVideo__statNumber {
+    font-size: 1.6rem;
+  }
+  
+  .launchVideo__statLabel {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .launchVideo {
+    padding: var(--spacing-xl) var(--spacing-sm);
+  }
+  
+  .launchVideo__container {
+    padding: 0 var(--spacing-sm);
+  }
+  
+  .launchVideo__header {
+    margin-bottom: var(--spacing-xxl);
+  }
+  
+  .launchVideo__title {
+    font-size: 2rem;
+  }
+  
+  .launchVideo__subtitle {
+    font-size: 1rem;
+  }
+  
+  .launchVideo__content {
+    gap: 2rem;
+  }
+  
+  .launchVideo__statsGrid {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: var(--spacing-sm);
+  }
+  
+  .launchVideo__statCard {
+    padding: var(--spacing-sm);
+    aspect-ratio: 1;
+  }
+  
+  .launchVideo__statIcon {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .launchVideo__statNumber {
+    font-size: 1.4rem;
+  }
+  
+  .launchVideo__statLabel {
+    font-size: 0.7rem;
+  }
+}
+
+ 

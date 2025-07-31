@@ -1,0 +1,12 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+---
+description: |
+  Do not modify any logic unless explicitly asked. Assume all changes must maintain functional equivalence.
+globs:
+  - "**/*"
+alwaysApply: true
+---
