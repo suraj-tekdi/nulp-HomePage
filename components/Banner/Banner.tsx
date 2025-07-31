@@ -1,4 +1,4 @@
-// Banner.tsx (with infinite-loop fix)
+// Banner.tsx (Simplified infinite scroll)
 import React, { useState, useRef, useEffect } from 'react';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -51,7 +51,7 @@ const useAnimatedCounter = (target: number, duration: number = 2000, shouldStart
 };
 
 const Banner: React.FC<BannerProps> = ({ className = '' }) => {
-  // 1) Your "real" slides with hardcoded content
+  // Real slides
   const realSlides: BannerSlide[] = [
     {
       id: 1,
@@ -102,97 +102,26 @@ const Banner: React.FC<BannerProps> = ({ className = '' }) => {
     },
   ];
 
-  // 2) Clone first & last for the infinite‑loop trick with explicit background images
-  const slides = [
-    { 
-      ...realSlides[realSlides.length - 1], 
-      id: 'clone-start',
-      backgroundImage: realSlides[realSlides.length - 1].backgroundImage
-    },
-    ...realSlides,
-    { 
-      ...realSlides[0], 
-      id: 'clone-end',
-      backgroundImage: realSlides[0].backgroundImage
-    },
+  // Create infinite slides: [last, first, second, first] for seamless loop
+  const allSlides = [
+    { ...realSlides[1], id: 'clone-last' },  // Clone of last slide
+    ...realSlides,                           // Real slides
+    { ...realSlides[0], id: 'clone-first' }, // Clone of first slide
   ];
 
-  const [currentSlide, setCurrentSlide] = useState(1);
-  const [transitionEnabled, setTransitionEnabled] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(1); // Start at first real slide
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [shouldAnimateStats, setShouldAnimateStats] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  
   const sliderRef = useRef<HTMLDivElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const autoScrollTimer = useRef<NodeJS.Timeout | null>(null);
 
   // Auto scroll configuration
-  const AUTO_SCROLL_INTERVAL = 4000; // 4 seconds
+  const AUTO_SCROLL_INTERVAL = 4000;
 
-  // Re-enable transition immediately after a snap reset
-  useEffect(() => {
-    if (!transitionEnabled) {
-      const id = requestAnimationFrame(() => setTransitionEnabled(true));
-      return () => cancelAnimationFrame(id);
-    }
-  }, [transitionEnabled]);
-
-  // Intersection Observer for stats animation
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && !shouldAnimateStats) {
-            setShouldAnimateStats(true);
-          }
-        });
-      },
-      { threshold: 0.5 } // Trigger when 50% of stats are visible
-    );
-
-    if (statsRef.current) {
-      observer.observe(statsRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, [shouldAnimateStats]);
-
-  // Auto scroll effect
-  useEffect(() => {
-    const startAutoScroll = () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-      
-      if (!isPaused) {
-        intervalRef.current = setInterval(() => {
-          setTransitionEnabled(true);
-          setCurrentSlide((s) => s + 1);
-        }, AUTO_SCROLL_INTERVAL);
-      }
-    };
-
-    startAutoScroll();
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [isPaused]);
-
-  // Helper function to restart auto-scroll
-  const restartAutoScroll = () => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
-    if (!isPaused) {
-      intervalRef.current = setInterval(() => {
-        setTransitionEnabled(true);
-        setCurrentSlide((s) => s + 1);
-      }, AUTO_SCROLL_INTERVAL);
-    }
-  };
-
+  // Stats data
   const stats = [
     { number: 12, label: "Participating States" },
     { number: 449, label: "Urban Local Bodies" },
@@ -206,70 +135,115 @@ const Banner: React.FC<BannerProps> = ({ className = '' }) => {
     useAnimatedCounter(stats[2].number, 3000, shouldAnimateStats),
   ];
 
-  // Format numbers with commas for better readability
+  // Format numbers with commas
   const formatNumber = (num: number): string => {
     return num.toLocaleString();
   };
 
+  // Clear auto scroll timer
+  const clearAutoScroll = () => {
+    if (autoScrollTimer.current) {
+      clearTimeout(autoScrollTimer.current);
+      autoScrollTimer.current = null;
+    }
+  };
+
+  // Start auto scroll
+  const startAutoScroll = () => {
+    if (isPaused) return;
+    
+    clearAutoScroll();
+    autoScrollTimer.current = setTimeout(() => {
+      goToNext();
+    }, AUTO_SCROLL_INTERVAL);
+  };
+
+  // Go to next slide
+  const goToNext = () => {
+    if (isTransitioning) return;
+    
+    setIsTransitioning(true);
+    setCurrentIndex(prev => prev + 1);
+  };
+
+  // Go to previous slide
+  const goToPrev = () => {
+    if (isTransitioning) return;
+    
+    setIsTransitioning(true);
+    setCurrentIndex(prev => prev - 1);
+  };
+
+  // Go to specific slide
+  const goToSlide = (slideIndex: number) => {
+    if (isTransitioning) return;
+    
+    setIsTransitioning(true);
+    setCurrentIndex(slideIndex + 1); // +1 because real slides start at index 1
+  };
+
+  // Handle transition end
   const handleTransitionEnd = () => {
-    // Clear the current interval to prevent overlapping
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
+    setIsTransitioning(false);
+    
+    // Handle infinite loop
+    if (currentIndex === 0) {
+      // Went to clone of last slide, jump to real last slide
+      setTimeout(() => {
+        setCurrentIndex(realSlides.length);
+      }, 10);
+    } else if (currentIndex === allSlides.length - 1) {
+      // Went to clone of first slide, jump to real first slide
+      setTimeout(() => {
+        setCurrentIndex(1);
+      }, 10);
+    }
+    
+    // Restart auto scroll
+    startAutoScroll();
+  };
+
+  // Intersection Observer for stats animation
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !shouldAnimateStats) {
+            setShouldAnimateStats(true);
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+
+    if (statsRef.current) {
+      observer.observe(statsRef.current);
     }
 
-    if (currentSlide === slides.length - 1) {
-      // hit clone-end → snap to first real slide
-      setTransitionEnabled(false);
-      setCurrentSlide(1);
-      // Restart auto-scroll after a brief delay
-      setTimeout(() => {
-        restartAutoScroll();
-      }, 50);
-    } else if (currentSlide === 0) {
-      // hit clone-start → snap to last real slide
-      setTransitionEnabled(false);
-      setCurrentSlide(slides.length - 2);
-      // Restart auto-scroll after a brief delay
-      setTimeout(() => {
-        restartAutoScroll();
-      }, 50);
-    }
-  };
+    return () => observer.disconnect();
+  }, [shouldAnimateStats]);
 
-  const nextSlide = () => {
-    setTransitionEnabled(true);
-    setCurrentSlide((s) => s + 1);
-    // Reset auto-scroll timer when manually navigating
-    restartAutoScroll();
-  };
+  // Auto scroll effect
+  useEffect(() => {
+    startAutoScroll();
+    return () => clearAutoScroll();
+  }, [isPaused]);
 
-  const prevSlide = () => {
-    setTransitionEnabled(true);
-    setCurrentSlide((s) => s - 1);
-    // Reset auto-scroll timer when manually navigating
-    restartAutoScroll();
-  };
-
-  const goToSlide = (idx: number) => {
-    setTransitionEnabled(true);
-    setCurrentSlide(idx + 1);
-    // Reset auto-scroll timer when manually navigating
-    restartAutoScroll();
-  };
-
-  // Mouse event handlers for pause/resume
+  // Mouse event handlers
   const handleMouseEnter = () => {
     setIsPaused(true);
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
+    clearAutoScroll();
   };
 
   const handleMouseLeave = () => {
     setIsPaused(false);
-    // Start auto-scroll again
-    restartAutoScroll();
+  };
+
+  // Calculate active dot for pagination
+  const getActiveDotIndex = () => {
+    if (currentIndex === 0) return realSlides.length - 1; // Clone of last
+    if (currentIndex === allSlides.length - 1) return 0;   // Clone of first
+    return currentIndex - 1; // Real slides are offset by 1
   };
 
   return (
@@ -284,20 +258,20 @@ const Banner: React.FC<BannerProps> = ({ className = '' }) => {
           ref={sliderRef}
           className={styles['banner__slider']}
           style={{
-            width: `${slides.length * 100}%`,
-            transform: `translateX(-${currentSlide * (100 / slides.length)}%)`,
-            transition: transitionEnabled
+            width: `${allSlides.length * 100}%`,
+            transform: `translateX(-${currentIndex * (100 / allSlides.length)}%)`,
+            transition: isTransitioning 
               ? 'transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94)'
               : 'none',
           }}
           onTransitionEnd={handleTransitionEnd}
         >
-          {slides.map((slide) => (
+          {allSlides.map((slide, index) => (
             <div
-              key={slide.id}
+              key={`${slide.id}-${index}`}
               className={styles['banner__slide']}
               style={{
-                flex: `0 0 ${100 / slides.length}%`,
+                flex: `0 0 ${100 / allSlides.length}%`,
                 backgroundImage: slide.backgroundImage
                   ? `url(${slide.backgroundImage})`
                   : 'none',
@@ -316,45 +290,44 @@ const Banner: React.FC<BannerProps> = ({ className = '' }) => {
           ))}
         </div>
         
-        {/* Pagination Dots - Overlay on banner */}
+        {/* Pagination Dots */}
         <div className={styles['banner__pagination']}>
-          {realSlides.map((_, di) => {
-            const isActive = di === (currentSlide - 1 + realSlides.length) % realSlides.length;
-            return (
-              <button
-                key={di}
-                className={`${styles['banner__pagination-dot']} ${
-                  isActive ? styles['banner__pagination-dot--active'] : ''
-                }`}
-                onClick={() => goToSlide(di)}
-                aria-label={`Go to slide ${di + 1}`}
-              />
-            );
-          })}
+          {realSlides.map((_, index) => (
+            <button
+              key={index}
+              className={`${styles['banner__pagination-dot']} ${
+                index === getActiveDotIndex() ? styles['banner__pagination-dot--active'] : ''
+              }`}
+              onClick={() => goToSlide(index)}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
         </div>
       </div>
 
       {/* Stats + Arrows */}
       <div className={styles['banner__sidebar']}>
         <div className={styles['banner__stats']} ref={statsRef}>
-          {stats.map((s, i) => (
+          {stats.map((stat, i) => (
             <div key={i} className={styles['banner__stats-item']}>
               <div className={styles['banner__stats-number']}>{formatNumber(animatedStats[i])}</div>
-              <div className={styles['banner__stats-label']}>{s.label}</div>
+              <div className={styles['banner__stats-label']}>{stat.label}</div>
             </div>
           ))}
         </div>
         <div className={styles['banner__navigation']}>
           <button
             className={styles['banner__navigation-arrow']}
-            onClick={prevSlide}
+            onClick={goToPrev}
+            disabled={isTransitioning}
             aria-label="Previous slide"
           >
             <ArrowBackIcon />
           </button>
           <button
             className={styles['banner__navigation-arrow']}
-            onClick={nextSlide}
+            onClick={goToNext}
+            disabled={isTransitioning}
             aria-label="Next slide"
           >
             <ArrowForwardIcon />

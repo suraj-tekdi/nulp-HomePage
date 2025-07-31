@@ -17,7 +17,7 @@
 
 .banner__slider {
   display: flex;
-  width: 500%; /* 5 slides total (3 original + 2 clones) * 100% each */
+  width: 400%; /* 4 slides total: clone-last, real1, real2, clone-first */
   height: 100%;
   will-change: transform;
   backface-visibility: hidden;
@@ -25,7 +25,7 @@
 }
 
 .banner__slide {
-  flex: 0 0 20%; /* Each slide is 1/5 of slider width (100% of viewport) */
+  flex: 0 0 25%; /* Each slide is 1/4 of slider width (100% of viewport) */
   position: relative;
   min-height: 60vh;
   background: linear-gradient(135deg, #0097b2 0%, #00557b 50%, #054365 100%);
