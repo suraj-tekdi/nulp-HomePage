@@ -10,7 +10,7 @@
 
 .trending__container {
   margin: 0 auto;
-  padding: 0 var(--spacing-lg);
+  padding: 0;
   position: relative;
   width: 100%;
 }
@@ -27,6 +27,7 @@
 /* Section Header */
 .trending__header {
   margin-bottom: var(--spacing-xl);
+  padding: 0 var(--spacing-lg);
 }
 
 .trending__titleWrapper {
@@ -66,6 +67,7 @@
 /* Content Area */
 .trending__content {
   position: relative;
+  padding: 0 var(--spacing-lg);
 }
 
 /* Courses Grid */
@@ -78,7 +80,7 @@
   scrollbar-width: none;
   -ms-overflow-style: none;
   cursor: grab;
-  padding: 0 var(--spacing-sm);
+  padding: 0;
 }
 
 .trending__courses::-webkit-scrollbar {
@@ -272,26 +274,58 @@
 }
 
 .trending__error {
-  color: #dc3545;
+  display: block;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  text-align: center;
+  padding: var(--spacing-xl);
+  background-color: var(--color-neutral-white);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
+  border-left: 4px solid #17a2b8;
 }
 
-.trending__error button {
-  background-color: #054365;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: var(--border-radius-md);
-  cursor: pointer;
-  margin-top: var(--spacing-md);
-  font-family: var(--font-family-primary);
+.trending__error__message {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--color-neutral-dark);
+  margin-bottom: var(--spacing-md);
 }
 
-.trending__error button:hover {
-  background-color: #032a43;
+.trending__error__suggestion {
+  font-size: 1rem;
+  color: var(--color-neutral-medium);
+  margin-top: var(--spacing-sm);
 }
 
+/* Enhanced Empty State */
 .trending__empty {
-  color: #6c757d;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  text-align: center;
+  padding: var(--spacing-xl);
+  background-color: var(--color-neutral-white);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
+  border-left: 4px solid #17a2b8;
+}
+
+.trending__empty__message {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--color-neutral-dark);
+  margin-bottom: var(--spacing-md);
+}
+
+.trending__empty__suggestion {
+  font-size: 1rem;
+  color: var(--color-neutral-medium);
+  margin-top: var(--spacing-sm);
 }
 
 /* Controls */

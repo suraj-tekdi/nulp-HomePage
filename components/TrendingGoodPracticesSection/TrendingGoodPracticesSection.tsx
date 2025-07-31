@@ -297,12 +297,27 @@ const TrendingGoodPracticesSection: React.FC<TrendingGoodPracticesSectionProps> 
               </div>
             ) : error ? (
               <div className={styles.practices__error}>
-                <p>Error loading good practices: {error}</p>
-                <button onClick={() => window.location.reload()}>Try Again</button>
+                <div className={styles.practices__error__message}>
+                  {selectedDomain 
+                    ? `Unable to load good practices for "${selectedDomain}" domain.`
+                    : 'Unable to load good practices at the moment.'
+                  }
+                </div>
+                <div className={styles.practices__error__suggestion}>
+                  Please check your internet connection and try again.
+                </div>
               </div>
             ) : goodPractices.length === 0 ? (
               <div className={styles.practices__empty}>
-                <p>No good practices available at the moment.</p>
+                <div className={styles.practices__empty__message}>
+                  {selectedDomain 
+                    ? `No good practices available for "${selectedDomain}" domain.`
+                    : 'No good practices available at the moment.'
+                  }
+                </div>
+                <div className={styles.practices__empty__suggestion}>
+                  Try selecting a different domain or check back later.
+                </div>
               </div>
             ) : (
               goodPractices.map((practice) => (

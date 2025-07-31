@@ -80,13 +80,13 @@ const Banner: React.FC<BannerProps> = ({ className = '' }) => {
       id: 2,
       content: (
         <div className={styles['banner__content-wrapper']}>
-          <h2 className={styles['banner__content-subtitle']}>
+          <h2 className={styles['second-banner__content-subtitle']}>
             Discover the Power of Learning
           </h2>
-          <h1 className={styles['banner__content-title']}>
+          <h1 className={styles['second-banner__content-title']}>
             <span className={styles['banner__content-highlight']}>अ</span>rban Learnathon 2025
           </h1>
-          <p className={styles['banner__content-description']}>
+          <p className={styles['second-banner__content-description']}>
             Launched on 8th January 2025, the second edition of the Urban Learnathon seeks entries from state/city officials, academic institutions and industry partners.
           </p>
           <button

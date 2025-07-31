@@ -10,7 +10,7 @@
 
 .discussions__container {
   margin: 0 auto;
-  padding: 0 var(--spacing-lg);
+  padding: 0;
   position: relative;
   width: 100%;
 }
@@ -27,6 +27,7 @@
 /* Section Header */
 .discussions__header {
   margin-bottom: var(--spacing-xl);
+  padding: 0 var(--spacing-lg);
 }
 
 .discussions__titleWrapper {
@@ -65,6 +66,7 @@
 /* Content Area */
 .discussions__content {
   position: relative;
+  padding: 0 var(--spacing-lg);
 }
 
 /* Discussions Grid */

@@ -297,12 +297,27 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
               </div>
             ) : error ? (
               <div className={styles.trending__error}>
-                <p>Error loading courses: {error}</p>
-                <button onClick={() => window.location.reload()}>Try Again</button>
+                <div className={styles.trending__error__message}>
+                  {selectedDomain 
+                    ? `Unable to load courses for "${selectedDomain}" domain.`
+                    : 'Unable to load courses at the moment.'
+                  }
+                </div>
+                <div className={styles.trending__error__suggestion}>
+                  Please check your internet connection and try again.
+                </div>
               </div>
             ) : courses.length === 0 ? (
               <div className={styles.trending__empty}>
-                <p>No courses available at the moment.</p>
+                <div className={styles.trending__empty__message}>
+                  {selectedDomain 
+                    ? `No courses available for "${selectedDomain}" domain.`
+                    : 'No courses available at the moment.'
+                  }
+                </div>
+                <div className={styles.trending__empty__suggestion}>
+                  Try selecting a different domain or check back later.
+                </div>
               </div>
             ) : (
               courses.map((course) => (
