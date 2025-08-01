@@ -69,7 +69,6 @@ const LaunchVideoSection: React.FC<LaunchVideoSectionProps> = ({ className = '' 
     useAnimatedCounter(stats[5].number, stats[5].duration, shouldAnimateStats),
   ];
 
-  // Format numbers with leading zeros for single digits (like "04")
   const formatNumber = (num: number, originalValue: number): string => {
     if (originalValue < 10 && originalValue.toString().length === 1) {
       return num.toString().padStart(2, '0');
@@ -77,7 +76,6 @@ const LaunchVideoSection: React.FC<LaunchVideoSectionProps> = ({ className = '' 
     return num.toLocaleString();
   };
 
-  // Intersection Observer for stats animation
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -90,8 +88,8 @@ const LaunchVideoSection: React.FC<LaunchVideoSectionProps> = ({ className = '' 
         });
       },
       { 
-        threshold: 0.2, // Trigger when 20% of stats are visible (more sensitive)
-        rootMargin: '0px 0px -10% 0px' // Trigger slightly before fully in view
+        threshold: 0.2, 
+        rootMargin: '0px 0px -10% 0px' 
       }
     );
 

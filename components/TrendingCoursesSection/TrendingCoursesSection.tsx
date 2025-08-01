@@ -242,7 +242,7 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
 
   // Handle course navigation
   const handleCourseClick = useCallback((courseId: string) => {
-    const courseUrl = `https://nulp.niua.org/webapp/joinCourse?${courseId}`;
+    const courseUrl = `https://nulp.niua.org/webapp/join-Course?${courseId}`;
     window.location.href = courseUrl;
   }, []);
 
