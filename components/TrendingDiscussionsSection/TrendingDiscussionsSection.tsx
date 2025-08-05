@@ -187,7 +187,7 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
 
   // Handle discussion click to redirect to detailed page
   const handleDiscussionClick = useCallback((slug: string) => {
-    const discussionUrl = `https://nulp.niua.org/discussion-forum/topic/${slug}`;
+    const discussionUrl = `https://devnulp.niua.org/discussion-forum/topic/${slug}`;
     window.location.href = discussionUrl;
   }, []);
 
