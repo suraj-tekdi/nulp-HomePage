@@ -564,7 +564,7 @@ export const discussionApi = {
   // Get popular discussions from NULP forum API via Next.js API route
   getPopularDiscussions: async (): Promise<ApiResponse<DiscussionTopic[]>> => {
     try {
-      const response = await fetch('/api/popular', {
+      const response = await fetch('discussion-forum/api/popular', {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
