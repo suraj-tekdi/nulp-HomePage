@@ -93,6 +93,16 @@ interface DiscussionForumApiResponse {
   topicCount: number;
 }
 
+// Dynamic URL function for server-side
+const getDiscussionForumUrl = (req: NextApiRequest): string => {
+  const host = req.headers.host;
+  // Check if running on localhost or dev environment
+  if (host?.includes('localhost') || host?.includes('dev') || process.env.NODE_ENV === 'development') {
+    return 'https://devnulp.niua.org/discussion-forum/api/popular';
+  }
+  return 'https://nulp.niua.org/discussion-forum/api/popular';
+};
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -102,7 +112,8 @@ export default async function handler(
   }
 
   try {
-    const response = await fetch('https://nulp.niua.org/discussion-forum/api/popular', {
+    const discussionApiUrl = getDiscussionForumUrl(req);
+    const response = await fetch(discussionApiUrl, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',

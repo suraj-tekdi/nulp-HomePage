@@ -21,6 +21,7 @@ const NULP_API_URL = 'https://nulp.niua.org/api';
 export const getDynamicNulpUrls = () => {
   const baseUrl = getNulpBaseUrl();
   return {
+    base: baseUrl,
     domainList: `${baseUrl}/webapp/domainList`,
     search: (query: string) => `${baseUrl}/webapp?query=${encodeURIComponent(query)}`
   };
@@ -200,9 +201,9 @@ export const searchApi = {
       // Don't block the search if logging fails
     }
 
-    // Generate the search URL
-    const searchUrl = `${NULP_WEBAPP_URL}?query=${encodeURIComponent(query)}`;
-    return searchUrl;
+    // Generate the search URL dynamically
+    const urls = getDynamicNulpUrls();
+    return urls.search(query);
   },
 
   // Redirect to search results in new tab
@@ -264,15 +265,18 @@ export const courseApi = {
         }
       };
 
-      const response = await fetch(`${NULP_API_URL}/content/v1/search?orgdetails=orgName,email&licenseDetails=name,description,url`, {
+      const urls = getDynamicNulpUrls();
+      const baseUrl = urls.base;
+      
+      const response = await fetch(`${baseUrl}/api/content/v1/search?orgdetails=orgName,email&licenseDetails=name,description,url`, {
         method: 'POST',
         headers: {
           'Accept': '*/*',
           'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8',
           'Connection': 'keep-alive',
           'Content-Type': 'application/json',
-          'Origin': 'https://nulp.niua.org',
-          'Referer': 'https://nulp.niua.org/webapp/domainList',
+          'Origin': baseUrl,
+          'Referer': `${baseUrl}/webapp/domainList`,
           'Sec-Fetch-Dest': 'empty',
           'Sec-Fetch-Mode': 'cors',
           'Sec-Fetch-Site': 'same-origin',
@@ -344,15 +348,18 @@ export const courseApi = {
         }
       };
 
-      const response = await fetch(`${NULP_API_URL}/content/v1/search?orgdetails=orgName,email&licenseDetails=name,description,url`, {
+      const urls = getDynamicNulpUrls();
+      const baseUrl = urls.base;
+      
+      const response = await fetch(`${baseUrl}/api/content/v1/search?orgdetails=orgName,email&licenseDetails=name,description,url`, {
         method: 'POST',
         headers: {
           'Accept': '*/*',
           'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8',
           'Connection': 'keep-alive',
           'Content-Type': 'application/json',
-          'Origin': 'https://nulp.niua.org',
-          'Referer': 'https://nulp.niua.org/webapp/domainList',
+          'Origin': baseUrl,
+          'Referer': `${baseUrl}/webapp/domainList`,
           'Sec-Fetch-Dest': 'empty',
           'Sec-Fetch-Mode': 'cors',
           'Sec-Fetch-Site': 'same-origin',
@@ -564,7 +571,7 @@ export const discussionApi = {
   // Get popular discussions from NULP forum API via Next.js API route
   getPopularDiscussions: async (): Promise<ApiResponse<DiscussionTopic[]>> => {
     try {
-      const response = await fetch('discussion-forum/api/popular', {
+      const response = await fetch('/api/discussions/popular', {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
@@ -577,7 +584,7 @@ export const discussionApi = {
       }
 
       const data = await response.json();
-
+      console.log('data', data);
       // The API route returns the data in the expected format
       return data;
 
