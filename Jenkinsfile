@@ -60,11 +60,11 @@ node('build-slave') {
                 sh '''
                   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
                   export NVM_DIR="$HOME/.nvm"
-                  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-                  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+                  [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
+                  [ -s "$NVM_DIR/bash_completion" ] && source "$NVM_DIR/bash_completion"
 
-                  nvm install 20
-                  nvm use 20
+                  nvm install 20.19.4
+                  nvm use 20.19.4
 
                   node -v
                   npm -v
