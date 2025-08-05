@@ -71,6 +71,16 @@ interface DomainDiscussionsApiResponse {
   };
 }
 
+// Dynamic URL function for server-side
+const getDiscussionByDomainUrl = (req: NextApiRequest): string => {
+  const host = req.headers.host;
+  // Check if running on localhost or dev environment
+  if (host?.includes('localhost') || host?.includes('dev') || process.env.NODE_ENV === 'development') {
+    return 'https://devnulp.niua.org/discussion/api/posts/by-domain';
+  }
+  return 'https://nulp.niua.org/discussion/api/posts/by-domain';
+};
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -90,7 +100,8 @@ export default async function handler(
 
   try {
     const encodedDomain = encodeURIComponent(domainName);
-    const response = await fetch(`https://devnulp.niua.org/discussion/api/posts/by-domain?domainName=${encodedDomain}`, {
+    const discussionApiUrl = getDiscussionByDomainUrl(req);
+    const response = await fetch(`${discussionApiUrl}?domainName=${encodedDomain}`, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
