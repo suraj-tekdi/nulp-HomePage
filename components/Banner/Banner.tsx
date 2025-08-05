@@ -92,7 +92,7 @@ const Banner: React.FC<BannerProps> = ({ className = '' }) => {
           <button
             className={styles['banner__content-button']}
             style={{'marginTop': '20px'}}
-            onClick={() => window.location.href = 'https://nulp.niua.org/webapp/domainList'}
+            onClick={() => window.location.href = 'https://devnulp.niua.org/webapp/domainList'}
           >
             Get Started
           </button>

@@ -1,7 +1,30 @@
 // API Base Configuration
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+
+// Dynamic NULP URL function
+const getNulpBaseUrl = (): string => {
+  // Check if we're in development environment
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.includes('dev')) {
+      return 'https://devnulp.niua.org';
+    }
+  }
+  return 'https://nulp.niua.org';
+};
+
+// Static URLs for server-side rendering
 const NULP_WEBAPP_URL = 'https://nulp.niua.org/webapp';
 const NULP_API_URL = 'https://nulp.niua.org/api';
+
+// Export function to get dynamic URLs
+export const getDynamicNulpUrls = () => {
+  const baseUrl = getNulpBaseUrl();
+  return {
+    domainList: `${baseUrl}/webapp/domainList`,
+    search: (query: string) => `${baseUrl}/webapp?query=${encodeURIComponent(query)}`
+  };
+};
 
 // API Response Types
 export interface ApiResponse<T = any> {
@@ -541,7 +564,7 @@ export const discussionApi = {
   // Get popular discussions from NULP forum API via Next.js API route
   getPopularDiscussions: async (): Promise<ApiResponse<DiscussionTopic[]>> => {
     try {
-      const response = await fetch('/api/discussions/popular', {
+      const response = await fetch('/api/popular', {
         method: 'GET',
         headers: {
           'Accept': 'application/json',

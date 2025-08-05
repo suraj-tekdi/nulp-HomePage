@@ -22,9 +22,9 @@
 }
 
 .approach__line {
-  height: 2px;
+  height: 3px;
   background-color: #F4B400;
-  width: 60px;
+  width: 230px;
   position: absolute;
   top: 18px;
   left: 0;

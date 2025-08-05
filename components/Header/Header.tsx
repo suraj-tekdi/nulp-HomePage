@@ -5,7 +5,7 @@ import Image from 'next/image';
 import SearchIcon from '@mui/icons-material/Search';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
-import { searchApi, scrollToElement } from '../../services';
+import { searchApi, scrollToElement, getDynamicNulpUrls } from '../../services';
 import styles from './Header.module.css';
 
 interface NavItem {
@@ -179,7 +179,8 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
         await searchApi.redirectToSearchSameTab(query);
       } catch (error) {
         // Fallback: Direct redirect in same tab if API service fails
-        window.location.href = `https://nulp.niua.org/webapp?query=${encodeURIComponent(query)}`;
+        const urls = getDynamicNulpUrls();
+        window.location.href = urls.search(query);
       }
     }
   };
@@ -385,7 +386,8 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
               type="button"
               className={styles['header__auth-button']}
               onClick={() => {
-                window.location.href = 'https://nulp.niua.org/webapp/domainList';
+                const urls = getDynamicNulpUrls();
+                window.location.href = urls.domainList;
               }}
             >
               Log In/Sign Up
@@ -475,7 +477,8 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
                 type="button"
                 className={styles['header__mobile-auth-button']}
                 onClick={() => {
-                  window.location.href = 'https://nulp.niua.org/webapp/domainList';
+                  const urls = getDynamicNulpUrls();
+                  window.location.href = urls.domainList;
                   setIsMobileMenuOpen(false);
                 }}
               >

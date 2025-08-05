@@ -4,6 +4,7 @@ export {
   courseApi, 
   discussionApi, 
   userApi,
+  getDynamicNulpUrls,
   type ApiResponse,
   type SearchParams,
   type SearchResult 
