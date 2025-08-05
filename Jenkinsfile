@@ -57,8 +57,21 @@ node('build-slave') {
                 values.put('image_name', image_name)
                 values.put('image_tag', image_tag)
                 values.put('commit_hash', commit_hash)
-                sh 'npm install --legacy-peer-deps'
-                sh 'npm run build'
+                sh '''
+                  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+                  export NVM_DIR="$HOME/.nvm"
+                  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
+                  nvm install 20
+                  nvm use 20
+
+                  node -v
+                  npm -v
+
+                  npm install --legacy-peer-deps
+                  npm run build
+                '''
 
                 sh("bash build.sh ${values.image_tag} ${env.NODE_NAME} ${hub_org} ${values.image_name} ${build_tag} ${commit_hash}")
             }
