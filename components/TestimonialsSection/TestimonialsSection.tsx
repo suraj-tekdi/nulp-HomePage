@@ -205,7 +205,7 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className = '
             <Image
               src="/images/Arrow.svg"
               alt="Arrow decoration"
-              width={200}
+              width={250}
               height={18}
               className="title-arrow"
             />

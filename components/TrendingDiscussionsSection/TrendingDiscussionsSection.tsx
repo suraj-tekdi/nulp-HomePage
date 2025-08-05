@@ -243,12 +243,12 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
             <Image
               src="/images/Arrow.svg"
               alt="Arrow decoration"
-              width={380}
+              width={280}
               height={18}
               className="title-arrow"
             />
-            <h2 className={styles.practices__title}>
-              Trending <span className={styles.practices__title__highlight}>Discussions</span>
+            <h2 className={styles.discussions__title}>
+              Trending <span className={styles.discussions__title__highlight}>Discussions</span>
             </h2>
           </div>
             <h3 className={styles.discussions__subtitle}>{selectedDomain || 'All Domains'}</h3>
