@@ -568,10 +568,10 @@ export function transformDomainDiscussionPost(post: DomainDiscussionPost): {
 
 // Updated discussionApi with the new function
 export const discussionApi = {
-  // Get popular discussions from NULP forum API via Next.js API route
+  // Get popular discussions directly from external API (hardcoded)
   getPopularDiscussions: async (): Promise<ApiResponse<DiscussionTopic[]>> => {
     try {
-      const response = await fetch('/api/discussions/popular', {
+      const response = await fetch('https://devnulp.niua.org/discussion-forum/api/popular', {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
@@ -585,8 +585,21 @@ export const discussionApi = {
 
       const data = await response.json();
       console.log('data', data);
-      // The API route returns the data in the expected format
-      return data;
+      
+      // Format response from external API
+      if (data.topics && Array.isArray(data.topics)) {
+        return {
+          success: true,
+          data: data.topics.slice(0, 20), // Limit to 20 discussions
+          status: response.status,
+        };
+      } else {
+        return {
+          success: false,
+          error: 'Invalid response format from discussion forum API',
+          status: response.status,
+        };
+      }
 
     } catch (error) {
       return {
