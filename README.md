@@ -66,7 +66,7 @@ The project uses a comprehensive color scheme defined in CSS variables:
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 20+ 
 - npm or yarn
 
 ### Installation
