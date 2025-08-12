@@ -4,6 +4,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import styles from './TrendingGoodPracticesSection.module.css';
 import { courseApi, NulpGoodPractice } from '../../services/api';
+import domainImages from '../../services/domain-images.json';
 
 interface GoodPractice {
   id: string;
@@ -36,6 +37,10 @@ const TrendingGoodPracticesSection: React.FC<TrendingGoodPracticesSectionProps> 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Pagination state derived from container size (viewport-based)
+  const [totalSlides, setTotalSlides] = useState<number>(1);
+  const [shouldShowControls, setShouldShowControls] = useState<boolean>(false);
+
   // Transform NULP API response to our GoodPractice interface
   const transformNulpGoodPractice = useCallback((nulpPractice: NulpGoodPractice): GoodPractice => {
     // Create a description from available data
@@ -53,6 +58,24 @@ const TrendingGoodPracticesSection: React.FC<TrendingGoodPracticesSectionProps> 
       primaryCategory: nulpPractice.primaryCategory,
       mimeType: nulpPractice.mimeType
     };
+  }, []);
+
+  // Helper: recalculate pagination based on container dimensions
+  const recalculatePagination = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const clientWidth = container.clientWidth || 1; // prevent divide by zero
+    const scrollWidth = container.scrollWidth || 0;
+
+    const EPSILON = 2; // px tolerance to ignore subpixel overflow
+    const overflow = Math.max(0, scrollWidth - clientWidth);
+    const slides = overflow <= EPSILON ? 1 : 1 + Math.floor((overflow + EPSILON) / clientWidth);
+
+    setTotalSlides(slides);
+    setShouldShowControls(scrollWidth - clientWidth > EPSILON && slides > 1);
+
+    setCurrentSlide((prev) => Math.min(prev, slides - 1));
   }, []);
 
   // Fetch good practices from API
@@ -83,41 +106,35 @@ const TrendingGoodPracticesSection: React.FC<TrendingGoodPracticesSectionProps> 
     fetchGoodPractices();
   }, [transformNulpGoodPractice, selectedDomain]);
 
-  // Calculate total slides dynamically
-  const totalSlides = useMemo(() => {
-    if (goodPractices.length === 0) return 1;
-    
-    // Get actual container width if available, otherwise use estimate
-    const containerWidth = scrollContainerRef.current?.clientWidth || 1200;
-    const cardWidth = 340 + 24; // card width + gap
-    const visibleCards = Math.max(1, Math.floor(containerWidth / cardWidth));
-    
-    return Math.max(1, Math.ceil(goodPractices.length / visibleCards));
-  }, [goodPractices.length]);
-
-  // Determine if controls should be shown
-  const shouldShowControls = useMemo(() => {
-    if (loading || error || goodPractices.length === 0) return false;
-    
-    // Get actual container width if available, otherwise use estimate
-    const containerWidth = scrollContainerRef.current?.clientWidth || 1200;
-    const cardWidth = 340 + 24; // card width + gap
-    const visibleCards = Math.max(1, Math.floor(containerWidth / cardWidth));
-    
-    // Show controls only if we have more items than can fit in the viewport
-    return goodPractices.length > visibleCards && totalSlides > 1;
-  }, [goodPractices.length, totalSlides, loading, error]);
-
-  // Reset pagination when practices change
+  // After practices change, reset and recalc pagination
   useEffect(() => {
     setCurrentSlide(0);
-    // Small delay to ensure container is rendered
     setTimeout(() => {
-      if (scrollContainerRef.current) {
-        scrollContainerRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+      const container = scrollContainerRef.current;
+      if (container) {
+        container.scrollTo({ left: 0, behavior: 'smooth' });
+        recalculatePagination();
       }
     }, 100);
-  }, [goodPractices]);
+  }, [goodPractices, recalculatePagination]);
+
+  // Observe container resize to keep pagination accurate
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container || typeof ResizeObserver === 'undefined') return;
+
+    const observer = new ResizeObserver(() => {
+      recalculatePagination();
+    });
+
+    observer.observe(container);
+    window.addEventListener('resize', recalculatePagination);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', recalculatePagination);
+    };
+  }, [recalculatePagination]);
 
   // Drag functionality
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -162,34 +179,23 @@ const TrendingGoodPracticesSection: React.FC<TrendingGoodPracticesSectionProps> 
     setIsDragging(false);
   }, []);
 
-  // Update current slide based on scroll position
+  // Update current slide based on scroll position (viewport width pages)
   const updateCurrentSlide = useCallback(() => {
     if (!scrollContainerRef.current) return;
     
     const container = scrollContainerRef.current;
-    const scrollLeft = container.scrollLeft;
-    const containerWidth = container.clientWidth;
-    const cardWidth = 340 + 24; // card width + gap
+    const pageWidth = container.clientWidth || 1;
+    const newSlideIndex = Math.round(container.scrollLeft / pageWidth);
     
-    // Calculate how many cards are visible
-    const visibleCards = Math.max(1, Math.floor(containerWidth / cardWidth));
-    
-    // Calculate which "page" we're on based on scroll position
-    // Each page shows visibleCards number of cards
-    const scrollPerPage = cardWidth * visibleCards;
-    const newSlideIndex = Math.round(scrollLeft / scrollPerPage);
-    
-    // Ensure we don't go beyond available slides
     const clampedSlideIndex = Math.min(Math.max(0, newSlideIndex), totalSlides - 1);
     
     if (clampedSlideIndex !== currentSlide) {
       setCurrentSlide(clampedSlideIndex);
     }
-  }, [currentSlide, totalSlides, goodPractices.length]);
+  }, [currentSlide, totalSlides]);
 
   // Handle scroll events to update pagination with throttling
   const handleScrollUpdate = useCallback(() => {
-    // Use setTimeout to ensure scroll position is stable
     setTimeout(() => {
       updateCurrentSlide();
     }, 50);
@@ -199,49 +205,32 @@ const TrendingGoodPracticesSection: React.FC<TrendingGoodPracticesSectionProps> 
     if (!scrollContainerRef.current || currentSlide >= totalSlides - 1) return;
     
     const container = scrollContainerRef.current;
-    const containerWidth = container.clientWidth;
-    const cardWidth = 340 + 24; // card width + gap
-    const visibleCards = Math.max(1, Math.floor(containerWidth / cardWidth));
-    const scrollAmount = cardWidth * visibleCards;
-    
-    // Update slide index immediately
+    const pageWidth = container.clientWidth;
+
     const newSlideIndex = Math.min(currentSlide + 1, totalSlides - 1);
     setCurrentSlide(newSlideIndex);
-    
-    // Scroll to the new position
-    container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    container.scrollBy({ left: pageWidth, behavior: 'smooth' });
   }, [currentSlide, totalSlides]);
 
   const prevSlide = useCallback(() => {
     if (!scrollContainerRef.current || currentSlide <= 0) return;
     
     const container = scrollContainerRef.current;
-    const containerWidth = container.clientWidth;
-    const cardWidth = 340 + 24; // card width + gap
-    const visibleCards = Math.max(1, Math.floor(containerWidth / cardWidth));
-    const scrollAmount = cardWidth * visibleCards;
-    
-    // Update slide index immediately
+    const pageWidth = container.clientWidth;
+
     const newSlideIndex = Math.max(currentSlide - 1, 0);
     setCurrentSlide(newSlideIndex);
-    
-    // Scroll to the new position
-    container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+    container.scrollBy({ left: -pageWidth, behavior: 'smooth' });
   }, [currentSlide, totalSlides]);
 
   const goToSlide = useCallback((slideIndex: number) => {
     if (!scrollContainerRef.current) return;
     
     const container = scrollContainerRef.current;
-    const containerWidth = container.clientWidth;
-    const cardWidth = 340 + 24; // card width + gap
-    const visibleCards = Math.max(1, Math.floor(containerWidth / cardWidth));
-    const scrollPosition = slideIndex * (cardWidth * visibleCards);
+    const pageWidth = container.clientWidth;
+    const scrollPosition = slideIndex * pageWidth;
     
-    // Update slide index immediately
     setCurrentSlide(slideIndex);
-    
-    // Scroll to the new position
     container.scrollTo({ left: scrollPosition, behavior: 'smooth' });
   }, []);
 
@@ -329,7 +318,7 @@ const TrendingGoodPracticesSection: React.FC<TrendingGoodPracticesSectionProps> 
                 >
                   <div className={styles.practices__card__image}>
                     <img 
-                      src="/images/placeholder-img.png" 
+                      src={(domainImages as Record<string, string>)[practice.category] || '/images/placeholder-img.png'} 
                       alt={practice.title}
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
