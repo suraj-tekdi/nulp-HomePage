@@ -14,8 +14,8 @@ const getNulpBaseUrl = (): string => {
 };
 
 // Static URLs for server-side rendering
-const NULP_WEBAPP_URL = 'https://nulp.niua.org/webapp';
-const NULP_API_URL = 'https://nulp.niua.org/api';
+const NULP_WEBAPP_URL = 'https://devnulp.niua.org/webapp';
+const NULP_API_URL = 'https://devnulp.niua.org/api';
 
 // Export function to get dynamic URLs
 export const getDynamicNulpUrls = () => {

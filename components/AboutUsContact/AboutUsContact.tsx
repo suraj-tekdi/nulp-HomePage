@@ -16,7 +16,12 @@ const AboutUsContact: React.FC<AboutUsContactProps> = ({ className = '' }) => {
           
         <div className={styles.contact__right}>
           <div className={styles.contact__buttons}>
-            <button className={styles.contact__button_filled}>Explore Content</button>
+            <button
+              className={styles.contact__button_filled}
+              onClick={() => { window.location.href = 'https://devnulp.niua.org/webapp'; }}
+            >
+              Explore Content
+            </button>
             <button className={styles.contact__button_outlined}>Contact Us</button>
           </div>
         </div>
