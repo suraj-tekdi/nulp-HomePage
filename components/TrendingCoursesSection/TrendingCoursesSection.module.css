@@ -463,27 +463,19 @@
     height: 360px;
   }
   
-  .trending__card__image {
-    height: 150px;
-  }
   
   .trending__card__placeholder {
     font-size: 0.8rem;
     padding: var(--spacing-sm);
   }
   
-  .trending__card__image img {
-    padding: var(--spacing-sm) var(--spacing-md);
-    margin: calc(var(--spacing-sm) / 2);
-    max-width: calc(100% - var(--spacing-sm));
-    max-height: calc(100% - var(--spacing-sm));
-  }
+
   
   .trending__card__content {
     height: 180px;
   }
   
-  .trending__card__normal,
+
   .trending__card__hover {
     padding: var(--spacing-md);
   }

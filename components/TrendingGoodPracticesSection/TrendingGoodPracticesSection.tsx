@@ -247,7 +247,7 @@ const TrendingGoodPracticesSection: React.FC<TrendingGoodPracticesSectionProps> 
 
   // Handle practice navigation
   const handlePracticeClick = useCallback((practiceId: string) => {
-    const practiceUrl = `https://nulp.niua.org/webapp/player?id=${practiceId}`;
+    const practiceUrl = `https://devnulp.niua.org/webapp/player?id=${practiceId}`;
     window.location.href = practiceUrl;
   }, []);
 
