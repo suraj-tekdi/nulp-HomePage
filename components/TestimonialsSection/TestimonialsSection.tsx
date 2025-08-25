@@ -3,105 +3,84 @@ import Image from 'next/image';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import styles from './TestimonialsSection.module.css';
-
-interface Testimonial {
-  id: number;
-  name: string;
-  position: string;
-  organization: string;
-  image: string;
-  quote: string;
-}
+import { testimonialsApi, HomepageTestimonialItem } from '../../services/api';
 
 interface TestimonialsSectionProps {
   className?: string;
+  initialTestimonials?: HomepageTestimonialItem[];
 }
 
-const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className = '' }) => {
+const CARD_WIDTH_WITH_GAP = 390 + 24; // keep in sync with CSS
+
+const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className = '', initialTestimonials = [] }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [testimonials, setTestimonials] = useState<HomepageTestimonialItem[]>(initialTestimonials);
+  const [visibleCards, setVisibleCards] = useState<number>(1);
+  const [hasOverflow, setHasOverflow] = useState<boolean>(false);
 
-  // Sample testimonials data - removed duplicate
-  const testimonials: Testimonial[] = [
-    {
-      id: 1,
-      name: "Ms Ayushi Bawsar",
-      position: "Nagar Palika Parishad Ashta",
-      organization: "",
-      image: "/images/testimonials/testimonial.png",
-      quote: "The workshop organised was informative and comprehensive. This is a new platform to share ideas with others, and learn from others' ideas and apply them to our ULB. Any ideas shared may be beneficial to us as well. And we can definitely take advantage of this platform and implement some good work for our ULB."
-    },
-    {
-      id: 2,
-      name: "Dr. Rajesh Kumar",
-      position: "Municipal Commissioner",
-      organization: "Smart City Mission",
-      image: "/images/testimonials/testimonial.png",
-      quote: "The NULP platform has transformed how we approach urban governance. The collaborative learning environment and best practices sharing have significantly improved our project implementations and citizen service delivery."
-    },
-    {
-      id: 3,
-      name: "Ms. Priya Sharma",
-      position: "Urban Planning Officer",
-      organization: "City Development Authority",
-      image: "/images/testimonials/testimonial.png",
-      quote: "Exceptional learning experience! The platform provides access to cutting-edge urban development strategies and connects us with experts nationwide. It has enhanced our team's capabilities tremendously."
-    },
-    {
-      id: 4,
-      name: "Mr. Amit Patel",
-      position: "City Manager",
-      organization: "Municipal Corporation",
-      image: "/images/testimonials/testimonial.png",
-      quote: "NULP has been instrumental in our capacity building journey. The practical insights and peer-to-peer learning opportunities have helped us implement successful urban initiatives in our city."
-    },
-    {
-      id: 5,
-      name: "Dr. Meera Reddy",
-      position: "Director",
-      organization: "Urban Development Department",
-      image: "/images/testimonials/testimonial.png",
-      quote: "The platform's comprehensive approach to urban learning is remarkable. It bridges the gap between theoretical knowledge and practical implementation, making it invaluable for urban practitioners."
-    }
-  ];
+  // Observe width changes to recalc visible cards and overflow
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
 
-  // Calculate total slides dynamically
-  const totalSlides = useMemo(() => {
-    if (testimonials.length === 0) return 1;
-    
-    // Get actual container width if available, otherwise use estimate
-    const containerWidth = scrollContainerRef.current?.clientWidth || 1200;
-    const cardWidth = 390 + 24; // max-width from CSS + gap
-    const visibleCards = Math.max(1, Math.floor(containerWidth / cardWidth));
-    
-    return Math.max(1, Math.ceil(testimonials.length / visibleCards));
+    const update = () => {
+      const containerWidth = el.clientWidth || 0;
+      const vc = Math.max(1, Math.floor(containerWidth / CARD_WIDTH_WITH_GAP));
+      setVisibleCards(vc);
+      // overflow when total content width > container width
+      const contentWidth = testimonials.length * CARD_WIDTH_WITH_GAP;
+      setHasOverflow(contentWidth > containerWidth + 1);
+    };
+
+    update();
+
+    const ro = new ResizeObserver(() => update());
+    ro.observe(el);
+    return () => ro.disconnect();
   }, [testimonials.length]);
 
-  // Determine if controls should be shown
-  const shouldShowControls = useMemo(() => {
-    if (testimonials.length === 0) return false;
-    
-    // Get actual container width if available, otherwise use estimate
-    const containerWidth = scrollContainerRef.current?.clientWidth || 1200;
-    const cardWidth = 390 + 24; // max-width from CSS + gap
-    const visibleCards = Math.max(1, Math.floor(containerWidth / cardWidth));
-    
-    // Show controls only if we have more items than can fit in the viewport
-    return testimonials.length > visibleCards && totalSlides > 1;
-  }, [testimonials.length, totalSlides]);
+  // Hydrate from server-provided testimonials
+  useEffect(() => {
+    if (initialTestimonials && initialTestimonials.length > 0) {
+      const sorted = [...initialTestimonials].sort((a, b) => (a.id || 0) - (b.id || 0));
+      setTestimonials(sorted);
+    }
+  }, [initialTestimonials]);
 
-  // Reset pagination when testimonials change
+  // Fetch from CMS if none provided
+  useEffect(() => {
+    if (testimonials.length > 0) return;
+    let mounted = true;
+    (async () => {
+      const res = await testimonialsApi.getHomepageTestimonials();
+      if (mounted && res.success && res.data) {
+        const sorted = [...res.data].sort((a, b) => (a.id || 0) - (b.id || 0));
+        setTestimonials(sorted);
+      }
+    })();
+    return () => { mounted = false; };
+  }, [testimonials.length]);
+
+  // Calculate total slides based on visible cards
+  const totalSlides = useMemo(() => {
+    if (testimonials.length === 0) return 1;
+    const slides = Math.ceil(testimonials.length / visibleCards);
+    return Math.max(1, slides);
+  }, [testimonials.length, visibleCards]);
+
+  // Reset pagination when dependencies change
   useEffect(() => {
     setCurrentSlide(0);
     setTimeout(() => {
       if (scrollContainerRef.current) {
         scrollContainerRef.current.scrollTo({ left: 0, behavior: 'smooth' });
       }
-    }, 100);
-  }, [testimonials]);
+    }, 50);
+  }, [testimonials.length, visibleCards]);
 
   // Drag functionality
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -148,53 +127,31 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className = '
 
   const nextSlide = useCallback(() => {
     if (!scrollContainerRef.current || currentSlide >= totalSlides - 1) return;
-    
     const container = scrollContainerRef.current;
-    const containerWidth = container.clientWidth;
-    const cardWidth = 390 + 24; // max-width from CSS + gap
-    const visibleCards = Math.max(1, Math.floor(containerWidth / cardWidth));
-    const scrollAmount = cardWidth * visibleCards;
-    
-    // Update slide index immediately
+    const scrollAmount = CARD_WIDTH_WITH_GAP * visibleCards;
     const newSlideIndex = Math.min(currentSlide + 1, totalSlides - 1);
     setCurrentSlide(newSlideIndex);
-    
-    // Scroll to the new position
     container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-  }, [currentSlide, totalSlides]);
+  }, [currentSlide, totalSlides, visibleCards]);
 
   const prevSlide = useCallback(() => {
     if (!scrollContainerRef.current || currentSlide <= 0) return;
-    
     const container = scrollContainerRef.current;
-    const containerWidth = container.clientWidth;
-    const cardWidth = 390 + 24; // max-width from CSS + gap
-    const visibleCards = Math.max(1, Math.floor(containerWidth / cardWidth));
-    const scrollAmount = cardWidth * visibleCards;
-    
-    // Update slide index immediately
+    const scrollAmount = CARD_WIDTH_WITH_GAP * visibleCards;
     const newSlideIndex = Math.max(currentSlide - 1, 0);
     setCurrentSlide(newSlideIndex);
-    
-    // Scroll to the new position
     container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-  }, [currentSlide, totalSlides]);
+  }, [currentSlide, visibleCards]);
 
   const goToSlide = useCallback((slideIndex: number) => {
     if (!scrollContainerRef.current) return;
-    
     const container = scrollContainerRef.current;
-    const containerWidth = container.clientWidth;
-    const cardWidth = 390 + 24; // max-width from CSS + gap
-    const visibleCards = Math.max(1, Math.floor(containerWidth / cardWidth));
-    const scrollPosition = slideIndex * (cardWidth * visibleCards);
-    
-    // Update slide index immediately
+    const scrollPosition = slideIndex * (CARD_WIDTH_WITH_GAP * visibleCards);
     setCurrentSlide(slideIndex);
-    
-    // Scroll to the new position
     container.scrollTo({ left: scrollPosition, behavior: 'smooth' });
-  }, []);
+  }, [visibleCards]);
+
+  const showControls = hasOverflow && totalSlides > 1;
 
   return (
     <section className={`${styles.testimonials} ${className}`}>
@@ -229,13 +186,13 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className = '
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
           >
-            {testimonials.map((testimonial) => (
-              <div key={testimonial.id} className={styles.testimonials__card}>
+            {testimonials.map((t) => (
+              <div key={t.id} className={styles.testimonials__card}>
                 {/* Profile Image */}
                 <div className={styles.testimonials__card__imageContainer}>
                   <img
-                    src={testimonial.image}
-                    alt={testimonial.name}
+                    src={testimonialsApi.buildImageUrl(t.thumbnail?.formats?.thumbnail?.url || t.thumbnail?.url)}
+                    alt={t.user_name}
                     className={styles.testimonials__card__image}
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
@@ -247,21 +204,16 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className = '
                 {/* Quote */}
                 <div className={styles.testimonials__card__content}>
                   <blockquote className={styles.testimonials__card__quote}>
-                    "{testimonial.quote}"
+                    <span dangerouslySetInnerHTML={{ __html: t.testimonial }} />
                   </blockquote>
 
                   {/* Attribution */}
                   <div className={styles.testimonials__card__attribution}>
                     <div className={styles.testimonials__card__name}>
-                      — {testimonial.name}
+                      — {t.user_name}
                     </div>
                     <div className={styles.testimonials__card__position}>
-                      {testimonial.position}
-                      {testimonial.organization && (
-                        <span className={styles.testimonials__card__organization}>
-                          , {testimonial.organization}
-                        </span>
-                      )}
+                      {t.user_details}
                     </div>
                   </div>
                 </div>
@@ -270,7 +222,7 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className = '
           </div>
 
           {/* Conditionally render controls only when needed */}
-          {shouldShowControls && (
+          {showControls && (
             <div className={styles.testimonials__controls}>
               {/* Pagination Dots */}
               <div className={styles.testimonials__pagination}>
