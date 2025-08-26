@@ -16,7 +16,6 @@ interface BannerProps {
   className?: string;
 }
 
-// Custom hook for animated counter
 const useAnimatedCounter = (target: number, duration: number = 2000, shouldStart: boolean = false) => {
   const [count, setCount] = useState(0);
   const [hasAnimated, setHasAnimated] = useState(false);
@@ -31,8 +30,6 @@ const useAnimatedCounter = (target: number, duration: number = 2000, shouldStart
     const updateCounter = () => {
       const now = Date.now();
       const progress = Math.min((now - startTime) / duration, 1);
-      
-      // Easing function for smooth animation
       const easeOutQuart = 1 - Math.pow(1 - progress, 4);
       const currentValue = Math.floor(startValue + (target - startValue) * easeOutQuart);
       
@@ -41,7 +38,7 @@ const useAnimatedCounter = (target: number, duration: number = 2000, shouldStart
       if (progress < 1) {
         requestAnimationFrame(updateCounter);
       } else {
-        setCount(target); // Ensure we end at exact target
+        setCount(target); 
       }
     };
     

@@ -7,13 +7,81 @@
 .contact__container {
   margin: 0 auto;
   padding: 0 50px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  gap: 40px;
+  max-width: 1500px;
 }
 
+/* Title centered for the section similar to screenshot */
+.contact__title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #031749;
+  margin: 0 0 24px 0;
+  text-align: center;
+}
+
+/* Info grid with icons */
+.contact__infoGrid {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.contact__infoItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.contact__icon {
+  color: #031749;
+  line-height: 1;
+}
+
+.contact__iconImg {
+  display: block;
+}
+
+.contact__infoTitle {
+  margin: 0 0 4px 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #031749;
+}
+
+.contact__infoText {
+  margin: 0;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.contact__link {
+  color: #031749;
+  text-decoration: none;
+  font-weight: 400;
+}
+
+.contact__link:hover {
+  text-decoration: underline;
+}
+
+/* Map wrapper to provide full width responsive iframe with gentle radius/shadow */
+.contact__mapWrapper {
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 14px rgba(3, 23, 73, 0.12);
+}
+
+.contact__mapWrapper iframe {
+  width: 100%;
+  height: 360px;
+  border: 0;
+}
+
+/* Legacy left/right/button styles retained (unused) */
 .contact__left {
   flex: 1;
   text-align: left;
@@ -23,22 +91,12 @@
   flex-shrink: 0;
 }
 
-.contact__title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #031749;
-  margin: 0 0 15px 0;
-  text-align: left;
-}
-
 .contact__subtitle {
   font-size: 1.2rem;
   color: #666;
   margin: 0;
   text-align: left;
 }
-
-
 
 .contact__buttons {
   display: flex;
@@ -87,28 +145,11 @@
 /* Responsive */
 @media (max-width: 968px) {
   .contact__container {
-    flex-direction: column;
-    text-align: center;
-    gap: 30px;
+    padding: 0 24px;
   }
-  
-  .contact__left {
-    text-align: center;
-  }
-  
-  .contact__title {
-    text-align: center;
-    font-size: 2rem;
-  }
-  
-  .contact__subtitle {
-    text-align: center;
-    font-size: 1.1rem;
-  }
-  
-  .contact__buttons {
-    justify-content: center;
-    flex-wrap: wrap;
+
+  .contact__infoGrid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -116,29 +157,18 @@
   .contact {
     padding: 60px 0;
   }
-  
-  .contact__container {
-    padding: 0 20px;
-    gap: 25px;
-  }
-  
+
   .contact__title {
-    font-size: 1.8rem;
+    font-size: 2rem;
   }
-  
-  .contact__subtitle {
-    font-size: 1rem;
+
+  /* Mobile: info blocks stacked */
+  .contact__infoGrid {
+    display: block;
   }
-  
-  .contact__buttons {
-    flex-direction: column;
-    gap: 15px;
-  }
-  
-  .contact__button_filled,
-  .contact__button_outlined {
-    width: 250px;
-    padding: 15px 30px;
+
+  .contact__mapWrapper iframe {
+    height: 300px;
   }
 }
 
@@ -146,13 +176,8 @@
   .contact {
     padding: 40px 0;
   }
-  
-  .contact__container {
-    padding: 0 15px;
+
+  .contact__mapWrapper iframe {
+    height: 260px;
   }
-  
-  .contact__button_filled,
-  .contact__button_outlined {
-    width: 220px;
-  }
-} 
+}

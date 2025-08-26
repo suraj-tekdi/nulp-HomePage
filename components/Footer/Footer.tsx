@@ -1,13 +1,39 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import styles from './Footer.module.css';
+import { contactsApi, type HomepageContactItem } from '../../services/api';
 
 interface FooterProps {
   className?: string;
 }
 
 const Footer: React.FC<FooterProps> = ({ className = '' }) => {
+  const [contacts, setContacts] = useState<HomepageContactItem[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const res = await contactsApi.getHomepageContacts();
+        if (isMounted && res.success && Array.isArray(res.data)) {
+          const filtered = (res.data as HomepageContactItem[])
+            .filter(item => item.category?.slug === 'footer-contact-us' && item.is_active)
+            .sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+          setContacts(filtered);
+        }
+      } catch (e) {
+        // ignore
+      }
+    })();
+    return () => { isMounted = false; };
+  }, []);
+
+  const renderAddress = (html?: string) => {
+    if (!html) return null;
+    return <div className={styles.footer__contactText} dangerouslySetInnerHTML={{ __html: html }} />;
+  };
+
   return (
     <footer className={`${styles.footer} ${className}`}>
       <div className={styles.footer__container}>
@@ -25,22 +51,12 @@ const Footer: React.FC<FooterProps> = ({ className = '' }) => {
           </div>
           
           <div className={styles.footer__contact}>
-            <div className={styles.footer__contactSection}>
-              <h4 className={styles.footer__contactTitle}>Nodal Ministry:</h4>
-              <p className={styles.footer__contactText}>
-                Ministry of Housing and Urban Affairs, Government of India<br />
-                Nirman Bhawan, New Delhi- 110001, INDIA
-              </p>
-            </div>
-            
-            <div className={styles.footer__contactSection}>
-              <h4 className={styles.footer__contactTitle}>Anchor Institute:</h4>
-              <p className={styles.footer__contactText}>
-                National Institute of Urban Affairs<br />
-                1st Floor, Core 4B, India Habitat Centre, Lodhi Road, New Delhi - 110003, INDIA<br />
-                Phone: (+91 11) 24617517; 24617543, 24617595
-              </p>
-            </div>
+            {contacts.map((item) => (
+              <div key={item.documentId} className={styles.footer__contactSection}>
+                <h4 className={styles.footer__contactTitle}>{item.title}:</h4>
+                {renderAddress(item.address)}
+              </div>
+            ))}
           </div>
         </div>
 
@@ -118,7 +134,7 @@ const Footer: React.FC<FooterProps> = ({ className = '' }) => {
             <Link href="#" className={styles.footer__socialLink} aria-label="LinkedIn">
               <div className={styles.footer__socialIcon}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.27-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
                 </svg>
               </div>
               <span>LinkedIn</span>
@@ -127,7 +143,7 @@ const Footer: React.FC<FooterProps> = ({ className = '' }) => {
             <Link href="#" className={styles.footer__socialLink} aria-label="YouTube">
               <div className={styles.footer__socialIcon}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s 0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
                 </svg>
               </div>
               <span>YouTube</span>
