@@ -53,16 +53,19 @@
 }
 
 .footer__contactTitle {
-  font-size: 1.1rem;
+  font-size: 1.1rem !important;
   font-weight: 600;
-  color: #ffffff;
+  color: #ffffff !important;
   margin-bottom: 0.5rem;
 }
-
+.footer__contactText p{
+  background: none !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+}
 .footer__contactText {
-  font-size: 0.9rem;
+  font-size: 0.9rem !important;
   line-height: 1.6;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.8) !important;
   margin: 0;
 }
 

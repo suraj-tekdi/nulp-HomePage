@@ -4,6 +4,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import styles from './Banner.module.css';
 import { scrollToElement } from '../../services/scrollUtils';
+import { stacksApi, type HomepageStackItem } from '../../services/api';
 
 interface BannerSlide {
   id: number | string;
@@ -15,7 +16,6 @@ interface BannerProps {
   className?: string;
 }
 
-// Custom hook for animated counter
 const useAnimatedCounter = (target: number, duration: number = 2000, shouldStart: boolean = false) => {
   const [count, setCount] = useState(0);
   const [hasAnimated, setHasAnimated] = useState(false);
@@ -30,8 +30,6 @@ const useAnimatedCounter = (target: number, duration: number = 2000, shouldStart
     const updateCounter = () => {
       const now = Date.now();
       const progress = Math.min((now - startTime) / duration, 1);
-      
-      // Easing function for smooth animation
       const easeOutQuart = 1 - Math.pow(1 - progress, 4);
       const currentValue = Math.floor(startValue + (target - startValue) * easeOutQuart);
       
@@ -40,7 +38,7 @@ const useAnimatedCounter = (target: number, duration: number = 2000, shouldStart
       if (progress < 1) {
         requestAnimationFrame(updateCounter);
       } else {
-        setCount(target); // Ensure we end at exact target
+        setCount(target); 
       }
     };
     
@@ -48,6 +46,13 @@ const useAnimatedCounter = (target: number, duration: number = 2000, shouldStart
   }, [target, duration, shouldStart, hasAnimated]);
 
   return count;
+};
+
+// Child to safely animate within list rendering
+const AnimatedNumber: React.FC<{ value: number; duration: number; start: boolean }>
+= ({ value, duration, start }) => {
+  const animated = useAnimatedCounter(value, duration, start);
+  return <>{animated.toLocaleString()}</>;
 };
 
 const Banner: React.FC<BannerProps> = ({ className = '' }) => {
@@ -121,24 +126,47 @@ const Banner: React.FC<BannerProps> = ({ className = '' }) => {
   // Auto scroll configuration
   const AUTO_SCROLL_INTERVAL = 4000;
 
-  // Stats data
-  const stats = [
-    { number: 12, label: "Participating States" },
-    { number: 449, label: "Urban Local Bodies" },
-    { number: 107690, label: "NULP Community Members" },
-  ];
+  // API-driven Banner stats
+  const [stats, setStats] = useState<{ number: number; label: string; duration: number }[]>([]);
+  const [isLoadingStacks, setIsLoadingStacks] = useState(true);
 
-  // Animated counters for each stat
-  const animatedStats = [
-    useAnimatedCounter(stats[0].number, 2000, shouldAnimateStats),
-    useAnimatedCounter(stats[1].number, 2500, shouldAnimateStats),
-    useAnimatedCounter(stats[2].number, 3000, shouldAnimateStats),
-  ];
+  // Fetch stacks and filter for banner-stack
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const res = await stacksApi.getHomepageStacks();
+        if (isMounted && res.success && Array.isArray(res.data)) {
+          // Filter to banner-stack, dedupe by title, sort by order
+          const filtered = (res.data as HomepageStackItem[])
+            .filter(item => item.category?.slug === 'banner-stack' && typeof item.enter_count === 'number' && item.title);
 
-  // Format numbers with commas
-  const formatNumber = (num: number): string => {
-    return num.toLocaleString();
-  };
+          const uniqueByTitle = Array.from(new Map(filtered.map(it => [it.title, it])).values());
+
+          uniqueByTitle.sort((a, b) => {
+            const oa = typeof a.order === 'number' ? a.order : 0;
+            const ob = typeof b.order === 'number' ? b.order : 0;
+            return oa - ob;
+          });
+
+          const mapped = uniqueByTitle.map((item, idx) => ({
+            number: item.enter_count || 0,
+            label: item.title,
+            duration: 1800 + (idx % 4) * 300,
+          }));
+
+          setStats(mapped);
+        } else if (isMounted) {
+          setStats([]);
+        }
+      } catch (e) {
+        if (isMounted) setStats([]);
+      } finally {
+        if (isMounted) setIsLoadingStacks(false);
+      }
+    })();
+    return () => { isMounted = false; };
+  }, []);
 
   // Clear auto scroll timer
   const clearAutoScroll = () => {
@@ -308,9 +336,9 @@ const Banner: React.FC<BannerProps> = ({ className = '' }) => {
       {/* Stats + Arrows */}
       <div className={styles['banner__sidebar']}>
         <div className={styles['banner__stats']} ref={statsRef}>
-          {stats.map((stat, i) => (
-            <div key={i} className={styles['banner__stats-item']}>
-              <div className={styles['banner__stats-number']}>{formatNumber(animatedStats[i])}</div>
+          {!isLoadingStacks && stats.map((stat, i) => (
+            <div key={`${stat.label}-${i}`} className={styles['banner__stats-item']}>
+              <div className={styles['banner__stats-number']}><AnimatedNumber value={stat.number} duration={stat.duration} start={shouldAnimateStats} /></div>
               <div className={styles['banner__stats-label']}>{stat.label}</div>
             </div>
           ))}

@@ -21,7 +21,8 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ className = '' }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeSection, setActiveSection] = useState<string>('home'); // Track active section
+  const [activeSection, setActiveSection] = useState<string>('home'); // Track active section (home page)
+  const [isContactInView, setIsContactInView] = useState<boolean>(false); // Track contact section (about page)
   const [clickedMenu, setClickedMenu] = useState<string>(''); // Track clicked menu for contact us
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Mobile menu state
   const [isMobile, setIsMobile] = useState(false); // Track if mobile view
@@ -34,21 +35,20 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
     { label: 'Discussions', href: '/', scrollTo: 'trending-discussions' },
     { label: 'State Engagement', href: '/', scrollTo: 'state-engagement' },
     { label: 'About Us', href: '/about' },
-    { label: 'Contact Us', href: 'mailto:nulp@niua.org' },
+    { label: 'Contact Us', href: '/about', scrollTo: 'contact-us' },
   ];
 
   // Function to determine if a nav item is active
   const isNavItemActive = (item: NavItem): boolean => {
-    // Handle Contact Us - active when clicked
-    if (item.href === 'mailto:nulp@niua.org') {
-      return clickedMenu === 'Contact Us';
-    }
-    
-    // For About Us page
+    // For About Us page, show only one active at a time
     if (router.pathname === '/about') {
-      return item.href === '/about';
+      if (item.scrollTo === 'contact-us') {
+        return isContactInView;
+      }
+      // Highlight About Us when not in the contact section
+      return item.href === '/about' && !item.scrollTo && !isContactInView;
     }
-    
+
     // For home page - use scroll-based detection
     if (router.pathname === '/') {
       if (item.scrollTo) {
@@ -67,6 +67,46 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
   useEffect(() => {
     setIsMobileMenuOpen(false);
     setClickedMenu('');
+  }, [router.pathname]);
+
+  // Observe contact section visibility on About page
+  useEffect(() => {
+    if (router.pathname !== '/about') {
+      setIsContactInView(false);
+      return;
+    }
+
+    const element = document.getElementById('contact-us');
+    if (!element) return;
+
+    const observerOptions = {
+      root: null,
+      rootMargin: '-20% 0px -60% 0px',
+      threshold: 0.1,
+    } as IntersectionObserverInit;
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.target === element) {
+          setIsContactInView(entry.isIntersecting);
+        }
+      });
+    }, observerOptions);
+
+    observer.observe(element);
+
+    const handleScrollTop = () => {
+      if (window.scrollY < 100) {
+        setIsContactInView(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScrollTop);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('scroll', handleScrollTop);
+    };
   }, [router.pathname]);
 
   // Close mobile menu when clicking outside
@@ -92,7 +132,7 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
     };
   }, [isMobileMenuOpen]);
 
-  // Intersection Observer to detect which section is in view
+  // Intersection Observer to detect which section is in view (Home page)
   useEffect(() => {
     if (router.pathname !== '/') return; // Only on home page
 
@@ -215,8 +255,6 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
           behavior: 'smooth'
         });
         
-        // Immediately set active section for better UX
-        setActiveSection(elementId);
         return true;
       }
       return false;
@@ -237,20 +275,21 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
       setIsMobileMenuOpen(false);
     }
 
-    if (item.href === 'mailto:nulp@niua.org') {
-      // Handle Contact Us - set as clicked and open mailto
+    if (item.scrollTo === 'contact-us') {
+      // Mark as clicked for UX, but rely on observer for highlighting
       setClickedMenu('Contact Us');
-      window.location.href = item.href;
-      
-      // Reset after a short delay
-      setTimeout(() => setClickedMenu(''), 2000);
+
+      if (router.pathname === '/about') {
+        handleSmoothScroll('contact-us');
+      } else {
+        router.push('/about').then(() => {
+          setTimeout(() => handleSmoothScroll('contact-us'), 100);
+        });
+      }
       return;
     }
 
     if (item.scrollTo) {
-      // If it's a scroll-to item, set it as active immediately
-      setActiveSection(item.scrollTo);
-      
       if (router.pathname === '/') {
         // If already on home page, just scroll
         handleSmoothScroll(item.scrollTo);
@@ -320,35 +359,18 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
             <ul className={styles['header__nav-list']}>
               {navItems.map((item, index) => (
                 <li key={index} className={styles['header__nav-item']}>
-                  {item.href === 'mailto:nulp@niua.org' ? (
-                    // Handle mailto links as regular links
-                    <Link
-                      href={item.href}
-                      className={`${styles['header__nav-link']} ${
-                        isNavItemActive(item) ? styles['header__nav-link--active'] : ''
-                      }`}
-                      onClick={() => {
-                        setClickedMenu('Contact Us');
-                        setTimeout(() => setClickedMenu(''), 2000);
-                      }}
-                    >
-                      {item.label}
-                    </Link>
-                  ) : (
-                    // Use button for all internal navigation (including scroll-to items)
-                    <button
-                      type="button"
-                      className={`${styles['header__nav-link']} ${
-                        isNavItemActive(item) ? styles['header__nav-link--active'] : ''
-                      }`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleNavClick(item);
-                      }}
-                    >
-                      {item.label}
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    className={`${styles['header__nav-link']} ${
+                      isNavItemActive(item) ? styles['header__nav-link--active'] : ''
+                    }`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleNavClick(item);
+                    }}
+                  >
+                    {item.label}
+                  </button>
                 </li>
               ))}
             </ul>
@@ -414,34 +436,18 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
                 <ul className={styles['header__mobile-nav-list']}>
                   {navItems.map((item, index) => (
                     <li key={index} className={styles['header__mobile-nav-item']}>
-                      {item.href === 'mailto:nulp@niua.org' ? (
-                        <Link
-                          href={item.href}
-                          className={`${styles['header__mobile-nav-link']} ${
-                            isNavItemActive(item) ? styles['header__mobile-nav-link--active'] : ''
-                          }`}
-                          onClick={() => {
-                            setClickedMenu('Contact Us');
-                            setTimeout(() => setClickedMenu(''), 2000);
-                            setIsMobileMenuOpen(false);
-                          }}
-                        >
-                          {item.label}
-                        </Link>
-                      ) : (
-                        <button
-                          type="button"
-                          className={`${styles['header__mobile-nav-link']} ${
-                            isNavItemActive(item) ? styles['header__mobile-nav-link--active'] : ''
-                          }`}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            handleNavClick(item, true);
-                          }}
-                        >
-                          {item.label}
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        className={`${styles['header__mobile-nav-link']} ${
+                          isNavItemActive(item) ? styles['header__mobile-nav-link--active'] : ''
+                        }`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleNavClick(item, true);
+                        }}
+                      >
+                        {item.label}
+                      </button>
                     </li>
                   ))}
                 </ul>

@@ -614,7 +614,7 @@ export const discussionApi = {
   getDiscussionsByDomain: async (domainName: string): Promise<ApiResponse<DomainDiscussionPost[]>> => {
     try {
       const encodedDomain = encodeURIComponent(domainName);
-      const response = await fetch(`/api/discussions/by-domain?domainName=${encodedDomain}`, {
+      const response = await fetch(`${API_BASE_URL}/api/discussions/by-domain?domainName=${encodedDomain}`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
@@ -664,10 +664,398 @@ export const userApi = {
   },
 };
 
+export interface HomepagePartnerLogoFormatThumb {
+  ext: string;
+  url: string;
+  hash: string;
+  mime: string;
+  name: string;
+  path: string | null;
+  size: number;
+  width: number;
+  height: number;
+  sizeInBytes?: number;
+}
+
+export interface HomepagePartnerLogo {
+  id: number;
+  documentId: string;
+  name: string;
+  alternativeText: string | null;
+  caption: string | null;
+  width: number;
+  height: number;
+  formats?: { thumbnail?: HomepagePartnerLogoFormatThumb };
+  hash: string;
+  ext: string;
+  mime: string;
+  size: number;
+  url: string; // path like /uploads/xxx.png
+  previewUrl: string | null;
+  provider: string;
+  provider_metadata: any;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
+}
+
+export interface HomepagePartnerCategory {
+  id: number;
+  documentId: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  state: string;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
+}
+
+export interface HomepagePartnerItem {
+  id: number;
+  documentId: string;
+  name: string;
+  link: string;
+  slug: string;
+  state: string;
+  is_active: boolean;
+  display_order: number;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
+  logo: HomepagePartnerLogo;
+  category: HomepagePartnerCategory;
+}
+
+export interface HomepagePartnersResponseMeta {
+  pagination: {
+    page: number;
+    pageSize: number;
+    pageCount: number;
+    total: number;
+  };
+  responseTime: number;
+  timestamp: string;
+  version: string;
+  requestId: string;
+}
+
+export interface HomepagePartnersResponse {
+  success: boolean;
+  data: HomepagePartnerItem[];
+  meta: HomepagePartnersResponseMeta;
+}
+
+const CMS_API_BASE_URL = 'https://devnulp.niua.org/mw-cms';
+const CMS_MEDIA_BASE_URL = 'https://devnulp.niua.org/cms';
+
+export const partnersApi = {
+  getHomepagePartners: async (): Promise<ApiResponse<HomepagePartnerItem[]>> => {
+    try {
+      const response = await fetch(`${CMS_API_BASE_URL}/api/v1/homepage/partners`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data: HomepagePartnersResponse = await response.json();
+      if (data.success && Array.isArray(data.data)) {
+        return { success: true, data: data.data, status: response.status };
+      }
+      return { success: false, error: 'Invalid partners API response', status: response.status };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch partners',
+        status: 0,
+      };
+    }
+  },
+  buildLogoUrl: (pathOrUrl?: string): string => {
+    if (!pathOrUrl) return '';
+    if (pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://')) return pathOrUrl;
+    const normalized = pathOrUrl.startsWith('/') ? pathOrUrl : `/${pathOrUrl}`;
+    return `${CMS_MEDIA_BASE_URL}${normalized}`;
+  }
+};
+
+// Testimonials types and API
+export interface HomepageTestimonialThumbnailFormats {
+  small?: { ext: string; url: string; hash: string; mime: string; name: string; path: string | null; size: number; width: number; height: number; sizeInBytes?: number };
+  thumbnail?: { ext: string; url: string; hash: string; mime: string; name: string; path: string | null; size: number; width: number; height: number; sizeInBytes?: number };
+}
+
+export interface HomepageTestimonialThumbnail {
+  id: number;
+  documentId: string;
+  name: string;
+  alternativeText: string | null;
+  caption: string | null;
+  width: number;
+  height: number;
+  formats?: HomepageTestimonialThumbnailFormats;
+  hash: string;
+  ext: string;
+  mime: string;
+  size: number;
+  url: string;
+  previewUrl: string | null;
+  provider: string;
+  provider_metadata: any;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
+}
+
+export interface HomepageTestimonialItem {
+  id: number;
+  documentId: string;
+  user_name: string;
+  user_details: string;
+  testimonial: string; // HTML content
+  state: string;
+  start_publish_date: string | null;
+  end_publish_date: string | null;
+  is_active: boolean;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
+  category: {
+    id: number;
+    documentId: string;
+    slug: string;
+    name: string;
+    description: string | null;
+    state: string;
+    createdAt: string;
+    updatedAt: string;
+    publishedAt: string;
+  };
+  thumbnail?: HomepageTestimonialThumbnail;
+}
+
+export interface HomepageTestimonialsResponseMeta {
+  pagination: { page: number; pageSize: number; pageCount: number; total: number };
+  responseTime: number;
+  timestamp: string;
+  version: string;
+  requestId: string;
+}
+
+export interface HomepageTestimonialsResponse {
+  success: boolean;
+  data: HomepageTestimonialItem[];
+  meta: HomepageTestimonialsResponseMeta;
+}
+
+export const testimonialsApi = {
+  getHomepageTestimonials: async (): Promise<ApiResponse<HomepageTestimonialItem[]>> => {
+    try {
+      const response = await fetch(`${CMS_API_BASE_URL}/api/v1/homepage/testimonials`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data: HomepageTestimonialsResponse = await response.json();
+      if (data.success && Array.isArray(data.data)) {
+        return { success: true, data: data.data, status: response.status };
+      }
+      return { success: false, error: 'Invalid testimonials API response', status: response.status };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch testimonials',
+        status: 0,
+      };
+    }
+  },
+  buildImageUrl: (pathOrUrl?: string): string => {
+    if (!pathOrUrl) return '';
+    if (pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://')) return pathOrUrl;
+    const normalized = pathOrUrl.startsWith('/') ? pathOrUrl : `/${pathOrUrl}`;
+    return `${CMS_MEDIA_BASE_URL}${normalized}`;
+  }
+};
+
+// Homepage Stacks types and API
+export interface HomepageStackCategory {
+  id: number;
+  documentId: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  state: string;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
+}
+
+export interface HomepageStackItem {
+  id: number;
+  documentId: string;
+  title: string;
+  order: number;
+  mode: string; // "Custom" | "Dynamic"
+  enter_count: number;
+  state: string;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
+  dynamic_content: string | null;
+  category: HomepageStackCategory;
+}
+
+export interface HomepageStacksResponseMeta {
+  pagination: { page: number; pageSize: number; pageCount: number; total: number };
+  responseTime: number;
+  timestamp: string;
+  version: string;
+  requestId: string;
+}
+
+export interface HomepageStacksResponse {
+  success: boolean;
+  data: HomepageStackItem[];
+  meta: HomepageStacksResponseMeta;
+}
+
+export const stacksApi = {
+  getHomepageStacks: async (): Promise<ApiResponse<HomepageStackItem[]>> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/homepage/stacks`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const raw: any = await response.json();
+
+      // Normalize possible shapes:
+      // 1) { success: true, data: [] }
+      // 2) { success: true, data: { data: [] } }
+      // 3) Direct array (edge-case)
+      const maybeArray = Array.isArray(raw?.data) ? raw.data
+        : Array.isArray(raw?.data?.data) ? raw.data.data
+        : Array.isArray(raw) ? raw
+        : null;
+
+      if (raw?.success === true && Array.isArray(maybeArray)) {
+        return { success: true, data: maybeArray as HomepageStackItem[], status: response.status };
+      }
+
+      return { success: false, error: 'Invalid stacks API response', status: response.status };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch stacks',
+        status: 0,
+      };
+    }
+  }
+};
+
+export interface HomepageContactCategory {
+  id: number;
+  documentId: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  state: string;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
+}
+
+export interface HomepageContactLogoFormats {
+  large?: { ext: string; url: string; hash: string; mime: string; name: string; path: string | null; size: number; width: number; height: number; sizeInBytes?: number };
+  small?: { ext: string; url: string; hash: string; mime: string; name: string; path: string | null; size: number; width: number; height: number; sizeInBytes?: number };
+  medium?: { ext: string; url: string; hash: string; mime: string; name: string; path: string | null; size: number; width: number; height: number; sizeInBytes?: number };
+  thumbnail?: { ext: string; url: string; hash: string; mime: string; name: string; path: string | null; size: number; width: number; height: number; sizeInBytes?: number };
+}
+
+export interface HomepageContactLogo {
+  id: number;
+  documentId: string;
+  name: string;
+  alternativeText: string | null;
+  caption: string | null;
+  width: number;
+  height: number;
+  formats?: HomepageContactLogoFormats;
+  hash: string;
+  ext: string;
+  mime: string;
+  size: number;
+  url: string;
+  previewUrl: string | null;
+  provider: string;
+  provider_metadata: any;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
+}
+
+export interface HomepageContactItem {
+  id: number;
+  documentId: string;
+  title: string;
+  state: string;
+  address: string; // HTML string
+  phone: string | null;
+  email: string | null;
+  is_active: boolean;
+  display_order: number;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
+  slug: string;
+  category: HomepageContactCategory;
+  logo?: HomepageContactLogo | null;
+}
+
+export interface HomepageContactResponseMeta {
+  pagination: { page: number; pageSize: number; pageCount: number; total: number };
+  responseTime: number;
+  timestamp: string;
+  version: string;
+  requestId: string;
+}
+
+export interface HomepageContactResponse {
+  success: boolean;
+  data: HomepageContactItem[] | { data: HomepageContactItem[] };
+  meta: HomepageContactResponseMeta;
+}
+
+export const contactsApi = {
+  getHomepageContacts: async (): Promise<ApiResponse<HomepageContactItem[]>> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/homepage/contact`, { method: 'GET', headers: { 'Accept': 'application/json' } });
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const raw: HomepageContactResponse | any = await response.json();
+      const items = Array.isArray(raw?.data) ? raw.data : Array.isArray(raw?.data?.data) ? raw.data.data : [];
+      if (raw?.success && Array.isArray(items)) {
+        return { success: true, data: items, status: response.status };
+      }
+      return { success: false, error: 'Invalid contacts API response', status: response.status };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to fetch contacts', status: 0 };
+    }
+  }
+};
+
 // Export default API object
 export default {
   search: searchApi,
   course: courseApi,
   discussion: discussionApi,
   user: userApi,
+  partners: partnersApi,
+  testimonials: testimonialsApi,
+  stacks: stacksApi,
+  contacts: contactsApi,
 }; 
