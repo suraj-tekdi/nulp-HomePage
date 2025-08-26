@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-const CMS_API_BASE_URL = process.env.CMS_API_BASE_URL || 'https://devnulp.niua.org/mw-cms';
+const CMS_API_BASE_URL = process.env.CMS_API_BASE_URL;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
