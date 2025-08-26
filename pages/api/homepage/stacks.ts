@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-const CMS_API_BASE_URL = 'https://devnulp.niua.org/mw-cms';
+const CMS_API_BASE_URL = process.env.CMS_API_BASE_URL || 'https://devnulp.niua.org/mw-cms';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -13,16 +13,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       method: 'GET',
       headers: {
         'Accept': 'application/json',
+        // Deliberately omit Origin/Referer to match curl behavior
       },
+      // No credentials; this is a public endpoint
     });
 
     const text = await upstream.text();
 
+    // Pass through status code and body
     res.status(upstream.status);
     try {
       const json = JSON.parse(text);
       return res.json(json);
     } catch {
+      // Not JSON? Return raw
       res.setHeader('Content-Type', upstream.headers.get('content-type') || 'application/json');
       return res.send(text);
     }
