@@ -1,9 +1,15 @@
-import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
-import Image from 'next/image';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import styles from './TestimonialsSection.module.css';
-import { testimonialsApi, HomepageTestimonialItem } from '../../services/api';
+import React, {
+  useState,
+  useCallback,
+  useRef,
+  useMemo,
+  useEffect,
+} from "react";
+import Image from "next/image";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import styles from "./TestimonialsSection.module.css";
+import { testimonialsApi, HomepageTestimonialItem } from "../../services/api";
 
 interface TestimonialsSectionProps {
   className?: string;
@@ -12,13 +18,17 @@ interface TestimonialsSectionProps {
 
 const CARD_WIDTH_WITH_GAP = 390 + 24; // keep in sync with CSS
 
-const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className = '', initialTestimonials = [] }) => {
+const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
+  className = "",
+  initialTestimonials = [],
+}) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [testimonials, setTestimonials] = useState<HomepageTestimonialItem[]>(initialTestimonials);
+  const [testimonials, setTestimonials] =
+    useState<HomepageTestimonialItem[]>(initialTestimonials);
   const [visibleCards, setVisibleCards] = useState<number>(1);
   const [hasOverflow, setHasOverflow] = useState<boolean>(false);
 
@@ -46,7 +56,9 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className = '
   // Hydrate from server-provided testimonials
   useEffect(() => {
     if (initialTestimonials && initialTestimonials.length > 0) {
-      const sorted = [...initialTestimonials].sort((a, b) => (a.id || 0) - (b.id || 0));
+      const sorted = [...initialTestimonials].sort(
+        (a, b) => (a.id || 0) - (b.id || 0)
+      );
       setTestimonials(sorted);
     }
   }, [initialTestimonials]);
@@ -62,7 +74,9 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className = '
         setTestimonials(sorted);
       }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [testimonials.length]);
 
   // Calculate total slides based on visible cards
@@ -77,7 +91,7 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className = '
     setCurrentSlide(0);
     setTimeout(() => {
       if (scrollContainerRef.current) {
-        scrollContainerRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+        scrollContainerRef.current.scrollTo({ left: 0, behavior: "smooth" });
       }
     }, 50);
   }, [testimonials.length, visibleCards]);
@@ -90,13 +104,16 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className = '
     setScrollLeft(scrollContainerRef.current.scrollLeft);
   }, []);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDragging || !scrollContainerRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - scrollContainerRef.current.offsetLeft;
-    const walk = (x - startX) * 2; // Scroll speed multiplier
-    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
-  }, [isDragging, startX, scrollLeft]);
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      if (!isDragging || !scrollContainerRef.current) return;
+      e.preventDefault();
+      const x = e.pageX - scrollContainerRef.current.offsetLeft;
+      const walk = (x - startX) * 2; // Scroll speed multiplier
+      scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+    },
+    [isDragging, startX, scrollLeft]
+  );
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
@@ -114,12 +131,15 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className = '
     setScrollLeft(scrollContainerRef.current.scrollLeft);
   }, []);
 
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!isDragging || !scrollContainerRef.current) return;
-    const x = e.touches[0].pageX - scrollContainerRef.current.offsetLeft;
-    const walk = (x - startX) * 2;
-    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
-  }, [isDragging, startX, scrollLeft]);
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      if (!isDragging || !scrollContainerRef.current) return;
+      const x = e.touches[0].pageX - scrollContainerRef.current.offsetLeft;
+      const walk = (x - startX) * 2;
+      scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+    },
+    [isDragging, startX, scrollLeft]
+  );
 
   const handleTouchEnd = useCallback(() => {
     setIsDragging(false);
@@ -131,7 +151,7 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className = '
     const scrollAmount = CARD_WIDTH_WITH_GAP * visibleCards;
     const newSlideIndex = Math.min(currentSlide + 1, totalSlides - 1);
     setCurrentSlide(newSlideIndex);
-    container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    container.scrollBy({ left: scrollAmount, behavior: "smooth" });
   }, [currentSlide, totalSlides, visibleCards]);
 
   const prevSlide = useCallback(() => {
@@ -140,16 +160,19 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className = '
     const scrollAmount = CARD_WIDTH_WITH_GAP * visibleCards;
     const newSlideIndex = Math.max(currentSlide - 1, 0);
     setCurrentSlide(newSlideIndex);
-    container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+    container.scrollBy({ left: -scrollAmount, behavior: "smooth" });
   }, [currentSlide, visibleCards]);
 
-  const goToSlide = useCallback((slideIndex: number) => {
-    if (!scrollContainerRef.current) return;
-    const container = scrollContainerRef.current;
-    const scrollPosition = slideIndex * (CARD_WIDTH_WITH_GAP * visibleCards);
-    setCurrentSlide(slideIndex);
-    container.scrollTo({ left: scrollPosition, behavior: 'smooth' });
-  }, [visibleCards]);
+  const goToSlide = useCallback(
+    (slideIndex: number) => {
+      if (!scrollContainerRef.current) return;
+      const container = scrollContainerRef.current;
+      const scrollPosition = slideIndex * (CARD_WIDTH_WITH_GAP * visibleCards);
+      setCurrentSlide(slideIndex);
+      container.scrollTo({ left: scrollPosition, behavior: "smooth" });
+    },
+    [visibleCards]
+  );
 
   const showControls = hasOverflow && totalSlides > 1;
 
@@ -166,16 +189,14 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className = '
               height={18}
               className="title-arrow"
             />
-            <h2 className={styles.testimonials__title}>
-              Testimonials
-            </h2>
+            <h2 className={styles.testimonials__title}>Testimonials</h2>
           </div>
         </div>
 
         {/* Content Area */}
         <div className={styles.testimonials__content}>
           {/* Testimonials Horizontal Scroll */}
-          <div 
+          <div
             className={styles.testimonials__scroll}
             ref={scrollContainerRef}
             onMouseDown={handleMouseDown}
@@ -191,12 +212,23 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className = '
                 {/* Profile Image */}
                 <div className={styles.testimonials__card__imageContainer}>
                   <img
-                    src={testimonialsApi.buildImageUrl(t.thumbnail?.formats?.thumbnail?.url || t.thumbnail?.url)}
+                    src={testimonialsApi.buildImageUrl(
+                      t.thumbnail?.formats?.thumbnail?.url || t.thumbnail?.url
+                    )}
                     alt={t.user_name}
                     className={styles.testimonials__card__image}
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      target.src = '/images/testimonials/default-avatar.svg';
+                      // Prevent infinite loop by checking if we're already using the fallback
+                      if (
+                        target.src.includes(
+                          "/images/testimonials/default-avatar.png"
+                        )
+                      ) {
+                        return; // Already using fallback, don't trigger again
+                      }
+                      // Use the correct fallback image (png not svg)
+                      target.src = "/images/testimonials/default-avatar.png";
                     }}
                   />
                 </div>
@@ -230,7 +262,9 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className = '
                   <button
                     key={index}
                     className={`${styles.testimonials__dot} ${
-                      index === currentSlide ? styles['testimonials__dot--active'] : ''
+                      index === currentSlide
+                        ? styles["testimonials__dot--active"]
+                        : ""
                     }`}
                     onClick={() => goToSlide(index)}
                     aria-label={`Go to slide ${index + 1}`}
@@ -265,4 +299,4 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ className = '
   );
 };
 
-export default TestimonialsSection; 
+export default TestimonialsSection;
