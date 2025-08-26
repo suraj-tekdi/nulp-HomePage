@@ -1,4 +1,4 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import type { NextApiRequest, NextApiResponse } from "next";
 
 export interface DiscussionTopic {
   tid: number;
@@ -97,27 +97,33 @@ interface DiscussionForumApiResponse {
 const getDiscussionForumUrl = (req: NextApiRequest): string => {
   const host = req.headers.host;
   // Check if running on localhost or dev environment
-  if (host?.includes('localhost') || host?.includes('dev') || process.env.NODE_ENV === 'development') {
-    return 'https://devnulp.niua.org/discussion-forum/api/popular';
+  if (
+    host?.includes("localhost") ||
+    host?.includes("dev") ||
+    process.env.NODE_ENV === "development"
+  ) {
+    return "/discussion-forum/api/popular";
   }
-  return 'https://nulp.niua.org/discussion-forum/api/popular';
+  return "/discussion-forum/api/popular";
 };
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ success: false, error: 'Method not allowed' });
+  if (req.method !== "GET") {
+    return res
+      .status(405)
+      .json({ success: false, error: "Method not allowed" });
   }
 
   try {
     const discussionApiUrl = getDiscussionForumUrl(req);
     const response = await fetch(discussionApiUrl, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
+        Accept: "application/json",
+        "Content-Type": "application/json",
       },
     });
 
@@ -130,7 +136,7 @@ export default async function handler(
     if (data.topics && Array.isArray(data.topics)) {
       // Limit to 20 discussions
       const limitedTopics = data.topics.slice(0, 20);
-      
+
       res.status(200).json({
         success: true,
         data: limitedTopics,
@@ -139,17 +145,17 @@ export default async function handler(
     } else {
       res.status(500).json({
         success: false,
-        error: 'Invalid response format from discussion forum API',
+        error: "Invalid response format from discussion forum API",
         status: response.status,
       });
     }
-
   } catch (error) {
-    console.error('API Error:', error);
+    console.error("API Error:", error);
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch discussions',
+      error:
+        error instanceof Error ? error.message : "Failed to fetch discussions",
       status: 0,
     });
   }
-} 
+}

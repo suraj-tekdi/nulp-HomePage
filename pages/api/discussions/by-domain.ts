@@ -1,4 +1,4 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import type { NextApiRequest, NextApiResponse } from "next";
 
 export interface DomainDiscussionPost {
   pid: number;
@@ -75,39 +75,48 @@ interface DomainDiscussionsApiResponse {
 const getDiscussionByDomainUrl = (req: NextApiRequest): string => {
   const host = req.headers.host;
   // Check if running on localhost or dev environment
-  if (host?.includes('localhost') || host?.includes('dev') || process.env.NODE_ENV === 'development') {
-    return 'https://devnulp.niua.org/discussion/api/posts/by-domain';
+  if (
+    host?.includes("localhost") ||
+    host?.includes("dev") ||
+    process.env.NODE_ENV === "development"
+  ) {
+    return "/discussion/api/posts/by-domain";
   }
-  return 'https://nulp.niua.org/discussion/api/posts/by-domain';
+  return "/discussion/api/posts/by-domain";
 };
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ success: false, error: 'Method not allowed' });
+  if (req.method !== "GET") {
+    return res
+      .status(405)
+      .json({ success: false, error: "Method not allowed" });
   }
 
   const { domainName } = req.query;
 
-  if (!domainName || typeof domainName !== 'string') {
-    return res.status(400).json({ 
-      success: false, 
-      error: 'Domain name is required' 
+  if (!domainName || typeof domainName !== "string") {
+    return res.status(400).json({
+      success: false,
+      error: "Domain name is required",
     });
   }
 
   try {
     const encodedDomain = encodeURIComponent(domainName);
     const discussionApiUrl = getDiscussionByDomainUrl(req);
-    const response = await fetch(`${discussionApiUrl}?domainName=${encodedDomain}`, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await fetch(
+      `${discussionApiUrl}?domainName=${encodedDomain}`,
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
     if (!response.ok) {
       // Handle 404 as "no data available" rather than an error
@@ -117,7 +126,7 @@ export default async function handler(
           data: [],
           status: response.status,
           isEmpty: true,
-          domainName: domainName
+          domainName: domainName,
         });
       }
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -125,37 +134,39 @@ export default async function handler(
 
     const data: DomainDiscussionsApiResponse = await response.json();
 
-    if (data.responseCode === 'OK') {
+    if (data.responseCode === "OK") {
       // Handle case where posts array exists but might be empty
       const posts = data.result?.posts || [];
-      
+
       // Filter to only include main posts (original posts, not replies)
-      const mainPosts = posts.filter(post => post.isMainPost);
-      
+      const mainPosts = posts.filter((post) => post.isMainPost);
+
       // Limit to 20 discussions for consistency
       const limitedPosts = mainPosts.slice(0, 20);
-      
+
       res.status(200).json({
         success: true,
         data: limitedPosts,
         status: response.status,
         isEmpty: limitedPosts.length === 0,
-        domainName: data.result?.domainName || domainName
+        domainName: data.result?.domainName || domainName,
       });
     } else {
       res.status(500).json({
         success: false,
-        error: 'Invalid response format from discussion forum API',
+        error: "Invalid response format from discussion forum API",
         status: response.status,
       });
     }
-
   } catch (error) {
-    console.error('Domain Discussions API Error:', error);
+    console.error("Domain Discussions API Error:", error);
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch discussions by domain',
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to fetch discussions by domain",
       status: 0,
     });
   }
-} 
+}

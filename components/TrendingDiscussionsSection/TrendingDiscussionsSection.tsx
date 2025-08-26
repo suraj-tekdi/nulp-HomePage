@@ -1,9 +1,21 @@
-import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
-import Image from 'next/image';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import { discussionApi, transformDiscussionTopic, transformDomainDiscussionPost, DiscussionTopic, DomainDiscussionPost } from '../../services/api';
-import styles from './TrendingDiscussionsSection.module.css';
+import React, {
+  useState,
+  useRef,
+  useCallback,
+  useMemo,
+  useEffect,
+} from "react";
+import Image from "next/image";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import {
+  discussionApi,
+  transformDiscussionTopic,
+  transformDomainDiscussionPost,
+  DiscussionTopic,
+  DomainDiscussionPost,
+} from "../../services/api";
+import styles from "./TrendingDiscussionsSection.module.css";
 
 interface Discussion {
   id: number;
@@ -25,8 +37,8 @@ interface TrendingDiscussionsSectionProps {
 }
 
 const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
-  className = '',
-  selectedDomain
+  className = "",
+  selectedDomain,
 }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -44,36 +56,42 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
       try {
         setLoading(true);
         setError(null);
-        
+
         let response;
         let transformedDiscussions;
 
         // Check if a specific domain is selected (not null/undefined)
-        if (selectedDomain && selectedDomain.trim() !== '') {
+        if (selectedDomain && selectedDomain.trim() !== "") {
           // Use domain-based API
           response = await discussionApi.getDiscussionsByDomain(selectedDomain);
-          
+
           if (response.success && response.data) {
             // Transform domain-based API data to match our interface
-            transformedDiscussions = response.data.map(transformDomainDiscussionPost);
+            transformedDiscussions = response.data.map(
+              transformDomainDiscussionPost
+            );
           }
         } else {
           // Use popular discussions API for 'All Domains' or no selection
           response = await discussionApi.getPopularDiscussions();
-          
+
           if (response.success && response.data) {
             // Transform popular API data to match our interface
-            transformedDiscussions = response.data.map(transformDiscussionTopic);
+            transformedDiscussions = response.data.map(
+              transformDiscussionTopic
+            );
           }
         }
 
         if (response.success) {
           setDiscussions(transformedDiscussions || []);
         } else {
-          setError(response.error || 'Failed to fetch discussions');
+          setError(response.error || "Failed to fetch discussions");
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+        setError(
+          err instanceof Error ? err.message : "An unexpected error occurred"
+        );
       } finally {
         setLoading(false);
       }
@@ -83,16 +101,19 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
   }, [selectedDomain]); // Add selectedDomain as dependency
 
   const discussionsPerPage = 4;
-  const totalSlides = useMemo(() => Math.ceil(discussions.length / discussionsPerPage), [discussions.length, discussionsPerPage]);
+  const totalSlides = useMemo(
+    () => Math.ceil(discussions.length / discussionsPerPage),
+    [discussions.length, discussionsPerPage]
+  );
 
   // Function to check if navigation is needed
   const checkNavigationNeeded = useCallback(() => {
     if (!scrollContainerRef.current) return;
-    
+
     const container = scrollContainerRef.current;
     const isScrollNeeded = container.scrollWidth > container.clientWidth;
     const hasMultipleItems = discussions.length > 1;
-    
+
     // Show navigation only if content overflows AND there are multiple items
     setIsNavigationNeeded(isScrollNeeded && hasMultipleItems);
   }, [discussions.length]);
@@ -114,8 +135,8 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
       checkNavigationNeeded();
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, [checkNavigationNeeded]);
 
   // Drag functionality
@@ -126,13 +147,16 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
     setScrollLeft(scrollContainerRef.current.scrollLeft);
   }, []);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDragging || !scrollContainerRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - scrollContainerRef.current.offsetLeft;
-    const walk = (x - startX) * 2; // Scroll speed multiplier
-    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
-  }, [isDragging, startX, scrollLeft]);
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      if (!isDragging || !scrollContainerRef.current) return;
+      e.preventDefault();
+      const x = e.pageX - scrollContainerRef.current.offsetLeft;
+      const walk = (x - startX) * 2; // Scroll speed multiplier
+      scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+    },
+    [isDragging, startX, scrollLeft]
+  );
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
@@ -150,12 +174,15 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
     setScrollLeft(scrollContainerRef.current.scrollLeft);
   }, []);
 
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!isDragging || !scrollContainerRef.current) return;
-    const x = e.touches[0].pageX - scrollContainerRef.current.offsetLeft;
-    const walk = (x - startX) * 2;
-    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
-  }, [isDragging, startX, scrollLeft]);
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      if (!isDragging || !scrollContainerRef.current) return;
+      const x = e.touches[0].pageX - scrollContainerRef.current.offsetLeft;
+      const walk = (x - startX) * 2;
+      scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+    },
+    [isDragging, startX, scrollLeft]
+  );
 
   const handleTouchEnd = useCallback(() => {
     setIsDragging(false);
@@ -164,13 +191,19 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
   const nextSlide = useCallback(() => {
     if (!scrollContainerRef.current) return;
     const cardWidth = 340 + 24; // card width + gap (matching other sections)
-    scrollContainerRef.current.scrollBy({ left: cardWidth * 2, behavior: 'smooth' });
+    scrollContainerRef.current.scrollBy({
+      left: cardWidth * 2,
+      behavior: "smooth",
+    });
   }, []);
 
   const prevSlide = useCallback(() => {
     if (!scrollContainerRef.current) return;
     const cardWidth = 340 + 24; // card width + gap (matching other sections)
-    scrollContainerRef.current.scrollBy({ left: -cardWidth * 2, behavior: 'smooth' });
+    scrollContainerRef.current.scrollBy({
+      left: -cardWidth * 2,
+      behavior: "smooth",
+    });
   }, []);
 
   const goToSlide = useCallback((slideIndex: number) => {
@@ -187,7 +220,7 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
 
   // Handle discussion click to redirect to detailed page
   const handleDiscussionClick = useCallback((slug: string) => {
-    const discussionUrl = `https://devnulp.niua.org/discussion-forum/topic/${slug}`;
+    const discussionUrl = `/discussion-forum/topic/${slug}`;
     window.location.href = discussionUrl;
   }, []);
 
@@ -195,34 +228,42 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (container && isNavigationNeeded) {
-      container.addEventListener('scroll', updateCurrentSlide);
-      return () => container.removeEventListener('scroll', updateCurrentSlide);
+      container.addEventListener("scroll", updateCurrentSlide);
+      return () => container.removeEventListener("scroll", updateCurrentSlide);
     }
   }, [updateCurrentSlide, isNavigationNeeded]);
 
   // Truncate text function
   const truncateText = (text: string, maxLength: number) => {
     if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength).trim() + '...';
+    return text.substring(0, maxLength).trim() + "...";
   };
 
   // Clean HTML tags from description
   const cleanHtmlTags = (html: string) => {
-    const div = document.createElement('div');
+    const div = document.createElement("div");
     div.innerHTML = html;
-    return div.textContent || div.innerText || '';
+    return div.textContent || div.innerText || "";
   };
 
   if (loading) {
     return (
-      <section id="trending-discussions" className={`${styles.discussions} ${className}`}>
+      <section
+        id="trending-discussions"
+        className={`${styles.discussions} ${className}`}
+      >
         <div className={styles.discussions__container}>
           <div className={styles.discussions__accent}></div>
           <div className={styles.discussions__header}>
             <h2 className={styles.discussions__title}>
-              Trending <span className={styles.discussions__title__highlight}>Discussions</span>
+              Trending{" "}
+              <span className={styles.discussions__title__highlight}>
+                Discussions
+              </span>
             </h2>
-            <h3 className={styles.discussions__subtitle}>{selectedDomain || 'All Domains'}</h3>
+            <h3 className={styles.discussions__subtitle}>
+              {selectedDomain || "All Domains"}
+            </h3>
           </div>
           <div className={styles.discussions__content}>
             <div className={styles.discussions__loading}>
@@ -236,22 +277,30 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
 
   if (error) {
     return (
-      <section id="trending-discussions" className={`${styles.discussions} ${className}`}>
+      <section
+        id="trending-discussions"
+        className={`${styles.discussions} ${className}`}
+      >
         <div className={styles.discussions__container}>
           <div className={styles.discussions__header}>
-          <div className="title-wrapper">
-            <Image
-              src="/images/Arrow.svg"
-              alt="Arrow decoration"
-              width={280}
-              height={18}
-              className="title-arrow"
-            />
-            <h2 className={styles.discussions__title}>
-              Trending <span className={styles.discussions__title__highlight}>Discussions</span>
-            </h2>
-          </div>
-            <h3 className={styles.discussions__subtitle}>{selectedDomain || 'All Domains'}</h3>
+            <div className="title-wrapper">
+              <Image
+                src="/images/Arrow.svg"
+                alt="Arrow decoration"
+                width={280}
+                height={18}
+                className="title-arrow"
+              />
+              <h2 className={styles.discussions__title}>
+                Trending{" "}
+                <span className={styles.discussions__title__highlight}>
+                  Discussions
+                </span>
+              </h2>
+            </div>
+            <h3 className={styles.discussions__subtitle}>
+              {selectedDomain || "All Domains"}
+            </h3>
           </div>
           <div className={styles.discussions__content}>
             <div className={styles.discussions__error}>
@@ -266,7 +315,10 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
   // Show "No discussions available" when there are no discussions but no error
   if (!loading && discussions.length === 0) {
     return (
-      <section id="trending-discussions" className={`${styles.discussions} ${className}`}>
+      <section
+        id="trending-discussions"
+        className={`${styles.discussions} ${className}`}
+      >
         <div className={styles.discussions__container}>
           <div className={styles.discussions__header}>
             <div className="title-wrapper">
@@ -278,18 +330,22 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
                 className="title-arrow"
               />
               <h2 className={styles.discussions__title}>
-                Trending <span className={styles.discussions__title__highlight}>Discussions</span>
+                Trending{" "}
+                <span className={styles.discussions__title__highlight}>
+                  Discussions
+                </span>
               </h2>
             </div>
-            <h3 className={styles.discussions__subtitle}>{selectedDomain || 'All Domains'}</h3>
+            <h3 className={styles.discussions__subtitle}>
+              {selectedDomain || "All Domains"}
+            </h3>
           </div>
           <div className={styles.discussions__content}>
             <div className={styles.discussions__empty}>
               <div className={styles.discussions__empty__message}>
-                {selectedDomain 
+                {selectedDomain
                   ? `No discussions available for "${selectedDomain}" domain.`
-                  : 'No discussions available at the moment.'
-                }
+                  : "No discussions available at the moment."}
               </div>
               <div className={styles.discussions__empty__suggestion}>
                 Try selecting a different domain or check back later.
@@ -302,7 +358,10 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
   }
 
   return (
-    <section id="trending-discussions" className={`${styles.discussions} ${className}`}>
+    <section
+      id="trending-discussions"
+      className={`${styles.discussions} ${className}`}
+    >
       <div className={styles.discussions__container}>
         <div className={styles.discussions__header}>
           <div className="title-wrapper">
@@ -314,15 +373,20 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
               className="title-arrow"
             />
             <h2 className={styles.discussions__title}>
-              Trending <span className={styles.discussions__title__highlight}>Discussions</span>
+              Trending{" "}
+              <span className={styles.discussions__title__highlight}>
+                Discussions
+              </span>
             </h2>
           </div>
           <h3 className={styles.discussions__subtitle}>{selectedDomain}</h3>
         </div>
         <div className={styles.discussions__content}>
-          <div 
+          <div
             ref={scrollContainerRef}
-            className={`${styles.discussions__items} ${!isNavigationNeeded ? styles['discussions__items--no-scroll'] : ''}`}
+            className={`${styles.discussions__items} ${
+              !isNavigationNeeded ? styles["discussions__items--no-scroll"] : ""
+            }`}
             onMouseDown={isNavigationNeeded ? handleMouseDown : undefined}
             onMouseMove={isNavigationNeeded ? handleMouseMove : undefined}
             onMouseUp={isNavigationNeeded ? handleMouseUp : undefined}
@@ -332,19 +396,19 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
             onTouchEnd={isNavigationNeeded ? handleTouchEnd : undefined}
           >
             {discussions.map((discussion) => (
-              <div 
-                key={discussion.id} 
+              <div
+                key={discussion.id}
                 className={styles.discussions__card}
                 onClick={() => handleDiscussionClick(discussion.slug)}
-                style={{ cursor: 'pointer' }}
+                style={{ cursor: "pointer" }}
               >
                 <div className={styles.discussions__card__image}>
-                  <img 
-                    src="/images/placeholder-img.png" 
+                  <img
+                    src="/images/placeholder-img.png"
                     alt={discussion.title}
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      target.src = '/images/icons/default-placeholder.png';
+                      target.src = "/images/icons/default-placeholder.png";
                     }}
                   />
                 </div>
@@ -357,16 +421,17 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
                     <p className={styles.discussions__card__description}>
                       {truncateText(cleanHtmlTags(discussion.description), 100)}
                     </p>
-    
                   </div>
 
                   {/* Hover State Content */}
                   <div className={styles.discussions__card__hover}>
-                    <h4 className={styles.discussions__card__title}>{discussion.title}</h4>
+                    <h4 className={styles.discussions__card__title}>
+                      {discussion.title}
+                    </h4>
                     <p className={styles.discussions__card__description__full}>
                       {truncateText(cleanHtmlTags(discussion.description), 200)}
                     </p>
-                    <button 
+                    <button
                       className={styles.discussions__card__button}
                       onClick={(e) => {
                         e.stopPropagation(); // Prevent card click when button is clicked
@@ -388,7 +453,9 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
                   <button
                     key={index}
                     className={`${styles.discussions__dot} ${
-                      index === currentSlide ? styles['discussions__dot--active'] : ''
+                      index === currentSlide
+                        ? styles["discussions__dot--active"]
+                        : ""
                     }`}
                     onClick={() => goToSlide(index)}
                     aria-label={`Go to slide ${index + 1}`}
@@ -421,4 +488,4 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
   );
 };
 
-export default TrendingDiscussionsSection; 
+export default TrendingDiscussionsSection;
