@@ -1,29 +1,29 @@
 // API Base Configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 // Dynamic NULP URL function
-const getNulpBaseUrl = (): string => {
+export const getNulpBaseUrl = (): string => {
   // Check if we're in development environment
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     const hostname = window.location.hostname;
-    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.includes('dev')) {
-      return 'https://devnulp.niua.org';
+    if (
+      hostname === "localhost" ||
+      hostname === "127.0.0.1" ||
+      hostname.includes("dev")
+    ) {
+      return process.env.NEXT_PUBLIC_API_URL || "";
     }
   }
-  return 'https://nulp.niua.org';
+  return "";
 };
-
-// Static URLs for server-side rendering
-const NULP_WEBAPP_URL = 'https://devnulp.niua.org/webapp';
-const NULP_API_URL = 'https://devnulp.niua.org/api';
+const baseUrl = getNulpBaseUrl();
 
 // Export function to get dynamic URLs
 export const getDynamicNulpUrls = () => {
-  const baseUrl = getNulpBaseUrl();
   return {
     base: baseUrl,
     domainList: `${baseUrl}/webapp/domainList`,
-    search: (query: string) => `${baseUrl}/webapp?query=${encodeURIComponent(query)}`
+    search: (query: string) =>
+      `${baseUrl}/webapp?query=${encodeURIComponent(query)}`,
   };
 };
 
@@ -139,7 +139,7 @@ export interface SearchResult {
   title: string;
   description: string;
   url: string;
-  type: 'course' | 'discussion' | 'practice';
+  type: "course" | "discussion" | "practice";
 }
 
 // Generic API request handler
@@ -148,9 +148,9 @@ async function apiRequest<T>(
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const response = await fetch(`${baseUrl}${endpoint}`, {
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options.headers,
       },
       ...options,
@@ -161,13 +161,13 @@ async function apiRequest<T>(
     return {
       success: response.ok,
       data: response.ok ? data : undefined,
-      error: response.ok ? undefined : data.message || 'An error occurred',
+      error: response.ok ? undefined : data.message || "An error occurred",
       status: response.status,
     };
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Network error',
+      error: error instanceof Error ? error.message : "Network error",
       status: 0,
     };
   }
@@ -177,12 +177,12 @@ async function apiRequest<T>(
 export const searchApi = {
   // Log search query (optional analytics)
   logSearch: async (query: string): Promise<ApiResponse> => {
-    return apiRequest('/api/search/log', {
-      method: 'POST',
-      body: JSON.stringify({ 
-        query, 
+    return apiRequest("/api/search/log", {
+      method: "POST",
+      body: JSON.stringify({
+        query,
         timestamp: new Date().toISOString(),
-        source: 'header_search'
+        source: "header_search",
       }),
     });
   },
@@ -209,7 +209,7 @@ export const searchApi = {
   // Redirect to search results in new tab
   redirectToSearch: async (query: string): Promise<void> => {
     const searchUrl = await searchApi.performSearch(query);
-    window.open(searchUrl, '_blank', 'noopener,noreferrer');
+    window.open(searchUrl, "_blank", "noopener,noreferrer");
   },
 
   // Redirect to search results in same tab
@@ -222,7 +222,9 @@ export const searchApi = {
 // Other API services can be added here
 export const courseApi = {
   // Get courses from NULP API
-  getNulpCourses: async (selectedDomain?: string): Promise<ApiResponse<NulpCourse[]>> => {
+  getNulpCourses: async (
+    selectedDomain?: string
+  ): Promise<ApiResponse<NulpCourse[]>> => {
     try {
       // Create filters based on selected domain
       const filters: any = {
@@ -238,8 +240,8 @@ export const courseApi = {
           "do_1140067897586974721570",
           "do_1139973490818334721328",
           "do_114165835604836352120",
-          "do_114284738848514048123"
-        ]
+          "do_114284738848514048123",
+        ],
       };
 
       // Add domain filter if a domain is selected
@@ -255,35 +257,61 @@ export const courseApi = {
           limit: 100,
           sort_by: { createdOn: "desc" },
           fields: [
-            "name", "appIcon", "mimeType", "gradeLevel", "identifier", "medium",
-            "pkgVersion", "board", "subject", "resourceType", "primaryCategory",
-            "contentType", "channel", "organisation", "trackable", "primaryCategory",
-            "se_boards", "se_gradeLevels", "se_subjects", "se_mediums"
+            "name",
+            "appIcon",
+            "mimeType",
+            "gradeLevel",
+            "identifier",
+            "medium",
+            "pkgVersion",
+            "board",
+            "subject",
+            "resourceType",
+            "primaryCategory",
+            "contentType",
+            "channel",
+            "organisation",
+            "trackable",
+            "primaryCategory",
+            "se_boards",
+            "se_gradeLevels",
+            "se_subjects",
+            "se_mediums",
           ],
-          facets: ["se_boards", "se_gradeLevels", "se_subjects", "se_mediums", "primaryCategory"],
-          offset: 0
-        }
+          facets: [
+            "se_boards",
+            "se_gradeLevels",
+            "se_subjects",
+            "se_mediums",
+            "primaryCategory",
+          ],
+          offset: 0,
+        },
       };
 
       const urls = getDynamicNulpUrls();
       const baseUrl = urls.base;
-      
-      const response = await fetch(`${baseUrl}/api/content/v1/search?orgdetails=orgName,email&licenseDetails=name,description,url`, {
-        method: 'POST',
-        headers: {
-          'Accept': '*/*',
-          'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8',
-          'Connection': 'keep-alive',
-          'Content-Type': 'application/json',
-          'Origin': baseUrl,
-          'Referer': `${baseUrl}/webapp/domainList`,
-          'Sec-Fetch-Dest': 'empty',
-          'Sec-Fetch-Mode': 'cors',
-          'Sec-Fetch-Site': 'same-origin',
-          'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36'
-        },
-        body: JSON.stringify(requestBody)
-      });
+
+      const response = await fetch(
+        `${baseUrl}/api/content/v1/search?orgdetails=orgName,email&licenseDetails=name,description,url`,
+        {
+          method: "POST",
+          headers: {
+            Accept: "*/*",
+            "Accept-Language": "en-GB,en-US;q=0.9,en;q=0.8",
+            Connection: "keep-alive",
+            "Content-Type": "application/json",
+            Origin: baseUrl,
+            Referer: `${baseUrl}/webapp/domainList`,
+            "Sec-Fetch-Dest": "empty",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Site": "same-origin",
+            "User-Agent":
+              "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+          },
+          body: JSON.stringify(requestBody),
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -291,7 +319,7 @@ export const courseApi = {
 
       const data: NulpApiResponse = await response.json();
 
-      if (data.responseCode === 'OK' && data.result?.content) {
+      if (data.responseCode === "OK" && data.result?.content) {
         return {
           success: true,
           data: data.result.content,
@@ -300,28 +328,30 @@ export const courseApi = {
       } else {
         return {
           success: false,
-          error: 'Invalid response from NULP API',
+          error: "Invalid response from NULP API",
           status: response.status,
         };
       }
-
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch courses',
+        error:
+          error instanceof Error ? error.message : "Failed to fetch courses",
         status: 0,
       };
     }
   },
 
   // Get good practices from NULP API
-  getNulpGoodPractices: async (selectedDomain?: string): Promise<ApiResponse<NulpGoodPractice[]>> => {
+  getNulpGoodPractices: async (
+    selectedDomain?: string
+  ): Promise<ApiResponse<NulpGoodPractice[]>> => {
     try {
       // Create filters based on selected domain
       const filters: any = {
         status: ["Live"],
         primaryCategory: ["Good Practices", "Reports", "Manual/SOPs"],
-        visibility: ["Default", "Parent"]
+        visibility: ["Default", "Parent"],
       };
 
       // Add domain filter if a domain is selected
@@ -337,39 +367,67 @@ export const courseApi = {
           limit: 20,
           sort_by: { createdOn: "desc" },
           fields: [
-            "name", "appIcon", "mimeType", "gradeLevel", "identifier", "medium",
-            "pkgVersion", "board", "subject", "resourceType", "primaryCategory",
-            "contentType", "channel", "organisation", "trackable", "primaryCategory",
-            "se_boards", "se_gradeLevels", "se_subjects", "se_mediums", "primaryCategory"
+            "name",
+            "appIcon",
+            "mimeType",
+            "gradeLevel",
+            "identifier",
+            "medium",
+            "pkgVersion",
+            "board",
+            "subject",
+            "resourceType",
+            "primaryCategory",
+            "contentType",
+            "channel",
+            "organisation",
+            "trackable",
+            "primaryCategory",
+            "se_boards",
+            "se_gradeLevels",
+            "se_subjects",
+            "se_mediums",
+            "primaryCategory",
           ],
-          facets: ["se_boards", "se_gradeLevels", "se_subjects", "se_mediums", "primaryCategory"],
+          facets: [
+            "se_boards",
+            "se_gradeLevels",
+            "se_subjects",
+            "se_mediums",
+            "primaryCategory",
+          ],
           offset: 0,
-          query: ""
-        }
+          query: "",
+        },
       };
 
       const urls = getDynamicNulpUrls();
       const baseUrl = urls.base;
-      
-      const response = await fetch(`${baseUrl}/api/content/v1/search?orgdetails=orgName,email&licenseDetails=name,description,url`, {
-        method: 'POST',
-        headers: {
-          'Accept': '*/*',
-          'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8',
-          'Connection': 'keep-alive',
-          'Content-Type': 'application/json',
-          'Origin': baseUrl,
-          'Referer': `${baseUrl}/webapp/domainList`,
-          'Sec-Fetch-Dest': 'empty',
-          'Sec-Fetch-Mode': 'cors',
-          'Sec-Fetch-Site': 'same-origin',
-          'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36',
-          'sec-ch-ua': '"Not)A;Brand";v="8", "Chromium";v="138", "Google Chrome";v="138"',
-          'sec-ch-ua-mobile': '?0',
-          'sec-ch-ua-platform': '"Linux"'
-        },
-        body: JSON.stringify(requestBody)
-      });
+
+      const response = await fetch(
+        `${baseUrl}/api/content/v1/search?orgdetails=orgName,email&licenseDetails=name,description,url`,
+        {
+          method: "POST",
+          headers: {
+            Accept: "*/*",
+            "Accept-Language": "en-GB,en-US;q=0.9,en;q=0.8",
+            Connection: "keep-alive",
+            "Content-Type": "application/json",
+            Origin: baseUrl,
+            Referer: `${baseUrl}/webapp/domainList`,
+            "Sec-Fetch-Dest": "empty",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Site": "same-origin",
+            "User-Agent":
+              "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+            "sec-ch-ua":
+              '"Not)A;Brand";v="8", "Chromium";v="138", "Google Chrome";v="138"',
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": '"Linux"',
+          },
+          body: JSON.stringify(requestBody),
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -377,7 +435,7 @@ export const courseApi = {
 
       const data: NulpGoodPracticesApiResponse = await response.json();
 
-      if (data.responseCode === 'OK' && data.result?.content) {
+      if (data.responseCode === "OK" && data.result?.content) {
         return {
           success: true,
           data: data.result.content,
@@ -386,15 +444,17 @@ export const courseApi = {
       } else {
         return {
           success: false,
-          error: 'Invalid response from NULP API',
+          error: "Invalid response from NULP API",
           status: response.status,
         };
       }
-
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch good practices',
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch good practices",
         status: 0,
       };
     }
@@ -402,7 +462,7 @@ export const courseApi = {
 
   // Legacy function for future use
   getTrendingCourses: async (): Promise<ApiResponse<any[]>> => {
-    return apiRequest('/api/courses/trending');
+    return apiRequest("/api/courses/trending");
   },
 };
 
@@ -525,7 +585,8 @@ export function transformDiscussionTopic(topic: DiscussionTopic): {
   return {
     id: topic.tid,
     title: topic.titleRaw || topic.title,
-    description: topic.content || topic.contentRaw || 'No description available',
+    description:
+      topic.content || topic.contentRaw || "No description available",
     category: topic.category.name,
     replies: topic.postcount - 1, // Subtract 1 as postcount includes the original post
     views: topic.viewcount,
@@ -533,7 +594,7 @@ export function transformDiscussionTopic(topic: DiscussionTopic): {
     author: topic.user.fullname || topic.user.displayname,
     designation: topic.user.designation,
     location: topic.user.location,
-    slug: topic.slug
+    slug: topic.slug,
   };
 }
 
@@ -554,7 +615,7 @@ export function transformDomainDiscussionPost(post: DomainDiscussionPost): {
   return {
     id: post.topic.tid,
     title: post.topic.titleRaw || post.topic.title,
-    description: post.content || 'No description available',
+    description: post.content || "No description available",
     category: post.category.name,
     replies: post.topic.postcount - 1, // Subtract 1 as postcount includes the original post
     views: 0, // View count not available in domain API response
@@ -562,7 +623,7 @@ export function transformDomainDiscussionPost(post: DomainDiscussionPost): {
     author: post.user.fullname || post.user.displayname,
     designation: post.user.designation,
     location: post.user.location,
-    slug: post.topic.slug
+    slug: post.topic.slug,
   };
 }
 
@@ -571,11 +632,11 @@ export const discussionApi = {
   // Get popular discussions directly from external API (hardcoded)
   getPopularDiscussions: async (): Promise<ApiResponse<DiscussionTopic[]>> => {
     try {
-      const response = await fetch('https://devnulp.niua.org/discussion-forum/api/popular', {
-        method: 'GET',
+      const response = await fetch(`${baseUrl}/discussion-forum/api/popular`, {
+        method: "GET",
         headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
+          Accept: "application/json",
+          "Content-Type": "application/json",
         },
       });
 
@@ -584,8 +645,8 @@ export const discussionApi = {
       }
 
       const data = await response.json();
-      console.log('data', data);
-      
+      console.log("data", data);
+
       // Format response from external API
       if (data.topics && Array.isArray(data.topics)) {
         return {
@@ -596,31 +657,38 @@ export const discussionApi = {
       } else {
         return {
           success: false,
-          error: 'Invalid response format from discussion forum API',
+          error: "Invalid response format from discussion forum API",
           status: response.status,
         };
       }
-
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch discussions',
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch discussions",
         status: 0,
       };
     }
   },
 
   // Get discussions by domain from NULP forum API via Next.js API route
-  getDiscussionsByDomain: async (domainName: string): Promise<ApiResponse<DomainDiscussionPost[]>> => {
+  getDiscussionsByDomain: async (
+    domainName: string
+  ): Promise<ApiResponse<DomainDiscussionPost[]>> => {
     try {
       const encodedDomain = encodeURIComponent(domainName);
-      const response = await fetch(`${API_BASE_URL}/api/discussions/by-domain?domainName=${encodedDomain}`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await fetch(
+        `${baseUrl}/api/discussions/by-domain?domainName=${encodedDomain}`,
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -630,11 +698,13 @@ export const discussionApi = {
 
       // The API route returns the data in the expected format
       return data;
-
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch discussions by domain',
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch discussions by domain",
         status: 0,
       };
     }
@@ -642,23 +712,30 @@ export const discussionApi = {
 
   // Future: Get trending discussions (legacy)
   getTrendingDiscussions: async (): Promise<ApiResponse<any[]>> => {
-    return apiRequest('/api/discussions/trending');
+    return apiRequest("/api/discussions/trending");
   },
 };
 
 export const userApi = {
   // Future: User authentication
-  login: async (credentials: { email: string; password: string }): Promise<ApiResponse> => {
-    return apiRequest('/api/auth/login', {
-      method: 'POST',
+  login: async (credentials: {
+    email: string;
+    password: string;
+  }): Promise<ApiResponse> => {
+    return apiRequest("/api/auth/login", {
+      method: "POST",
       body: JSON.stringify(credentials),
     });
   },
 
   // Future: User registration
-  register: async (userData: { email: string; password: string; name: string }): Promise<ApiResponse> => {
-    return apiRequest('/api/auth/register', {
-      method: 'POST',
+  register: async (userData: {
+    email: string;
+    password: string;
+    name: string;
+  }): Promise<ApiResponse> => {
+    return apiRequest("/api/auth/register", {
+      method: "POST",
       body: JSON.stringify(userData),
     });
   },
@@ -746,16 +823,18 @@ export interface HomepagePartnersResponse {
   meta: HomepagePartnersResponseMeta;
 }
 
-const CMS_API_BASE_URL = 'https://devnulp.niua.org/mw-cms';
-const CMS_MEDIA_BASE_URL = 'https://devnulp.niua.org/cms';
-
 export const partnersApi = {
-  getHomepagePartners: async (): Promise<ApiResponse<HomepagePartnerItem[]>> => {
+  getHomepagePartners: async (): Promise<
+    ApiResponse<HomepagePartnerItem[]>
+  > => {
     try {
-      const response = await fetch(`${CMS_API_BASE_URL}/api/v1/homepage/partners`, {
-        method: 'GET',
-        headers: { 'Accept': 'application/json' },
-      });
+      const response = await fetch(
+        `${baseUrl}/mw-cms/api/v1/homepage/partners`,
+        {
+          method: "GET",
+          headers: { Accept: "application/json" },
+        }
+      );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -763,27 +842,55 @@ export const partnersApi = {
       if (data.success && Array.isArray(data.data)) {
         return { success: true, data: data.data, status: response.status };
       }
-      return { success: false, error: 'Invalid partners API response', status: response.status };
+      return {
+        success: false,
+        error: "Invalid partners API response",
+        status: response.status,
+      };
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch partners',
+        error:
+          error instanceof Error ? error.message : "Failed to fetch partners",
         status: 0,
       };
     }
   },
   buildLogoUrl: (pathOrUrl?: string): string => {
-    if (!pathOrUrl) return '';
-    if (pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://')) return pathOrUrl;
-    const normalized = pathOrUrl.startsWith('/') ? pathOrUrl : `/${pathOrUrl}`;
-    return `${CMS_MEDIA_BASE_URL}${normalized}`;
-  }
+    if (!pathOrUrl) return "";
+    if (pathOrUrl.startsWith("http://") || pathOrUrl.startsWith("https://"))
+      return pathOrUrl;
+    const normalized = pathOrUrl.startsWith("/") ? pathOrUrl : `/${pathOrUrl}`;
+    return `${baseUrl}${normalized}`;
+  },
 };
 
 // Testimonials types and API
 export interface HomepageTestimonialThumbnailFormats {
-  small?: { ext: string; url: string; hash: string; mime: string; name: string; path: string | null; size: number; width: number; height: number; sizeInBytes?: number };
-  thumbnail?: { ext: string; url: string; hash: string; mime: string; name: string; path: string | null; size: number; width: number; height: number; sizeInBytes?: number };
+  small?: {
+    ext: string;
+    url: string;
+    hash: string;
+    mime: string;
+    name: string;
+    path: string | null;
+    size: number;
+    width: number;
+    height: number;
+    sizeInBytes?: number;
+  };
+  thumbnail?: {
+    ext: string;
+    url: string;
+    hash: string;
+    mime: string;
+    name: string;
+    path: string | null;
+    size: number;
+    width: number;
+    height: number;
+    sizeInBytes?: number;
+  };
 }
 
 export interface HomepageTestimonialThumbnail {
@@ -836,7 +943,12 @@ export interface HomepageTestimonialItem {
 }
 
 export interface HomepageTestimonialsResponseMeta {
-  pagination: { page: number; pageSize: number; pageCount: number; total: number };
+  pagination: {
+    page: number;
+    pageSize: number;
+    pageCount: number;
+    total: number;
+  };
   responseTime: number;
   timestamp: string;
   version: string;
@@ -850,12 +962,17 @@ export interface HomepageTestimonialsResponse {
 }
 
 export const testimonialsApi = {
-  getHomepageTestimonials: async (): Promise<ApiResponse<HomepageTestimonialItem[]>> => {
+  getHomepageTestimonials: async (): Promise<
+    ApiResponse<HomepageTestimonialItem[]>
+  > => {
     try {
-      const response = await fetch(`${CMS_API_BASE_URL}/api/v1/homepage/testimonials`, {
-        method: 'GET',
-        headers: { 'Accept': 'application/json' },
-      });
+      const response = await fetch(
+        `${baseUrl}/mw-cms/api/v1/homepage/testimonials`,
+        {
+          method: "GET",
+          headers: { Accept: "application/json" },
+        }
+      );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -863,21 +980,29 @@ export const testimonialsApi = {
       if (data.success && Array.isArray(data.data)) {
         return { success: true, data: data.data, status: response.status };
       }
-      return { success: false, error: 'Invalid testimonials API response', status: response.status };
+      return {
+        success: false,
+        error: "Invalid testimonials API response",
+        status: response.status,
+      };
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch testimonials',
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch testimonials",
         status: 0,
       };
     }
   },
   buildImageUrl: (pathOrUrl?: string): string => {
-    if (!pathOrUrl) return '';
-    if (pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://')) return pathOrUrl;
-    const normalized = pathOrUrl.startsWith('/') ? pathOrUrl : `/${pathOrUrl}`;
-    return `${CMS_MEDIA_BASE_URL}${normalized}`;
-  }
+    if (!pathOrUrl) return "";
+    if (pathOrUrl.startsWith("http://") || pathOrUrl.startsWith("https://"))
+      return pathOrUrl;
+    const normalized = pathOrUrl.startsWith("/") ? pathOrUrl : `/${pathOrUrl}`;
+    return `${baseUrl}${normalized}`;
+  },
 };
 
 // Homepage Stacks types and API
@@ -909,7 +1034,12 @@ export interface HomepageStackItem {
 }
 
 export interface HomepageStacksResponseMeta {
-  pagination: { page: number; pageSize: number; pageCount: number; total: number };
+  pagination: {
+    page: number;
+    pageSize: number;
+    pageCount: number;
+    total: number;
+  };
   responseTime: number;
   timestamp: string;
   version: string;
@@ -925,9 +1055,9 @@ export interface HomepageStacksResponse {
 export const stacksApi = {
   getHomepageStacks: async (): Promise<ApiResponse<HomepageStackItem[]>> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/homepage/stacks`, {
-        method: 'GET',
-        headers: { 'Accept': 'application/json' },
+      const response = await fetch(`${baseUrl}/mw-cms/api/v1/homepage/stacks`, {
+        method: "GET",
+        headers: { Accept: "application/json" },
       });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -938,24 +1068,36 @@ export const stacksApi = {
       // 1) { success: true, data: [] }
       // 2) { success: true, data: { data: [] } }
       // 3) Direct array (edge-case)
-      const maybeArray = Array.isArray(raw?.data) ? raw.data
-        : Array.isArray(raw?.data?.data) ? raw.data.data
-        : Array.isArray(raw) ? raw
+      const maybeArray = Array.isArray(raw?.data)
+        ? raw.data
+        : Array.isArray(raw?.data?.data)
+        ? raw.data.data
+        : Array.isArray(raw)
+        ? raw
         : null;
 
       if (raw?.success === true && Array.isArray(maybeArray)) {
-        return { success: true, data: maybeArray as HomepageStackItem[], status: response.status };
+        return {
+          success: true,
+          data: maybeArray as HomepageStackItem[],
+          status: response.status,
+        };
       }
 
-      return { success: false, error: 'Invalid stacks API response', status: response.status };
+      return {
+        success: false,
+        error: "Invalid stacks API response",
+        status: response.status,
+      };
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch stacks',
+        error:
+          error instanceof Error ? error.message : "Failed to fetch stacks",
         status: 0,
       };
     }
-  }
+  },
 };
 
 export interface HomepageContactCategory {
@@ -971,10 +1113,54 @@ export interface HomepageContactCategory {
 }
 
 export interface HomepageContactLogoFormats {
-  large?: { ext: string; url: string; hash: string; mime: string; name: string; path: string | null; size: number; width: number; height: number; sizeInBytes?: number };
-  small?: { ext: string; url: string; hash: string; mime: string; name: string; path: string | null; size: number; width: number; height: number; sizeInBytes?: number };
-  medium?: { ext: string; url: string; hash: string; mime: string; name: string; path: string | null; size: number; width: number; height: number; sizeInBytes?: number };
-  thumbnail?: { ext: string; url: string; hash: string; mime: string; name: string; path: string | null; size: number; width: number; height: number; sizeInBytes?: number };
+  large?: {
+    ext: string;
+    url: string;
+    hash: string;
+    mime: string;
+    name: string;
+    path: string | null;
+    size: number;
+    width: number;
+    height: number;
+    sizeInBytes?: number;
+  };
+  small?: {
+    ext: string;
+    url: string;
+    hash: string;
+    mime: string;
+    name: string;
+    path: string | null;
+    size: number;
+    width: number;
+    height: number;
+    sizeInBytes?: number;
+  };
+  medium?: {
+    ext: string;
+    url: string;
+    hash: string;
+    mime: string;
+    name: string;
+    path: string | null;
+    size: number;
+    width: number;
+    height: number;
+    sizeInBytes?: number;
+  };
+  thumbnail?: {
+    ext: string;
+    url: string;
+    hash: string;
+    mime: string;
+    name: string;
+    path: string | null;
+    size: number;
+    width: number;
+    height: number;
+    sizeInBytes?: number;
+  };
 }
 
 export interface HomepageContactLogo {
@@ -1018,7 +1204,12 @@ export interface HomepageContactItem {
 }
 
 export interface HomepageContactResponseMeta {
-  pagination: { page: number; pageSize: number; pageCount: number; total: number };
+  pagination: {
+    page: number;
+    pageSize: number;
+    pageCount: number;
+    total: number;
+  };
   responseTime: number;
   timestamp: string;
   version: string;
@@ -1032,20 +1223,42 @@ export interface HomepageContactResponse {
 }
 
 export const contactsApi = {
-  getHomepageContacts: async (): Promise<ApiResponse<HomepageContactItem[]>> => {
+  getHomepageContacts: async (): Promise<
+    ApiResponse<HomepageContactItem[]>
+  > => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/homepage/contact`, { method: 'GET', headers: { 'Accept': 'application/json' } });
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const response = await fetch(
+        `${baseUrl}/mw-cms/api/v1/homepage/contact`,
+        {
+          method: "GET",
+          headers: { Accept: "application/json" },
+        }
+      );
+      if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status}`);
       const raw: HomepageContactResponse | any = await response.json();
-      const items = Array.isArray(raw?.data) ? raw.data : Array.isArray(raw?.data?.data) ? raw.data.data : [];
+      const items = Array.isArray(raw?.data)
+        ? raw.data
+        : Array.isArray(raw?.data?.data)
+        ? raw.data.data
+        : [];
       if (raw?.success && Array.isArray(items)) {
         return { success: true, data: items, status: response.status };
       }
-      return { success: false, error: 'Invalid contacts API response', status: response.status };
+      return {
+        success: false,
+        error: "Invalid contacts API response",
+        status: response.status,
+      };
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Failed to fetch contacts', status: 0 };
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to fetch contacts",
+        status: 0,
+      };
     }
-  }
+  },
 };
 
 // Export default API object
@@ -1058,4 +1271,4 @@ export default {
   testimonials: testimonialsApi,
   stacks: stacksApi,
   contacts: contactsApi,
-}; 
+};

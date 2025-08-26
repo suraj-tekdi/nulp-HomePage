@@ -1,10 +1,16 @@
-import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
-import Image from 'next/image';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import styles from './TrendingGoodPracticesSection.module.css';
-import { courseApi, NulpGoodPractice } from '../../services/api';
-import domainImages from '../../services/domain-images.json';
+import React, {
+  useState,
+  useRef,
+  useCallback,
+  useMemo,
+  useEffect,
+} from "react";
+import Image from "next/image";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import styles from "./TrendingGoodPracticesSection.module.css";
+import { courseApi, NulpGoodPractice } from "../../services/api";
+import domainImages from "../../services/domain-images.json";
 
 interface GoodPractice {
   id: string;
@@ -22,16 +28,15 @@ interface TrendingGoodPracticesSectionProps {
   selectedDomain?: string | null;
 }
 
-const TrendingGoodPracticesSection: React.FC<TrendingGoodPracticesSectionProps> = ({
-  className = '',
-  selectedDomain = null
-}) => {
+const TrendingGoodPracticesSection: React.FC<
+  TrendingGoodPracticesSectionProps
+> = ({ className = "", selectedDomain = null }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
-  
+
   // API-related state
   const [goodPractices, setGoodPractices] = useState<GoodPractice[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,23 +47,35 @@ const TrendingGoodPracticesSection: React.FC<TrendingGoodPracticesSectionProps> 
   const [shouldShowControls, setShouldShowControls] = useState<boolean>(false);
 
   // Transform NULP API response to our GoodPractice interface
-  const transformNulpGoodPractice = useCallback((nulpPractice: NulpGoodPractice): GoodPractice => {
-    // Create a description from available data
-    const categoryInfo = nulpPractice.se_boards?.length ? nulpPractice.se_boards[0] : '';
-    const levelInfo = nulpPractice.se_gradeLevels && nulpPractice.se_gradeLevels.length > 0 ? nulpPractice.se_gradeLevels.join(', ') : '';
-    const description = `${categoryInfo}${levelInfo ? ` - ${levelInfo}` : ''} practice shared by ${nulpPractice.orgDetails.orgName}.`;
+  const transformNulpGoodPractice = useCallback(
+    (nulpPractice: NulpGoodPractice): GoodPractice => {
+      // Create a description from available data
+      const categoryInfo = nulpPractice.se_boards?.length
+        ? nulpPractice.se_boards[0]
+        : "";
+      const levelInfo =
+        nulpPractice.se_gradeLevels && nulpPractice.se_gradeLevels.length > 0
+          ? nulpPractice.se_gradeLevels.join(", ")
+          : "";
+      const description = `${categoryInfo}${
+        levelInfo ? ` - ${levelInfo}` : ""
+      } practice shared by ${nulpPractice.orgDetails.orgName}.`;
 
-    return {
-      id: nulpPractice.identifier,
-      title: nulpPractice.name.trim(), // Remove any extra whitespace/tabs
-      description: description,
-      image: nulpPractice.appIcon || undefined,
-      category: nulpPractice.se_boards?.length ? nulpPractice.se_boards[0] : 'General',
-      organization: nulpPractice.orgDetails.orgName,
-      primaryCategory: nulpPractice.primaryCategory,
-      mimeType: nulpPractice.mimeType
-    };
-  }, []);
+      return {
+        id: nulpPractice.identifier,
+        title: nulpPractice.name.trim(), // Remove any extra whitespace/tabs
+        description: description,
+        image: nulpPractice.appIcon || undefined,
+        category: nulpPractice.se_boards?.length
+          ? nulpPractice.se_boards[0]
+          : "General",
+        organization: nulpPractice.orgDetails.orgName,
+        primaryCategory: nulpPractice.primaryCategory,
+        mimeType: nulpPractice.mimeType,
+      };
+    },
+    []
+  );
 
   // Helper: recalculate pagination based on container dimensions
   const recalculatePagination = useCallback(() => {
@@ -70,7 +87,10 @@ const TrendingGoodPracticesSection: React.FC<TrendingGoodPracticesSectionProps> 
 
     const EPSILON = 2; // px tolerance to ignore subpixel overflow
     const overflow = Math.max(0, scrollWidth - clientWidth);
-    const slides = overflow <= EPSILON ? 1 : 1 + Math.floor((overflow + EPSILON) / clientWidth);
+    const slides =
+      overflow <= EPSILON
+        ? 1
+        : 1 + Math.floor((overflow + EPSILON) / clientWidth);
 
     setTotalSlides(slides);
     setShouldShowControls(scrollWidth - clientWidth > EPSILON && slides > 1);
@@ -84,19 +104,23 @@ const TrendingGoodPracticesSection: React.FC<TrendingGoodPracticesSectionProps> 
       try {
         setLoading(true);
         setError(null);
-        
-        const response = await courseApi.getNulpGoodPractices(selectedDomain || undefined);
-        
+
+        const response = await courseApi.getNulpGoodPractices(
+          selectedDomain || undefined
+        );
+
         if (response.success && response.data) {
-          const transformedPractices = response.data.map(transformNulpGoodPractice);
+          const transformedPractices = response.data.map(
+            transformNulpGoodPractice
+          );
           setGoodPractices(transformedPractices);
         } else {
-          setError(response.error || 'Failed to fetch good practices');
+          setError(response.error || "Failed to fetch good practices");
           // Fallback to empty array
           setGoodPractices([]);
         }
       } catch (err) {
-        setError('Network error occurred while fetching good practices');
+        setError("Network error occurred while fetching good practices");
         setGoodPractices([]);
       } finally {
         setLoading(false);
@@ -112,7 +136,7 @@ const TrendingGoodPracticesSection: React.FC<TrendingGoodPracticesSectionProps> 
     setTimeout(() => {
       const container = scrollContainerRef.current;
       if (container) {
-        container.scrollTo({ left: 0, behavior: 'smooth' });
+        container.scrollTo({ left: 0, behavior: "smooth" });
         recalculatePagination();
       }
     }, 100);
@@ -121,18 +145,18 @@ const TrendingGoodPracticesSection: React.FC<TrendingGoodPracticesSectionProps> 
   // Observe container resize to keep pagination accurate
   useEffect(() => {
     const container = scrollContainerRef.current;
-    if (!container || typeof ResizeObserver === 'undefined') return;
+    if (!container || typeof ResizeObserver === "undefined") return;
 
     const observer = new ResizeObserver(() => {
       recalculatePagination();
     });
 
     observer.observe(container);
-    window.addEventListener('resize', recalculatePagination);
+    window.addEventListener("resize", recalculatePagination);
 
     return () => {
       observer.disconnect();
-      window.removeEventListener('resize', recalculatePagination);
+      window.removeEventListener("resize", recalculatePagination);
     };
   }, [recalculatePagination]);
 
@@ -144,13 +168,16 @@ const TrendingGoodPracticesSection: React.FC<TrendingGoodPracticesSectionProps> 
     setScrollLeft(scrollContainerRef.current.scrollLeft);
   }, []);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDragging || !scrollContainerRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - scrollContainerRef.current.offsetLeft;
-    const walk = (x - startX) * 2; // Scroll speed multiplier
-    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
-  }, [isDragging, startX, scrollLeft]);
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      if (!isDragging || !scrollContainerRef.current) return;
+      e.preventDefault();
+      const x = e.pageX - scrollContainerRef.current.offsetLeft;
+      const walk = (x - startX) * 2; // Scroll speed multiplier
+      scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+    },
+    [isDragging, startX, scrollLeft]
+  );
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
@@ -168,12 +195,15 @@ const TrendingGoodPracticesSection: React.FC<TrendingGoodPracticesSectionProps> 
     setScrollLeft(scrollContainerRef.current.scrollLeft);
   }, []);
 
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!isDragging || !scrollContainerRef.current) return;
-    const x = e.touches[0].pageX - scrollContainerRef.current.offsetLeft;
-    const walk = (x - startX) * 2;
-    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
-  }, [isDragging, startX, scrollLeft]);
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      if (!isDragging || !scrollContainerRef.current) return;
+      const x = e.touches[0].pageX - scrollContainerRef.current.offsetLeft;
+      const walk = (x - startX) * 2;
+      scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+    },
+    [isDragging, startX, scrollLeft]
+  );
 
   const handleTouchEnd = useCallback(() => {
     setIsDragging(false);
@@ -182,13 +212,16 @@ const TrendingGoodPracticesSection: React.FC<TrendingGoodPracticesSectionProps> 
   // Update current slide based on scroll position (viewport width pages)
   const updateCurrentSlide = useCallback(() => {
     if (!scrollContainerRef.current) return;
-    
+
     const container = scrollContainerRef.current;
     const pageWidth = container.clientWidth || 1;
     const newSlideIndex = Math.round(container.scrollLeft / pageWidth);
-    
-    const clampedSlideIndex = Math.min(Math.max(0, newSlideIndex), totalSlides - 1);
-    
+
+    const clampedSlideIndex = Math.min(
+      Math.max(0, newSlideIndex),
+      totalSlides - 1
+    );
+
     if (clampedSlideIndex !== currentSlide) {
       setCurrentSlide(clampedSlideIndex);
     }
@@ -203,48 +236,51 @@ const TrendingGoodPracticesSection: React.FC<TrendingGoodPracticesSectionProps> 
 
   const nextSlide = useCallback(() => {
     if (!scrollContainerRef.current || currentSlide >= totalSlides - 1) return;
-    
+
     const container = scrollContainerRef.current;
     const pageWidth = container.clientWidth;
 
     const newSlideIndex = Math.min(currentSlide + 1, totalSlides - 1);
     setCurrentSlide(newSlideIndex);
-    container.scrollBy({ left: pageWidth, behavior: 'smooth' });
+    container.scrollBy({ left: pageWidth, behavior: "smooth" });
   }, [currentSlide, totalSlides]);
 
   const prevSlide = useCallback(() => {
     if (!scrollContainerRef.current || currentSlide <= 0) return;
-    
+
     const container = scrollContainerRef.current;
     const pageWidth = container.clientWidth;
 
     const newSlideIndex = Math.max(currentSlide - 1, 0);
     setCurrentSlide(newSlideIndex);
-    container.scrollBy({ left: -pageWidth, behavior: 'smooth' });
+    container.scrollBy({ left: -pageWidth, behavior: "smooth" });
   }, [currentSlide, totalSlides]);
 
   const goToSlide = useCallback((slideIndex: number) => {
     if (!scrollContainerRef.current) return;
-    
+
     const container = scrollContainerRef.current;
     const pageWidth = container.clientWidth;
     const scrollPosition = slideIndex * pageWidth;
-    
+
     setCurrentSlide(slideIndex);
-    container.scrollTo({ left: scrollPosition, behavior: 'smooth' });
+    container.scrollTo({ left: scrollPosition, behavior: "smooth" });
   }, []);
 
   // Handle practice navigation
   const handlePracticeClick = useCallback((practiceId: string) => {
-    const practiceUrl = `https://devnulp.niua.org/webapp/player?id=${practiceId}`;
+    const practiceUrl = `/webapp/player?id=${practiceId}`;
     window.location.href = practiceUrl;
   }, []);
 
   // Handle explore button click
-  const handleExplorePractice = useCallback((e: React.MouseEvent, practiceId: string) => {
-    e.stopPropagation(); // Prevent card click if we want different behaviors
-    handlePracticeClick(practiceId);
-  }, [handlePracticeClick]);
+  const handleExplorePractice = useCallback(
+    (e: React.MouseEvent, practiceId: string) => {
+      e.stopPropagation(); // Prevent card click if we want different behaviors
+      handlePracticeClick(practiceId);
+    },
+    [handlePracticeClick]
+  );
 
   return (
     <section className={`${styles.practices} ${className}`}>
@@ -259,7 +295,10 @@ const TrendingGoodPracticesSection: React.FC<TrendingGoodPracticesSectionProps> 
               className="title-arrow"
             />
             <h2 className={styles.practices__title}>
-              Trending <span className={styles.practices__title__highlight}>Good Practices</span>
+              Trending{" "}
+              <span className={styles.practices__title__highlight}>
+                Good Practices
+              </span>
             </h2>
           </div>
           {selectedDomain && (
@@ -267,7 +306,7 @@ const TrendingGoodPracticesSection: React.FC<TrendingGoodPracticesSectionProps> 
           )}
         </div>
         <div className={styles.practices__content}>
-          <div 
+          <div
             ref={scrollContainerRef}
             className={styles.practices__items}
             onMouseDown={handleMouseDown}
@@ -287,10 +326,9 @@ const TrendingGoodPracticesSection: React.FC<TrendingGoodPracticesSectionProps> 
             ) : error ? (
               <div className={styles.practices__error}>
                 <div className={styles.practices__error__message}>
-                  {selectedDomain 
+                  {selectedDomain
                     ? `Unable to load good practices for "${selectedDomain}" domain.`
-                    : 'Unable to load good practices at the moment.'
-                  }
+                    : "Unable to load good practices at the moment."}
                 </div>
                 <div className={styles.practices__error__suggestion}>
                   Please check your internet connection and try again.
@@ -299,10 +337,9 @@ const TrendingGoodPracticesSection: React.FC<TrendingGoodPracticesSectionProps> 
             ) : goodPractices.length === 0 ? (
               <div className={styles.practices__empty}>
                 <div className={styles.practices__empty__message}>
-                  {selectedDomain 
+                  {selectedDomain
                     ? `No good practices available for "${selectedDomain}" domain.`
-                    : 'No good practices available at the moment.'
-                  }
+                    : "No good practices available at the moment."}
                 </div>
                 <div className={styles.practices__empty__suggestion}>
                   Try selecting a different domain or check back later.
@@ -310,40 +347,48 @@ const TrendingGoodPracticesSection: React.FC<TrendingGoodPracticesSectionProps> 
               </div>
             ) : (
               goodPractices.map((practice) => (
-                <div 
-                  key={practice.id} 
+                <div
+                  key={practice.id}
                   className={styles.practices__card}
                   onClick={() => handlePracticeClick(practice.id)}
-                  style={{ cursor: 'pointer' }}
+                  style={{ cursor: "pointer" }}
                 >
                   <div className={styles.practices__card__image}>
-                    <img 
-                      src={(domainImages as Record<string, string>)[practice.category] || '/images/placeholder-img.png'} 
+                    <img
+                      src={
+                        (domainImages as Record<string, string>)[
+                          practice.category
+                        ] || "/images/placeholder-img.png"
+                      }
                       alt={practice.title}
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
-                        target.src = '/images/icons/default-placeholder.png';
+                        target.src = "/images/icons/default-placeholder.png";
                       }}
                     />
                   </div>
                   <div className={styles.practices__card__content}>
                     {/* Normal State Content */}
                     <div className={styles.practices__card__normal}>
-                      <h4 className={styles.practices__card__title}>{practice.title}</h4>
+                      <h4 className={styles.practices__card__title}>
+                        {practice.title}
+                      </h4>
                       <p className={styles.practices__card__description}>
-                        {practice.description.length > 120 ? 
-                          `${practice.description.substring(0, 120)}...` : 
-                          practice.description}
+                        {practice.description.length > 120
+                          ? `${practice.description.substring(0, 120)}...`
+                          : practice.description}
                       </p>
                     </div>
 
                     {/* Hover State Content */}
                     <div className={styles.practices__card__hover}>
-                      <h4 className={styles.practices__card__title}>{practice.title}</h4>
+                      <h4 className={styles.practices__card__title}>
+                        {practice.title}
+                      </h4>
                       <p className={styles.practices__card__description__full}>
                         {practice.description}
                       </p>
-                      <button 
+                      <button
                         className={styles.practices__card__button}
                         onClick={(e) => handleExplorePractice(e, practice.id)}
                       >
@@ -355,7 +400,7 @@ const TrendingGoodPracticesSection: React.FC<TrendingGoodPracticesSectionProps> 
               ))
             )}
           </div>
-          
+
           {/* Conditionally render controls only when needed */}
           {shouldShowControls && (
             <div className={styles.practices__controls}>
@@ -364,7 +409,9 @@ const TrendingGoodPracticesSection: React.FC<TrendingGoodPracticesSectionProps> 
                   <button
                     key={index}
                     className={`${styles.practices__dot} ${
-                      index === currentSlide ? styles['practices__dot--active'] : ''
+                      index === currentSlide
+                        ? styles["practices__dot--active"]
+                        : ""
                     }`}
                     onClick={() => goToSlide(index)}
                     aria-label={`Go to slide ${index + 1}`}
@@ -397,4 +444,4 @@ const TrendingGoodPracticesSection: React.FC<TrendingGoodPracticesSectionProps> 
   );
 };
 
-export default TrendingGoodPracticesSection; 
+export default TrendingGoodPracticesSection;
