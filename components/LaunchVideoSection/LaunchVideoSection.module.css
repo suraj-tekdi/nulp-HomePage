@@ -3,7 +3,7 @@
   padding: 2rem;
   background: #ffffff;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .launchVideo__container {
@@ -94,23 +94,23 @@
 
 .launchVideo__statsGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(2, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--spacing-md);
-  max-width: 600px;
 }
 
 .launchVideo__statCard {
   background: #f8f9fa;
   border-radius: 12px;
-  padding: var(--spacing-lg);
+  padding: 0;
   text-align: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid #e9ecef;
   transition: all 0.3s ease;
   position: relative;
-  overflow: hidden;
-  aspect-ratio: 1.2;
+  /* allow content to define height */
+  overflow: visible;
+  /* remove fixed aspect to prevent clipping */
+  min-height: 140px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -159,6 +159,9 @@
   color: #555;
   line-height: 1.2;
   text-align: center;
+  /* ensure wrapping */
+  white-space: normal;
+  word-break: break-word;
 }
 
 /* Responsive Design */
@@ -179,12 +182,9 @@
     font-size: 2.5rem;
   }
   
-  .launchVideo__statsGrid {
-    max-width: 550px;
-  }
-  
   .launchVideo__statCard {
-    padding: var(--spacing-md);
+    padding: 0;
+    min-height: 130px;
   }
   
   .launchVideo__statNumber {
@@ -216,14 +216,14 @@
   
   .launchVideo__statsGrid {
     max-width: 100%;
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: repeat(2, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--spacing-md);
     margin: 0 auto;
   }
   
   .launchVideo__statCard {
-    padding: var(--spacing-md);
+    padding: 0;
+    min-height: 120px;
   }
   
   .launchVideo__statNumber {
@@ -261,14 +261,13 @@
   }
   
   .launchVideo__statsGrid {
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: repeat(2, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--spacing-sm);
   }
   
   .launchVideo__statCard {
-    padding: var(--spacing-sm);
-    aspect-ratio: 1;
+    padding: 0;
+    min-height: 110px;
   }
   
   .launchVideo__statIcon {

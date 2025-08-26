@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import styles from './LaunchVideoSection.module.css';
+import { stacksApi, type HomepageStackItem } from '../../services/api';
 
 interface LaunchVideoSectionProps {
   className?: string;
@@ -41,6 +42,19 @@ const useAnimatedCounter = (target: number, duration: number = 1500, shouldStart
   return count;
 };
 
+// Child component to safely use hooks inside list rendering
+const AnimatedNumber: React.FC<{ value: number; duration: number; start: boolean; original: number }>
+= ({ value, duration, start, original }) => {
+  const animated = useAnimatedCounter(value, duration, start);
+  const formatNumber = (num: number, originalValue: number): string => {
+    if (originalValue < 10 && originalValue.toString().length === 1) {
+      return num.toString().padStart(2, '0');
+    }
+    return num.toLocaleString();
+  };
+  return <>{formatNumber(animated, original)}</>;
+};
+
 const LaunchVideoSection: React.FC<LaunchVideoSectionProps> = ({ className = '' }) => {
   // Convert Google Drive sharing URL to embeddable URL
   const videoUrl = "https://drive.google.com/file/d/1LTPVB542XGX8bJyc9g4mkiojknJ755zY/preview";
@@ -49,40 +63,57 @@ const LaunchVideoSection: React.FC<LaunchVideoSectionProps> = ({ className = '' 
   const [shouldAnimateStats, setShouldAnimateStats] = useState(false);
   const statsRef = useRef<HTMLDivElement>(null);
 
-  // Stats data with numeric values for animation
-  const stats = [
-    { number: 10, label: "Domains", duration: 1000 },
-    { number: 114, label: "Courses", duration: 1800 },
-    { number: 200, label: "Local Urban Solutions", duration: 2000 },
-    { number: 4, label: "National Certification Programmes", duration: 800 },
-    { number: 2, label: "Learning Journeys", duration: 600 },
-    { number: 70, label: "Knowledge Partners", duration: 1400 }
-  ];
+  // API-driven stats only (no hardcoded defaults)
+  const [stats, setStats] = useState<{ number: number; label: string; duration: number }[]>([]);
+  const [isLoadingStacks, setIsLoadingStacks] = useState(true);
 
-  // Animated counters for each stat
-  const animatedStats = [
-    useAnimatedCounter(stats[0].number, stats[0].duration, shouldAnimateStats),
-    useAnimatedCounter(stats[1].number, stats[1].duration, shouldAnimateStats),
-    useAnimatedCounter(stats[2].number, stats[2].duration, shouldAnimateStats),
-    useAnimatedCounter(stats[3].number, stats[3].duration, shouldAnimateStats),
-    useAnimatedCounter(stats[4].number, stats[4].duration, shouldAnimateStats),
-    useAnimatedCounter(stats[5].number, stats[5].duration, shouldAnimateStats),
-  ];
+  // Fetch stacks from CMS and map to stats (display ALL items)
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const res = await stacksApi.getHomepageStacks();
+        if (isMounted && res.success && Array.isArray(res.data)) {
+          const items = (res.data as HomepageStackItem[])
+            .filter((item) => item.category?.slug === 'landing-page-stacks')
+            .filter((item) => typeof item.enter_count === 'number' && item.title)
+            // Stable sort: first by category name to group, then by order within group
+            .sort((a, b) => {
+              const catA = a.category?.slug || '';
+              const catB = b.category?.slug || '';
+              if (catA !== catB) return catA.localeCompare(catB);
+              const oa = typeof a.order === 'number' ? a.order : 0;
+              const ob = typeof b.order === 'number' ? b.order : 0;
+              return oa - ob;
+            });
 
-  const formatNumber = (num: number, originalValue: number): string => {
-    if (originalValue < 10 && originalValue.toString().length === 1) {
-      return num.toString().padStart(2, '0');
-    }
-    return num.toLocaleString();
-  };
+          const mapped = items.map((item, idx) => ({
+            number: item.enter_count || 0,
+            label: item.title,
+            duration: 1000 + (idx % 6) * 200,
+          }));
+
+          console.log('LaunchVideo stacks mapped:', { count: mapped.length, titles: mapped.map(m => m.label) });
+          setStats(mapped);
+        } else if (isMounted) {
+          console.log('LaunchVideo stacks: empty or invalid response', res);
+          setStats([]);
+        }
+      } catch (e) {
+        console.error('LaunchVideo stacks fetch error:', e);
+        if (isMounted) setStats([]);
+      } finally {
+        if (isMounted) setIsLoadingStacks(false);
+      }
+    })();
+    return () => { isMounted = false; };
+  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          console.log('LaunchVideo intersection:', entry.isIntersecting, entry.intersectionRatio);
           if (entry.isIntersecting && !shouldAnimateStats) {
-            console.log('Starting LaunchVideo stats animation');
             setShouldAnimateStats(true);
           }
         });
@@ -121,8 +152,8 @@ const LaunchVideoSection: React.FC<LaunchVideoSectionProps> = ({ className = '' 
           {/* Right Side - Stats */}
           <div className={styles.launchVideo__statsWrapper}>
             <div className={styles.launchVideo__statsGrid}>  
-              {stats.map((stat, index) => (
-                <div key={index} className={styles.launchVideo__statCard}>
+              {!isLoadingStacks && stats.length > 0 && stats.map((stat, index) => (
+                <div key={`${stat.label}-${index}`} className={styles.launchVideo__statCard}>
                   <div className={styles.launchVideo__statIcon}>
                     <Image
                       src="/images/growth-arrow.png"
@@ -132,7 +163,7 @@ const LaunchVideoSection: React.FC<LaunchVideoSectionProps> = ({ className = '' 
                     />
                   </div>
                   <div className={styles.launchVideo__statNumber}>
-                    {formatNumber(animatedStats[index], stat.number)}
+                    <AnimatedNumber value={stat.number} duration={stat.duration} start={shouldAnimateStats} original={stat.number} />
                   </div>
                   <div className={styles.launchVideo__statLabel}>
                     {stat.label}

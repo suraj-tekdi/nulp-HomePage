@@ -880,6 +880,84 @@ export const testimonialsApi = {
   }
 };
 
+// Homepage Stacks types and API
+export interface HomepageStackCategory {
+  id: number;
+  documentId: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  state: string;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
+}
+
+export interface HomepageStackItem {
+  id: number;
+  documentId: string;
+  title: string;
+  order: number;
+  mode: string; // "Custom" | "Dynamic"
+  enter_count: number;
+  state: string;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
+  dynamic_content: string | null;
+  category: HomepageStackCategory;
+}
+
+export interface HomepageStacksResponseMeta {
+  pagination: { page: number; pageSize: number; pageCount: number; total: number };
+  responseTime: number;
+  timestamp: string;
+  version: string;
+  requestId: string;
+}
+
+export interface HomepageStacksResponse {
+  success: boolean;
+  data: HomepageStackItem[];
+  meta: HomepageStacksResponseMeta;
+}
+
+export const stacksApi = {
+  getHomepageStacks: async (): Promise<ApiResponse<HomepageStackItem[]>> => {
+    try {
+      const response = await fetch(`/api/homepage/stacks`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const raw: any = await response.json();
+
+      // Normalize possible shapes:
+      // 1) { success: true, data: [] }
+      // 2) { success: true, data: { data: [] } }
+      // 3) Direct array (edge-case)
+      const maybeArray = Array.isArray(raw?.data) ? raw.data
+        : Array.isArray(raw?.data?.data) ? raw.data.data
+        : Array.isArray(raw) ? raw
+        : null;
+
+      if (raw?.success === true && Array.isArray(maybeArray)) {
+        return { success: true, data: maybeArray as HomepageStackItem[], status: response.status };
+      }
+
+      return { success: false, error: 'Invalid stacks API response', status: response.status };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch stacks',
+        status: 0,
+      };
+    }
+  }
+};
+
 // Export default API object
 export default {
   search: searchApi,
@@ -888,4 +966,5 @@ export default {
   user: userApi,
   partners: partnersApi,
   testimonials: testimonialsApi,
+  stacks: stacksApi,
 }; 

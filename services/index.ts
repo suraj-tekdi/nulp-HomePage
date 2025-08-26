@@ -20,4 +20,7 @@ export {
 
 // Default exports
 export { default as api } from './api';
-export { default as scrollUtils } from './scrollUtils'; 
+export { default as scrollUtils } from './scrollUtils';
+
+// Specific exports for new CMS stacks API
+export { stacksApi, type HomepageStackItem } from './api'; 
