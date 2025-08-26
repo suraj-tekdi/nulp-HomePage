@@ -1,6 +1,7 @@
 import React from 'react';
-import Image from 'next/image';
 import styles from './AboutUsContact.module.css';
+import CallRoundedIcon from '@mui/icons-material/CallRounded';
+import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded';
 
 interface AboutUsContactProps {
   className?: string;
@@ -15,7 +16,7 @@ const AboutUsContact: React.FC<AboutUsContactProps> = ({ className = '' }) => {
         <div className={styles.contact__infoGrid}>
           <div className={styles.contact__infoItem}>
             <span className={styles.contact__icon} aria-hidden="true">
-              <Image src="/images/aboutus/distance.svg" alt="" width={24} height={24} className={styles.contact__iconImg} />
+              <LocationOnRoundedIcon className={styles.contact__iconImg} fontSize="medium" />
             </span>
             <div>
               <h3 className={styles.contact__infoTitle}>National Institute of Urban Affairs</h3>
@@ -27,7 +28,7 @@ const AboutUsContact: React.FC<AboutUsContactProps> = ({ className = '' }) => {
 
           <div className={styles.contact__infoItem}>
             <span className={styles.contact__icon} aria-hidden="true">
-              <Image src="/images/aboutus/call.svg" alt="" width={24} height={24} className={styles.contact__iconImg} />
+              <CallRoundedIcon className={styles.contact__iconImg} fontSize="medium" />
             </span>
             <div>
               <h3 className={styles.contact__infoTitle}>Email ID:</h3>
