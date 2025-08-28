@@ -680,7 +680,7 @@ export const discussionApi = {
     try {
       const encodedDomain = encodeURIComponent(domainName);
       const response = await fetch(
-        `${baseUrl}/api/discussions/by-domain?domainName=${encodedDomain}`,
+        `${baseUrl}/discussion/api/posts/by-domain?domainName=${encodedDomain}`,
         {
           method: "GET",
           headers: {
