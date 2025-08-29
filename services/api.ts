@@ -612,15 +612,27 @@ export function transformDomainDiscussionPost(post: DomainDiscussionPost): {
   location?: string;
   slug: string;
 } {
+  // Clean HTML tags from content to get plain text description
+  const cleanDescription = (htmlContent: string): string => {
+    if (!htmlContent) return "No description available";
+    // Remove HTML tags and decode entities
+    return (
+      htmlContent
+        .replace(/<[^>]*>/g, "") // Remove HTML tags
+        .replace(/&[^;]+;/g, " ") // Replace HTML entities with spaces
+        .trim() || "No description available"
+    );
+  };
+
   return {
     id: post.topic.tid,
     title: post.topic.titleRaw || post.topic.title,
-    description: post.content || "No description available",
+    description: cleanDescription(post.content),
     category: post.category.name,
-    replies: post.topic.postcount - 1, // Subtract 1 as postcount includes the original post
+    replies: Math.max(0, (post.topic.postcount || 1) - 1), // Subtract 1 as postcount includes the original post
     views: 0, // View count not available in domain API response
     isSolved: post.topic.isSolved === 1,
-    author: post.user.fullname || post.user.displayname,
+    author: post.user.fullname || post.user.displayname || post.user.username,
     designation: post.user.designation,
     location: post.user.location,
     slug: post.topic.slug,
@@ -696,8 +708,25 @@ export const discussionApi = {
 
       const data = await response.json();
 
-      // The API route returns the data in the expected format
-      return data;
+      // Handle the actual API response structure
+      if (data.responseCode === "OK" && data.result?.posts) {
+        // Filter to get only main posts (unique topics) and limit to recent ones
+        const mainPosts = data.result.posts
+          .filter((post: DomainDiscussionPost) => post.isMainPost === true)
+          .slice(0, 20); // Limit to 20 topics
+
+        return {
+          success: true,
+          data: mainPosts,
+          status: response.status,
+        };
+      } else {
+        return {
+          success: false,
+          error: "Invalid response format from discussion forum API",
+          status: response.status,
+        };
+      }
     } catch (error) {
       return {
         success: false,
