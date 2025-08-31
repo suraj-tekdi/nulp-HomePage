@@ -337,6 +337,29 @@ const Banner: React.FC<BannerProps> = ({ className = "" }) => {
               <div className={styles["banner__background-overlay"]} />
               <div className={styles.banner__container}>
                 <div className={styles.banner__content}>{slide.content}</div>
+                {/* Stats inside the slide so they can flow under content on mobile */}
+                <div className={styles["banner__sidebar"]}>
+                  <div className={styles["banner__stats"]} ref={statsRef}>
+                    {!isLoadingStacks &&
+                      stats.map((stat, i) => (
+                        <div
+                          key={`${stat.label}-${i}`}
+                          className={styles["banner__stats-item"]}
+                        >
+                          <div className={styles["banner__stats-number"]}>
+                            <AnimatedNumber
+                              value={stat.number}
+                              duration={stat.duration}
+                              start={shouldAnimateStats}
+                            />
+                          </div>
+                          <div className={styles["banner__stats-label"]}>
+                            {stat.label}
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
               </div>
             </div>
           ))}
@@ -359,46 +382,24 @@ const Banner: React.FC<BannerProps> = ({ className = "" }) => {
         </div>
       </div>
 
-      {/* Stats + Arrows */}
-      <div className={styles["banner__sidebar"]}>
-        <div className={styles["banner__stats"]} ref={statsRef}>
-          {!isLoadingStacks &&
-            stats.map((stat, i) => (
-              <div
-                key={`${stat.label}-${i}`}
-                className={styles["banner__stats-item"]}
-              >
-                <div className={styles["banner__stats-number"]}>
-                  <AnimatedNumber
-                    value={stat.number}
-                    duration={stat.duration}
-                    start={shouldAnimateStats}
-                  />
-                </div>
-                <div className={styles["banner__stats-label"]}>
-                  {stat.label}
-                </div>
-              </div>
-            ))}
-        </div>
-        <div className={styles["banner__navigation"]}>
-          <button
-            className={styles["banner__navigation-arrow"]}
-            onClick={goToPrev}
-            disabled={isTransitioning}
-            aria-label="Previous slide"
-          >
-            <ArrowBackIcon />
-          </button>
-          <button
-            className={styles["banner__navigation-arrow"]}
-            onClick={goToNext}
-            disabled={isTransitioning}
-            aria-label="Next slide"
-          >
-            <ArrowForwardIcon />
-          </button>
-        </div>
+      {/* Navigation Arrows */}
+      <div className={styles["banner__navigation"]}>
+        <button
+          className={styles["banner__navigation-arrow"]}
+          onClick={goToPrev}
+          disabled={isTransitioning}
+          aria-label="Previous slide"
+        >
+          <ArrowBackIcon />
+        </button>
+        <button
+          className={styles["banner__navigation-arrow"]}
+          onClick={goToNext}
+          disabled={isTransitioning}
+          aria-label="Next slide"
+        >
+          <ArrowForwardIcon />
+        </button>
       </div>
     </section>
   );
