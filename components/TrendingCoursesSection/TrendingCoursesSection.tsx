@@ -112,7 +112,10 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
         setIsVisible(ids.length > 0);
 
         // 2) Fetch courses using NULP search constrained to IDs via sliders API
-        const response = await slidersApi.getCoursesByIds(ids);
+        const response = await slidersApi.getCoursesByIds(
+          ids,
+          selectedDomain || null
+        );
 
         if (response.success && response.data) {
           const transformedCourses = response.data.map(transformNulpCourse);

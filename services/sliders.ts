@@ -148,7 +148,8 @@ export const slidersApi = {
 
   // Fetch courses by IDs using the payload shape provided
   getCoursesByIds: async (
-    identifiers: string[]
+    identifiers: string[],
+    selectedDomain?: string | null
   ): Promise<ApiResponse<NulpCourse[]>> => {
     try {
       if (!identifiers || identifiers.length === 0) {
@@ -157,7 +158,7 @@ export const slidersApi = {
       const urls = getDynamicNulpUrls();
       const baseUrl = urls.base;
 
-      const payload = {
+      const payload: any = {
         filters: {
           status: ["Live"],
           visibility: ["Default", "Parent"],
@@ -196,10 +197,14 @@ export const slidersApi = {
           "primaryCategory",
         ],
         offset: 0,
-      } as any;
+      };
+
+      if (selectedDomain && selectedDomain.trim()) {
+        payload.filters.se_boards = [selectedDomain.trim()];
+      }
 
       const response = await fetch(
-        `${baseUrl}/api/content/v1/search?orgdetails=orgName,email&licenseDetails=name,description,url`,
+        `https://nulp.niua.org/api/content/v1/search?orgdetails=orgName,email&licenseDetails=name,description,url`,
         {
           method: "POST",
           headers: {
@@ -245,15 +250,13 @@ export const slidersApi = {
   },
 
   // Combined helper: from sliders to courses
-  getTrendingCourses: async (): Promise<ApiResponse<NulpCourse[]>> => {
+  getTrendingCourses: async (
+    selectedDomain?: string | null
+  ): Promise<ApiResponse<NulpCourse[]>> => {
     const idsRes = await slidersApi.getTrendingCourseIds();
     if (!idsRes.success)
       return { success: false, error: idsRes.error, status: idsRes.status };
     const ids = (idsRes.data || []).filter(Boolean);
-    if (typeof window !== "undefined") {
-      // eslint-disable-next-line no-console
-      console.log("[Sliders] Trending course IDs:", ids);
-    }
-    return slidersApi.getCoursesByIds(ids);
+    return slidersApi.getCoursesByIds(ids, selectedDomain);
   },
 };
