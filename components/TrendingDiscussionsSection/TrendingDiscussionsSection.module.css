@@ -1,6 +1,6 @@
 /* TrendingDiscussionsSection Component - BEM Methodology */
 .discussions {
-  background-color: #FFF8DF;
+  background-color: #fff8df;
   padding: var(--spacing-xxl) 0;
   position: relative;
   width: 100%;
@@ -19,7 +19,7 @@
 .discussions__accent {
   width: 60px;
   height: 4px;
-  background: linear-gradient(90deg, #8E44AD 0%, #663399 100%);
+  background: linear-gradient(90deg, #8e44ad 0%, #663399 100%);
   border-radius: 2px;
   margin-bottom: var(--spacing-lg);
 }
@@ -123,11 +123,11 @@
 .discussions__card__image {
   width: 100%;
   height: 160px;
-  background-color: #E8E9EA;
+  background-color: #e8e9ea;
   background-image: linear-gradient(45deg, #f0f0f0 25%, transparent 25%),
-                    linear-gradient(-45deg, #f0f0f0 25%, transparent 25%),
-                    linear-gradient(45deg, transparent 75%, #f0f0f0 75%),
-                    linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
+    linear-gradient(-45deg, #f0f0f0 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #f0f0f0 75%),
+    linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
   background-size: 20px 20px;
   background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
@@ -457,14 +457,14 @@
 
 /* Responsive Design */
 @media (max-width: 1200px) {
-  .discussions__container {
+  /* .discussions__container {
     padding: 0 var(--spacing-md);
-  }
-  
+  } */
+
   .discussions__title {
     font-size: 2.2rem;
   }
-  
+
   .discussions__subtitle {
     font-size: 1.3rem;
   }
@@ -474,55 +474,55 @@
   .discussions {
     padding: var(--spacing-xl) 0;
   }
-  
+
   .discussions__title {
-    font-size: 2rem;
+    font-size: 2rem !important;
   }
-  
+
   .discussions__arrow {
     width: 260px;
     height: 14px;
   }
-  
+
   .discussions__subtitle {
     font-size: 1.2rem;
   }
-  
+
   .discussions__items {
     gap: var(--spacing-md);
   }
-  
+
   .discussions__card {
     height: 350px;
     width: 300px;
   }
-  
+
   .discussions__card__image {
     height: 140px;
   }
-  
+
   .discussions__card__content {
     padding: var(--spacing-md);
   }
-  
+
   .discussions__card__hover {
     padding: var(--spacing-md);
   }
-  
+
   .discussions__card__button {
     padding: 10px var(--spacing-sm);
     font-size: 0.85rem;
   }
-  
+
   .discussions__card__title {
     font-size: 1.1rem;
   }
-  
+
   .discussions__card__description {
     font-size: 0.85rem;
     -webkit-line-clamp: 2;
   }
-  
+
   .discussions__arrow {
     width: 40px;
     height: 40px;
@@ -533,74 +533,74 @@
   .discussions {
     padding: var(--spacing-lg) 0;
   }
-  
+
   .discussions__title {
     font-size: 1.8rem;
   }
-  
+
   .discussions__arrow {
     width: 220px;
     height: 12px;
   }
-  
+
   .discussions__subtitle {
     font-size: 1.1rem;
   }
-  
+
   .discussions__items {
     gap: var(--spacing-sm);
   }
-  
+
   .discussions__card {
     height: 320px;
     width: 280px;
   }
-  
+
   .discussions__card__image {
     height: 110px;
   }
-  
+
   .discussions__card__content {
     padding: var(--spacing-sm);
   }
-  
+
   .discussions__card__hover {
     padding: var(--spacing-sm);
   }
-  
+
   .discussions__card__button {
     padding: 8px var(--spacing-sm);
     font-size: 0.8rem;
     margin-top: var(--spacing-sm);
   }
-  
+
   .discussions__card__title {
     font-size: 1rem;
   }
-  
+
   .discussions__card__description {
     font-size: 0.8rem;
     -webkit-line-clamp: 2;
   }
-  
+
   .discussions__card__stats {
     gap: var(--spacing-sm);
   }
-  
+
   .discussions__card__stat {
     font-size: 0.75rem;
   }
-  
+
   .discussions__controls {
     flex-direction: column;
     gap: var(--spacing-md);
     position: static;
   }
-  
+
   .discussions__navigation {
     position: static;
   }
-  
+
   .discussions__arrow {
     width: 35px;
     height: 35px;
@@ -623,12 +623,18 @@
   animation: fadeInUp 0.6s ease-out;
 }
 
-.discussions__card:nth-child(1) { animation-delay: 0.1s; }
-.discussions__card:nth-child(2) { animation-delay: 0.2s; }
-.discussions__card:nth-child(3) { animation-delay: 0.3s; }
-.discussions__card:nth-child(4) { animation-delay: 0.4s; } 
-
-
+.discussions__card:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.discussions__card:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.discussions__card:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.discussions__card:nth-child(4) {
+  animation-delay: 0.4s;
+}
 
 /* Update pagination dots to match other sections */
 .discussions__dot {
@@ -647,17 +653,17 @@
     font-size: 0.7rem;
     padding: 3px 8px;
   }
-  
+
   .discussions__card__solved,
   .discussions__card__unsolved {
     font-size: 0.7rem;
     padding: 3px 6px;
   }
-  
+
   .discussions__card__author__name {
     font-size: 0.8rem;
   }
-  
+
   .discussions__card__author__designation {
     font-size: 0.7rem;
   }
@@ -665,11 +671,11 @@
 
 @media (max-width: 480px) {
   .discussions__title {
-    font-size: 1.5rem;
+    font-size: 1.5rem !important;
   }
-  
+
   .discussions__arrow {
     width: 200px;
     height: 10px;
   }
-} 
+}

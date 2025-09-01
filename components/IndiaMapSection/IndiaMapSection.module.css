@@ -1,6 +1,6 @@
 /* IndiaMapSection Component - BEM Methodology */
 .mapSection {
-  background-color: #F8FFFE;
+  background-color: #f8fffe;
   padding: 60px 30px;
   position: relative;
 }
@@ -26,7 +26,7 @@
 }
 
 .mapSection__title__highlight {
-  color: #0097B2;
+  color: #0097b2;
   font-weight: 700;
 }
 
@@ -53,8 +53,6 @@
   align-items: center;
   justify-content: flex-start;
 }
-
-
 
 .mapSection__mapContainer {
   display: flex;
@@ -97,13 +95,13 @@
   cursor: pointer;
   transition: all 0.3s ease;
   fill: rgba(179, 204, 222, 0.29);
-  stroke: #90D8FF;
+  stroke: #90d8ff;
   stroke-width: 1;
 }
 
 .mapSection__svgMap path:hover {
   fill: rgba(179, 204, 222, 0.5) !important;
-  stroke: #90D8FF !important;
+  stroke: #90d8ff !important;
   stroke-width: 2;
 }
 
@@ -114,7 +112,7 @@
 .mapSection__svgMap path[id="wb"],
 .mapSection__svgMap path[id="hp"] {
   fill: #054365;
-  stroke: #90D8FF;
+  stroke: #90d8ff;
   stroke-width: 2;
 }
 
@@ -129,11 +127,9 @@
 /* Active state styling - will be applied via JavaScript */
 .mapSection__svgMap path.selected {
   fill: #054365 !important;
-  stroke: #90D8FF !important;
+  stroke: #90d8ff !important;
   stroke-width: 3 !important;
 }
-
-
 
 /* State Name - Left of Map */
 .mapSection__stateNameLeft {
@@ -168,8 +164,8 @@
 .mapSection__stateLegendItem {
   padding: 8px 15px;
   background: white;
-  color: #0097B2;
-  border: 2px solid #0097B2;
+  color: #0097b2;
+  border: 2px solid #0097b2;
   border-radius: 20px;
   font-size: 0.85rem;
   font-weight: 500;
@@ -179,13 +175,13 @@
 }
 
 .mapSection__stateLegendItem:hover {
-  background: #0097B2;
+  background: #0097b2;
   color: white;
   transform: translateY(-1px);
 }
 
 .mapSection__stateLegendItem.active {
-  background: #0097B2;
+  background: #0097b2;
   color: white;
   box-shadow: 0 2px 8px rgba(0, 151, 178, 0.3);
 }
@@ -206,7 +202,7 @@
 .mapSection__currentState h3 {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #0097B2;
+  color: #0097b2;
   margin: 0;
 }
 
@@ -282,6 +278,14 @@
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
   transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform;
+}
+
+/* Caption under the centered image */
+.gallery__caption {
+  margin-top: 10px;
+  font-size: 0.95rem;
+  color: #333;
+  text-align: center;
 }
 
 .gallery__scrollImage img {
@@ -391,7 +395,7 @@
 }
 
 .mapSection__noGallery p strong {
-  color: #0097B2;
+  color: #0097b2;
   font-weight: 600;
 }
 
@@ -400,59 +404,70 @@
   .mapSection {
     padding: 40px 0;
   }
-  
+
   .mapSection__title {
     font-size: 2rem;
   }
-  
+
   .mapSection__subtitle {
     font-size: 1.1rem;
   }
-  
+
+  .mapSection__header {
+    margin-bottom: var(--spacing-lg);
+  }
+
   .mapSection__content {
     grid-template-columns: 1fr;
-    gap: 30px;
+    gap: 20px;
+    margin-top: 16px;
   }
-  
+
   .mapSection__mapContainer {
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
     align-items: center;
   }
-  
+
   .mapSection__stateNameLeft {
     text-align: center;
     margin-top: 0;
   }
-  
+
   .mapSection__mapWrapper {
     max-width: 400px;
   }
-  
+
   .mapSection__svgMapContainer,
   .mapSection__svgMap,
   .mapSection__svgMap svg {
-    max-height: 450px;
+    max-height: 420px;
+    min-height: 420px; /* reduce tall blank space on tablets */
   }
-  
+
+  .mapSection__stateInfo {
+    position: static;
+    margin-top: 12px; /* keep clearly below map */
+  }
+
   .gallery__image img {
     height: 160px;
   }
-  
+
   .gallery__item:nth-child(1) .gallery__image,
   .gallery__item:nth-child(3) .gallery__image {
     width: 85%;
     margin: 0 auto;
     border-radius: 12px;
   }
-  
+
   .gallery__item:nth-child(1) .gallery__image img,
   .gallery__item:nth-child(3) .gallery__image img {
     width: 100%;
     margin: 0;
   }
-  
-    .gallery__item:nth-child(2) .gallery__image img {
+
+  .gallery__item:nth-child(2) .gallery__image img {
     height: 200px;
     width: 100%;
   }
@@ -464,14 +479,10 @@
     padding: 30px 0;
   }
 
-
-
   .gallery__scrollItem--center {
     transform: translateY(0) scale(1);
     margin: 6px 0;
   }
-
-
 
   .gallery__scrollItem--center .gallery__scrollImage {
     width: 500px;
@@ -505,55 +516,65 @@
   .mapSection {
     padding: 30px 0;
   }
-  
+
   .mapSection__container {
     padding: 0 15px;
   }
-  
+
   .mapSection__title {
     font-size: 1.8rem;
   }
-  
+
   .mapSection__subtitle {
     font-size: 1rem;
   }
-  
-  .mapSection__mapContainer {
-    gap: 10px;
+
+  .mapSection__header {
+    margin-bottom: var(--spacing-md);
   }
-  
+
+  .mapSection__mapContainer {
+    gap: 8px;
+  }
+
   .mapSection__stateNameLeft {
     font-size: 1.3rem;
   }
-  
+
   .mapSection__mapWrapper {
     max-width: 320px;
   }
-  
+
   .mapSection__svgMapContainer,
   .mapSection__svgMap,
   .mapSection__svgMap svg {
-    max-height: 360px;
+    max-height: 320px;
+    min-height: 320px;
   }
-  
+
+  .mapSection__stateInfo {
+    position: static;
+    margin-top: 10px;
+  }
+
   .gallery__image img {
     height: 140px;
   }
-  
+
   .gallery__item:nth-child(1) .gallery__image,
   .gallery__item:nth-child(3) .gallery__image {
     width: 85%;
     margin: 0 auto;
     border-radius: 10px;
   }
-  
+
   .gallery__item:nth-child(1) .gallery__image img,
   .gallery__item:nth-child(3) .gallery__image img {
     width: 100%;
     margin: 0;
   }
-  
-    .gallery__item:nth-child(2) .gallery__image img {
+
+  .gallery__item:nth-child(2) .gallery__image img {
     height: 170px;
     width: 100%;
   }
@@ -606,5 +627,3 @@
     font-size: 0.75rem;
   }
 }
-
- 

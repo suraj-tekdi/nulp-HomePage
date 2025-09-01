@@ -298,9 +298,7 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
                 </span>
               </h2>
             </div>
-            <h3 className={styles.discussions__subtitle}>
-              {selectedDomain || "All Domains"}
-            </h3>
+            <h3 className={styles.discussions__subtitle}>{selectedDomain}</h3>
           </div>
           <div className={styles.discussions__content}>
             <div className={styles.discussions__error}>

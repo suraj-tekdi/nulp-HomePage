@@ -1,6 +1,6 @@
 /* TrendingCoursesSection Component - BEM Methodology */
 .trending {
-  background-color: #FFF8DF;
+  background-color: #fff8df;
   padding: var(--spacing-xxl) 0;
   position: relative;
   width: 100%;
@@ -19,7 +19,7 @@
 .trending__accent {
   width: 60px;
   height: 4px;
-  background: linear-gradient(90deg, #F39C12 0%, #E67E22 100%);
+  background: linear-gradient(90deg, #f39c12 0%, #e67e22 100%);
   border-radius: 2px;
   margin-bottom: var(--spacing-lg);
 }
@@ -269,8 +269,12 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .trending__error {
@@ -422,14 +426,14 @@
 
 /* Responsive Design */
 @media (max-width: 1200px) {
-  .trending__container {
+  /* .trending__container {
     padding: 0 var(--spacing-md);
-  }
-  
+  } */
+
   .trending__title {
     font-size: 2.2rem;
   }
-  
+
   .trending__subtitle {
     font-size: 1.3rem;
   }
@@ -439,61 +443,57 @@
   .trending {
     padding: var(--spacing-xl) 0;
   }
-  
+
   .trending__title {
     font-size: 2rem;
   }
-  
+
   .trending__arrow {
     width: 220px;
     height: 14px;
   }
-  
+
   .trending__subtitle {
     font-size: 1.2rem;
   }
-  
+
   .trending__courses {
     gap: var(--spacing-md);
     padding: 0 var(--spacing-md);
   }
-  
+
   .trending__card {
     flex: 0 0 300px; /* Slightly smaller for tablet */
     height: 360px;
   }
-  
-  
+
   .trending__card__placeholder {
     font-size: 0.8rem;
     padding: var(--spacing-sm);
   }
-  
 
-  
   .trending__card__content {
     height: 180px;
   }
-  
 
   .trending__card__hover {
     padding: var(--spacing-md);
   }
-  
+
   .trending__card__button {
     padding: 10px var(--spacing-sm);
     font-size: 0.85rem;
   }
-  
+
   .trending__card__title {
     font-size: 1.1rem;
   }
-  
+
   .trending__card__description {
     font-size: 0.85rem;
     -webkit-line-clamp: 3;
   }
-  
+
   .trending__arrow {
     width: 40px;
     height: 40px;
@@ -504,73 +504,79 @@
   .trending {
     padding: var(--spacing-lg) 0;
   }
-  
+
   .trending__title {
     font-size: 1.8rem;
   }
-  
+
   .trending__subtitle {
     font-size: 1.1rem;
   }
-  
+
   .trending__courses {
     gap: var(--spacing-sm);
     padding: 0 var(--spacing-sm);
   }
-  
+
   .trending__card {
     flex: 0 0 280px; /* Smaller for mobile */
     height: 340px;
   }
-  
+
   .trending__card__image {
     height: 140px;
   }
-  
+
   .trending__card__image img {
     padding: var(--spacing-sm) var(--spacing-md);
     margin: calc(var(--spacing-sm) / 2);
     max-width: calc(100% - var(--spacing-sm));
     max-height: calc(100% - var(--spacing-sm));
   }
-  
+
   .trending__card__content {
     height: 160px;
   }
-  
+
   .trending__card__normal,
   .trending__card__hover {
     padding: var(--spacing-sm);
   }
-  
+
   .trending__card__button {
     padding: 8px var(--spacing-sm);
     font-size: 0.8rem;
     margin-top: var(--spacing-sm);
   }
-  
+
   .trending__card__title {
     font-size: 1rem;
   }
-  
+
   .trending__card__description {
     font-size: 0.8rem;
     -webkit-line-clamp: 2;
   }
-  
+
   .trending__controls {
     flex-direction: column;
     gap: var(--spacing-md);
     position: static;
   }
-  
+
   .trending__navigation {
     position: static;
   }
-  
+
   .trending__arrow {
     width: 35px;
     height: 35px;
+  }
+}
+
+@media (max-width: 480px) {
+  .trending__title {
+    font-size: 1.5rem;
   }
 }
 
@@ -590,7 +596,15 @@
   animation: fadeInUp 0.6s ease-out;
 }
 
-.trending__card:nth-child(1) { animation-delay: 0.1s; }
-.trending__card:nth-child(2) { animation-delay: 0.2s; }
-.trending__card:nth-child(3) { animation-delay: 0.3s; }
-.trending__card:nth-child(4) { animation-delay: 0.4s; } 
+.trending__card:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.trending__card:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.trending__card:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.trending__card:nth-child(4) {
+  animation-delay: 0.4s;
+}
