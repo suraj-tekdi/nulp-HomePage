@@ -40,4 +40,5 @@ export {
   slidersApi,
   type HomepageSliderItem,
   type NulpCourse,
+  type NulpGoodPractice,
 } from "./sliders";

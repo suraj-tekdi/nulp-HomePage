@@ -71,6 +71,18 @@ export interface NulpCourse {
   };
 }
 
+// NULP Good Practice type (subset needed by UI)
+export interface NulpGoodPractice {
+  identifier: string;
+  name: string;
+  appIcon?: string;
+  se_boards?: string[];
+  se_gradeLevels?: string[];
+  orgDetails: { orgName: string };
+  primaryCategory: string;
+  mimeType: string;
+}
+
 const isWithinPublishWindow = (
   start?: string | null,
   end?: string | null
@@ -249,14 +261,136 @@ export const slidersApi = {
     }
   },
 
-  // Combined helper: from sliders to courses
-  getTrendingCourses: async (
+  // IDs for Trending Good Practices from sliders
+  getTrendingGoodPracticeIds: async (): Promise<ApiResponse<string[]>> => {
+    const res = await slidersApi.getHomepageSliders();
+    if (!res.success || !Array.isArray(res.data))
+      return {
+        success: false,
+        error: res.error || "Failed",
+        status: res.status,
+      };
+    const items = res.data as HomepageSliderItem[];
+    const slider =
+      items.find(
+        (i) => (i.mode || "").toLowerCase() === "select_good_practices"
+      ) ||
+      items.find(
+        (i) => (i.name || "").toLowerCase() === "trending good practices"
+      ) ||
+      items.find(
+        (i) =>
+          Array.isArray(i.trending_good_practices) &&
+          i.trending_good_practices.length > 0
+      );
+    const ids = (slider?.trending_good_practices || []).filter(
+      Boolean
+    ) as string[];
+    return { success: true, data: ids, status: res.status };
+  },
+
+  // Fetch good practices by IDs with optional domain filter
+  getGoodPracticesByIds: async (
+    identifiers: string[],
     selectedDomain?: string | null
-  ): Promise<ApiResponse<NulpCourse[]>> => {
-    const idsRes = await slidersApi.getTrendingCourseIds();
-    if (!idsRes.success)
-      return { success: false, error: idsRes.error, status: idsRes.status };
-    const ids = (idsRes.data || []).filter(Boolean);
-    return slidersApi.getCoursesByIds(ids, selectedDomain);
+  ): Promise<ApiResponse<NulpGoodPractice[]>> => {
+    try {
+      if (!identifiers || identifiers.length === 0) {
+        return { success: true, data: [] };
+      }
+      const urls = getDynamicNulpUrls();
+      const baseUrl = urls.base;
+
+      const payload: any = {
+        filters: {
+          status: ["Live"],
+          visibility: ["Default", "Parent"],
+          identifier: identifiers,
+          se_boards: [null],
+        },
+        limit: 20,
+        sort_by: { createdOn: "desc" },
+        fields: [
+          "name",
+          "appIcon",
+          "mimeType",
+          "gradeLevel",
+          "identifier",
+          "medium",
+          "pkgVersion",
+          "board",
+          "subject",
+          "resourceType",
+          "primaryCategory",
+          "contentType",
+          "channel",
+          "organisation",
+          "trackable",
+          "primaryCategory",
+          "se_boards",
+          "se_gradeLevels",
+          "se_subjects",
+          "se_mediums",
+          "primaryCategory",
+        ],
+        facets: [
+          "se_boards",
+          "se_gradeLevels",
+          "se_subjects",
+          "se_mediums",
+          "primaryCategory",
+        ],
+        offset: 0,
+        query: "",
+      };
+
+      if (selectedDomain && selectedDomain.trim()) {
+        payload.filters.se_boards = [selectedDomain.trim()];
+      }
+
+      const response = await fetch(
+        `https://nulp.niua.org/api/content/v1/search?orgdetails=orgName,email&licenseDetails=name,description,url`,
+        {
+          method: "POST",
+          headers: {
+            Accept: "*/*",
+            "Accept-Language": "en-GB,en-US;q=0.9,en;q=0.8",
+            "Content-Type": "application/json",
+            Origin:
+              typeof window !== "undefined" ? window.location.origin : baseUrl,
+            Referer:
+              typeof window !== "undefined"
+                ? `${window.location.origin}/`
+                : `${baseUrl}/`,
+          },
+          body: JSON.stringify({ request: payload }),
+        }
+      );
+
+      if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status}`);
+      const data = await response.json();
+      if (data?.responseCode === "OK" && Array.isArray(data?.result?.content)) {
+        return {
+          success: true,
+          data: data.result.content as NulpGoodPractice[],
+          status: response.status,
+        };
+      }
+      return {
+        success: false,
+        error: "Invalid response from NULP API",
+        status: response.status,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch good practices by ids",
+        status: 0,
+      };
+    }
   },
 };
