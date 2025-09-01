@@ -1,0 +1,341 @@
+/* Banner Section - Universal Styles */
+.bannerSection {
+  position: relative;
+  width: 100vw;
+  min-height: 60vh;
+  margin-left: calc(-50vw + 50%);
+  margin-bottom: 3rem;
+  overflow: hidden;
+}
+
+.bannerContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 60vh;
+  overflow: hidden;
+}
+
+.bannerSlider {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-height: 60vh;
+}
+
+.bannerSlide {
+  flex: 0 0 100%;
+  position: relative;
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bannerSlideActive {
+  z-index: 2;
+}
+
+.bannerImageWrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.bannerImage {
+  object-fit: cover;
+  object-position: center;
+}
+
+.bannerOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 151, 178, 0.8) 0%,
+    rgba(0, 85, 120, 0.8) 50%,
+    rgba(0, 61, 86, 0.9) 100%
+  );
+  z-index: 2;
+}
+
+.bannerContent {
+  position: relative;
+  z-index: 3;
+  text-align: center;
+  color: white;
+  padding: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.bannerTitle {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.bannerDescription {
+  font-size: 1.2rem;
+  line-height: 1.6;
+  margin: 0 auto;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  max-width: 800px;
+}
+
+/* Ensure no white backgrounds in banner content */
+.bannerDescription *,
+.bannerDescription h1,
+.bannerDescription h2,
+.bannerDescription h3,
+.bannerDescription h4,
+.bannerDescription h5,
+.bannerDescription h6,
+.bannerDescription p,
+.bannerDescription div,
+.bannerDescription span {
+  background-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* Banner Navigation */
+.bannerNavigation {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 2rem;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.bannerArrow {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  pointer-events: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.bannerArrow:hover {
+  background: rgba(255, 255, 255, 1);
+  transform: scale(1.1);
+}
+
+.bannerArrow:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.bannerArrow svg {
+  width: 24px;
+  height: 24px;
+  color: #333;
+}
+
+/* Banner Pagination */
+.bannerPagination {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.5rem;
+  z-index: 10;
+}
+
+.bannerDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.bannerDot:hover {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.bannerDotActive {
+  background: rgba(255, 255, 255, 1);
+  transform: scale(1.2);
+}
+
+/* Multiple Banners Styles */
+.multipleBanners {
+  margin-bottom: 2rem;
+}
+
+.bannersGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.bannerCard {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.bannerCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.cardImageWrapper {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+}
+
+.cardImage {
+  object-fit: cover;
+  object-position: center;
+  transition: transform 0.3s ease;
+}
+
+.bannerCard:hover .cardImage {
+  transform: scale(1.05);
+}
+
+.cardContent {
+  padding: 1.5rem;
+}
+
+.cardTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.75rem;
+  line-height: 1.3;
+}
+
+.cardDescription {
+  font-size: 1rem;
+  color: #666;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .singleBanner {
+    min-height: 50vh;
+    margin-bottom: 2rem;
+  }
+
+  .bannerContainer {
+    min-height: 50vh;
+  }
+
+  .bannerContent {
+    padding: 1.5rem;
+  }
+
+  .bannerTitle {
+    font-size: 2.2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .bannerDescription {
+    font-size: 1.1rem;
+  }
+
+  .bannersGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .bannerCard {
+    border-radius: 8px;
+  }
+
+  .cardImageWrapper {
+    height: 180px;
+  }
+
+  .cardContent {
+    padding: 1.25rem;
+  }
+
+  .cardTitle {
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .cardDescription {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .singleBanner {
+    min-height: 40vh;
+  }
+
+  .bannerContainer {
+    min-height: 40vh;
+  }
+
+  .bannerContent {
+    padding: 1rem;
+  }
+
+  .bannerTitle {
+    font-size: 1.8rem;
+  }
+
+  .bannerDescription {
+    font-size: 1rem;
+  }
+
+  .cardImageWrapper {
+    height: 160px;
+  }
+
+  .cardContent {
+    padding: 1rem;
+  }
+
+  .cardTitle {
+    font-size: 1.2rem;
+  }
+
+  .cardDescription {
+    font-size: 0.9rem;
+  }
+}
+
+/* No banner fallback */
+.noBanners {
+  display: none;
+}
