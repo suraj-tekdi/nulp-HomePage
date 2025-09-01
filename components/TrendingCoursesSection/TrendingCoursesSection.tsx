@@ -133,7 +133,7 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
     };
 
     fetchCourses();
-  }, [transformNulpCourse]);
+  }, [transformNulpCourse, selectedDomain]);
 
   // After courses change, reset scroll and recalc pagination
   useEffect(() => {
