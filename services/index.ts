@@ -4,15 +4,10 @@ export {
   courseApi,
   discussionApi,
   userApi,
-  contentApi,
   getDynamicNulpUrls,
   type ApiResponse,
   type SearchParams,
   type SearchResult,
-  type DynamicPageContent,
-  type DynamicPageBanner,
-  type DynamicPageArticle,
-  type DynamicPageFullContent,
 } from "./api";
 
 // Export scroll utilities
