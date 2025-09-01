@@ -5,6 +5,7 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import styles from "./Banner.module.css";
 import { scrollToElement } from "../../services/scrollUtils";
 import { stacksApi, type HomepageStackItem } from "../../services/api";
+import { bannersApi, type HomepageBannerItem } from "../../services";
 
 interface BannerSlide {
   id: number | string;
@@ -66,68 +67,79 @@ const AnimatedNumber: React.FC<{
 };
 
 const Banner: React.FC<BannerProps> = ({ className = "" }) => {
-  // Real slides
-  const realSlides: BannerSlide[] = [
-    {
-      id: 1,
-      content: (
-        <div className={styles["banner__content-wrapper"]}>
-          <h2 className={styles["banner__content-subtitle"]}>What we Offer:</h2>
-          <h1 className={styles["banner__content-title"]}>
-            <span className={styles["banner__content-highlight"]}>Learn</span>{" "}
-            from well curated courses and content
-          </h1>
-          <p className={styles["banner__content-description"]}>
-            <span className={styles["banner__content-highlight"]}>
-              Co-Learn
-            </span>{" "}
-            with peers from other cities and domain experts
-          </p>
-          <button
-            className={styles["banner__content-button"]}
-            onClick={() => scrollToElement("domains-section", 80)}
-          >
-            Explore Domains
-          </button>
-        </div>
-      ),
-      backgroundImage: "/images/banner/banner1.png",
-    },
-    {
-      id: 2,
-      content: (
-        <div className={styles["banner__content-wrapper"]}>
-          <h2 className={styles["second-banner__content-subtitle"]}>
-            Discover the Power of Learning
-          </h2>
-          <h1 className={styles["second-banner__content-title"]}>
-            <span className={styles["banner__content-highlight"]}>अ</span>rban
-            Learnathon 2025
-          </h1>
-          <p className={styles["second-banner__content-description"]}>
-            Launched on 8th January 2025, the second edition of the Urban
-            Learnathon seeks entries from state/city officials, academic
-            institutions and industry partners.
-          </p>
-          <button
-            className={styles["banner__content-button"]}
-            style={{ marginTop: "20px" }}
-            onClick={() => (window.location.href = "/webapp/domainList")}
-          >
-            Get Started
-          </button>
-        </div>
-      ),
-      backgroundImage: "/images/banner/banner2.jpg",
-    },
-  ];
+  // Navigate based on CMS button config
+  const handleCmsButtonClick = (
+    url?: string | null,
+    targetWindow?: "Parent" | "New_Window" | string | null
+  ) => {
+    if (!url) return;
+    if (url.startsWith("#")) {
+      const id = url.slice(1);
+      scrollToElement(id, 80);
+      return;
+    }
+    if (targetWindow === "New_Window") {
+      window.open(url, "_blank", "noopener,noreferrer");
+    } else {
+      window.location.href = url;
+    }
+  };
+
+  // Real slides (fetched from CMS)
+  const [realSlides, setRealSlides] = useState<BannerSlide[]>([]);
+
+  // Fetch dynamic banners
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      const res = await bannersApi.getHomepageBanners();
+      if (!isMounted) return;
+      if (res.success && Array.isArray(res.data)) {
+        const items = res.data as HomepageBannerItem[];
+        const mapped: BannerSlide[] = items.map((b) => ({
+          id: b.id,
+          content: (
+            <div className={styles["banner__content-wrapper"]}>
+              <div dangerouslySetInnerHTML={{ __html: b.content || "" }} />
+              {b.button_text && b.target_url ? (
+                <button
+                  className={styles["banner__content-button"]}
+                  style={{ marginTop: "20px" }}
+                  onClick={() =>
+                    handleCmsButtonClick(
+                      b.target_url || undefined,
+                      b.target_window
+                    )
+                  }
+                >
+                  {b.button_text}
+                </button>
+              ) : null}
+            </div>
+          ),
+          backgroundImage: b.background_image?.url || undefined,
+        }));
+        setRealSlides(mapped);
+      } else {
+        setRealSlides([]);
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Create infinite slides: [last, first, second, first] for seamless loop
-  const allSlides = [
-    { ...realSlides[1], id: "clone-last" }, // Clone of last slide
-    ...realSlides, // Real slides
-    { ...realSlides[0], id: "clone-first" }, // Clone of first slide
-  ];
+  const allSlides =
+    realSlides.length >= 2
+      ? [
+          { ...realSlides[realSlides.length - 1], id: "clone-last" },
+          ...realSlides,
+          { ...realSlides[0], id: "clone-first" },
+        ]
+      : realSlides.length === 1
+      ? [realSlides[0]]
+      : [];
 
   const [currentIndex, setCurrentIndex] = useState(1); // Start at first real slide
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -294,6 +306,7 @@ const Banner: React.FC<BannerProps> = ({ className = "" }) => {
 
   // Calculate active dot for pagination
   const getActiveDotIndex = () => {
+    if (realSlides.length <= 1) return 0;
     if (currentIndex === 0) return realSlides.length - 1; // Clone of last
     if (currentIndex === allSlides.length - 1) return 0; // Clone of first
     return currentIndex - 1; // Real slides are offset by 1
@@ -369,18 +382,19 @@ const Banner: React.FC<BannerProps> = ({ className = "" }) => {
 
         {/* Pagination Dots */}
         <div className={styles["banner__pagination"]}>
-          {realSlides.map((_, index) => (
-            <button
-              key={index}
-              className={`${styles["banner__pagination-dot"]} ${
-                index === getActiveDotIndex()
-                  ? styles["banner__pagination-dot--active"]
-                  : ""
-              }`}
-              onClick={() => goToSlide(index)}
-              aria-label={`Go to slide ${index + 1}`}
-            />
-          ))}
+          {realSlides.length > 1 &&
+            realSlides.map((_, index) => (
+              <button
+                key={index}
+                className={`${styles["banner__pagination-dot"]} ${
+                  index === getActiveDotIndex()
+                    ? styles["banner__pagination-dot--active"]
+                    : ""
+                }`}
+                onClick={() => goToSlide(index)}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
         </div>
       </div>
 
