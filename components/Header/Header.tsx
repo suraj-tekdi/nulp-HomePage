@@ -80,7 +80,10 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
 
   const isMenuVisible = (m: HomepageMenuItem): boolean => {
     if (!m) return false;
-    if (!m.is_active) return false;
+    // Treat missing is_active as true (new API may omit this field)
+    const isActive =
+      typeof (m as any).is_active === "boolean" ? (m as any).is_active : true;
+    if (!isActive) return false;
     if (m.state && m.state.toLowerCase() !== "published") return false;
     if (
       !isWithinPublishWindow(
@@ -108,7 +111,13 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
       path === "/" || path.startsWith("/about");
 
     try {
-      const url = new URL(m.link);
+      // Support absolute and relative URLs
+      const linkStr = (m.link || "").trim();
+      // If relative (starts with / or #), let fallback handle it
+      if (linkStr.startsWith("/") || linkStr.startsWith("#")) {
+        throw new Error("relative");
+      }
+      const url = new URL(linkStr);
       const path = url.pathname || "/";
       const hash = url.hash ? url.hash.replace("#", "") : "";
 
@@ -123,7 +132,7 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
       return { label, href: url.toString(), external: true, target };
     } catch (e) {
       // Fallback for relative links like "/about#contact-us" or "#trending-courses"
-      const link = m.link || "";
+      const link = (m.link || "").trim();
       const hashIndex = link.indexOf("#");
       const hasHash = hashIndex >= 0;
       const basePath = hasHash ? link.substring(0, hashIndex) : link;

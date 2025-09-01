@@ -61,6 +61,7 @@ const AnimatedNumber: React.FC<{
   start: boolean;
 }> = ({ value, duration, start }) => {
   const animated = useAnimatedCounter(value, duration, start);
+  if (!start) return <></>;
   return <>{animated.toLocaleString()}</>;
 };
 
@@ -135,6 +136,7 @@ const Banner: React.FC<BannerProps> = ({ className = "" }) => {
 
   const sliderRef = useRef<HTMLDivElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
   const autoScrollTimer = useRef<NodeJS.Timeout | null>(null);
 
   // Auto scroll configuration
@@ -255,7 +257,7 @@ const Banner: React.FC<BannerProps> = ({ className = "" }) => {
     startAutoScroll();
   };
 
-  // Intersection Observer for stats animation
+  // Intersection Observer for stats animation (observe the whole section so it works on first load)
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -265,12 +267,11 @@ const Banner: React.FC<BannerProps> = ({ className = "" }) => {
           }
         });
       },
-      { threshold: 0.5 }
+      { threshold: 0.2, root: null, rootMargin: "0px 0px -10% 0px" }
     );
 
-    if (statsRef.current) {
-      observer.observe(statsRef.current);
-    }
+    const target = sectionRef.current;
+    if (target) observer.observe(target);
 
     return () => observer.disconnect();
   }, [shouldAnimateStats]);
@@ -300,6 +301,7 @@ const Banner: React.FC<BannerProps> = ({ className = "" }) => {
 
   return (
     <section
+      ref={sectionRef}
       className={`${styles.banner} ${className}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
