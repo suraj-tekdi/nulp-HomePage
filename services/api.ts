@@ -2,6 +2,11 @@
 
 // Dynamic NULP URL function
 export const getNulpBaseUrl = (): string => {
+  // Always check environment variable first (works in both client and server)
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+
   // Check if we're in development environment
   if (typeof window !== "undefined") {
     const hostname = window.location.hostname;
@@ -10,10 +15,17 @@ export const getNulpBaseUrl = (): string => {
       hostname === "127.0.0.1" ||
       hostname.includes("dev")
     ) {
-      return process.env.NEXT_PUBLIC_API_URL || "";
+      return "https://devnulp.niua.org";
     }
+    return "https://nulp.niua.org";
   }
-  return "";
+
+  // Server-side fallback based on environment
+  if (process.env.NODE_ENV === "development") {
+    return "https://devnulp.niua.org";
+  }
+
+  return "https://nulp.niua.org";
 };
 const baseUrl = getNulpBaseUrl();
 
@@ -1249,6 +1261,322 @@ export interface HomepageContactCategory {
   updatedAt: string;
   publishedAt: string;
 }
+
+// Dynamic Page Content Types
+export interface DynamicPageContent {
+  title: string;
+  content: string;
+  slug: string;
+  meta?: {
+    description?: string;
+    keywords?: string;
+    author?: string;
+  };
+  publishedAt?: string;
+  updatedAt?: string;
+}
+
+// Banner Types
+export interface DynamicPageBanner {
+  id: number;
+  title: string;
+  image_url?: string;
+  description?: string;
+  display_order: number;
+  state: string;
+  menu_slug: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Article Types
+export interface DynamicPageArticle {
+  id: number;
+  title: string;
+  content: string;
+  excerpt?: string;
+  image_url?: string;
+  display_order: number;
+  state: string;
+  menu_slug: string;
+  meta?: {
+    description?: string;
+    keywords?: string;
+    author?: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+  publishedAt?: string;
+}
+
+// Combined content response
+export interface DynamicPageFullContent {
+  banners: DynamicPageBanner[];
+  articles: DynamicPageArticle[];
+  menu_slug: string;
+  page_title?: string;
+}
+
+export interface DynamicPageApiResponse {
+  success: boolean;
+  data?: DynamicPageContent;
+  error?: string;
+  status?: number;
+}
+
+// Dynamic Content API
+export const contentApi = {
+  // Get banners for a specific menu slug
+  getBannersByMenu: async (
+    menuSlug: string
+  ): Promise<ApiResponse<DynamicPageBanner[]>> => {
+    try {
+      const { base } = getDynamicNulpUrls();
+      const response = await fetch(
+        `${base}/mw-cms/api/v1/homepage/banners?menu=${menuSlug}&state=Published`,
+        {
+          method: "GET",
+          headers: { Accept: "application/json" },
+        }
+      );
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          return {
+            success: true,
+            data: [], // No banners found is not an error
+            status: response.status,
+          };
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const raw: any = await response.json();
+
+      // Handle different possible response formats and transform CMS data
+      let rawBanners: any[] = [];
+
+      if (raw?.success && Array.isArray(raw?.data)) {
+        rawBanners = raw.data;
+      } else if (Array.isArray(raw?.data)) {
+        rawBanners = raw.data;
+      } else if (Array.isArray(raw)) {
+        rawBanners = raw;
+      }
+
+      // Transform CMS banner data to DynamicPageBanner interface
+      const bannersData: DynamicPageBanner[] = rawBanners.map(
+        (banner: any) => ({
+          id: banner.id || 0,
+          title: banner.name || banner.title || "",
+          description: banner.content || banner.description || "",
+          image_url:
+            banner.background_image?.url ||
+            banner.background_image?.formats?.large?.url ||
+            banner.image_url ||
+            "",
+          display_order: banner.display_order || 0,
+          state: banner.state || "Published",
+          menu_slug: menuSlug,
+          createdAt: banner.createdAt || new Date().toISOString(),
+          updatedAt: banner.updatedAt || new Date().toISOString(),
+        })
+      );
+
+      // Sort by display_order
+      bannersData.sort(
+        (a, b) => (a.display_order || 0) - (b.display_order || 0)
+      );
+
+      return {
+        success: true,
+        data: bannersData,
+        status: response.status,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to fetch banners",
+        status: 0,
+      };
+    }
+  },
+
+  // Get articles for a specific menu slug
+  getArticlesByMenu: async (
+    menuSlug: string
+  ): Promise<ApiResponse<DynamicPageArticle[]>> => {
+    try {
+      const { base } = getDynamicNulpUrls();
+      const response = await fetch(
+        `${base}/mw-cms/api/v1/homepage/articles?menu=${menuSlug}&state=Published`,
+        {
+          method: "GET",
+          headers: { Accept: "application/json" },
+        }
+      );
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          return {
+            success: true,
+            data: [], // No articles found is not an error
+            status: response.status,
+          };
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const raw: any = await response.json();
+
+      // Handle different possible response formats and transform CMS data
+      let rawArticles: any[] = [];
+
+      if (raw?.success && Array.isArray(raw?.data)) {
+        rawArticles = raw.data;
+      } else if (Array.isArray(raw?.data)) {
+        rawArticles = raw.data;
+      } else if (Array.isArray(raw)) {
+        rawArticles = raw;
+      }
+
+      // Transform CMS articles to our interface format
+      const articlesData: DynamicPageArticle[] = rawArticles.map(
+        (article: any) => ({
+          id: article.id || 0,
+          title: article.title || article.name || "Untitled Article",
+          content: article.content || article.description || "",
+          excerpt: article.excerpt || article.summary || "",
+          image_url: article.image_url || article.featured_image?.url || "",
+          display_order: article.display_order || article.order || 0,
+          state: article.state || "Published",
+          menu_slug: article.menu_slug || article.menu || "",
+          meta: {
+            description: article.meta_description || article.description || "",
+            keywords: article.meta_keywords || article.keywords || "",
+            author: article.author || article.created_by || "",
+          },
+          createdAt:
+            article.createdAt || article.created_at || new Date().toISOString(),
+          updatedAt:
+            article.updatedAt || article.updated_at || new Date().toISOString(),
+          publishedAt: article.publishedAt || article.published_at || undefined,
+        })
+      );
+
+      // Sort by display_order
+      articlesData.sort(
+        (a, b) => (a.display_order || 0) - (b.display_order || 0)
+      );
+
+      return {
+        success: true,
+        data: articlesData,
+        status: response.status,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to fetch articles",
+        status: 0,
+      };
+    }
+  },
+
+  // Get complete page content (banners + articles) for a menu slug
+  getFullPageContent: async (
+    menuSlug: string
+  ): Promise<ApiResponse<DynamicPageFullContent>> => {
+    try {
+      // Fetch both banners and articles concurrently
+      const [bannersResponse, articlesResponse] = await Promise.all([
+        contentApi.getBannersByMenu(menuSlug),
+        contentApi.getArticlesByMenu(menuSlug),
+      ]);
+
+      const banners = bannersResponse.success ? bannersResponse.data || [] : [];
+      const articles = articlesResponse.success
+        ? articlesResponse.data || []
+        : [];
+
+      // If neither banners nor articles found, return error
+      if (banners.length === 0 && articles.length === 0) {
+        return {
+          success: false,
+          error: "No content found for this menu",
+          status: 404,
+        };
+      }
+
+      return {
+        success: true,
+        data: {
+          banners,
+          articles,
+          menu_slug: menuSlug,
+          page_title: articles[0]?.title || banners[0]?.title || menuSlug,
+        },
+        status: 200,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch page content",
+        status: 0,
+      };
+    }
+  },
+
+  // Legacy methods for backward compatibility
+  getDynamicPageContent: async (
+    slug: string
+  ): Promise<ApiResponse<DynamicPageContent>> => {
+    // Convert to new format by fetching full content
+    const fullContentResponse = await contentApi.getFullPageContent(slug);
+
+    if (!fullContentResponse.success || !fullContentResponse.data) {
+      return {
+        success: false,
+        error: fullContentResponse.error || "Failed to fetch page content",
+        status: fullContentResponse.status || 0,
+      };
+    }
+
+    const { articles, banners } = fullContentResponse.data;
+
+    // Combine articles content for legacy format
+    const combinedContent = articles
+      .map((article) => article.content)
+      .join("\n\n");
+    const title = articles[0]?.title || banners[0]?.title || slug;
+
+    return {
+      success: true,
+      data: {
+        title,
+        content: combinedContent,
+        slug,
+        meta: articles[0]?.meta,
+        publishedAt: articles[0]?.publishedAt,
+        updatedAt: articles[0]?.updatedAt,
+      },
+      status: 200,
+    };
+  },
+
+  getPageContentByRoute: async (
+    route: string
+  ): Promise<ApiResponse<DynamicPageContent>> => {
+    // Clean the route to get menu slug
+    const cleanRoute = route.startsWith("/") ? route.slice(1) : route;
+    return contentApi.getDynamicPageContent(cleanRoute);
+  },
+};
 
 export interface HomepageContactLogoFormats {
   large?: {
