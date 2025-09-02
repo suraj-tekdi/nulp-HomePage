@@ -1,12 +1,66 @@
-import React from 'react';
-import Image from 'next/image';
-import styles from './AboutUsMission.module.css';
+import React, { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
+import styles from "./AboutUsMission.module.css";
+import { articlesApi, type HomepageArticleItem } from "../../services";
 
 interface AboutUsMissionProps {
   className?: string;
 }
 
-const AboutUsMission: React.FC<AboutUsMissionProps> = ({ className = '' }) => {
+// Remove inline background styles coming from CMS
+const sanitizeCmsHtml = (html: string): string => {
+  if (!html) return html;
+  try {
+    if (typeof window !== "undefined") {
+      const container = document.createElement("div");
+      container.innerHTML = html;
+      const cleanse = (el: Element) => {
+        const e = el as HTMLElement;
+        if (e && e.style) {
+          e.style.removeProperty("background");
+          e.style.removeProperty("background-color");
+        }
+        Array.from(el.children).forEach(cleanse);
+      };
+      Array.from(container.children).forEach(cleanse);
+      return container.innerHTML;
+    }
+  } catch {}
+  return html
+    .replace(/background-color\s*:\s*[^;"']+;?/gi, "")
+    .replace(/background\s*:\s*[^;"']+;?/gi, "");
+};
+
+const AboutUsMission: React.FC<AboutUsMissionProps> = ({ className = "" }) => {
+  const [html, setHtml] = useState<string>("");
+  const [imageUrl, setImageUrl] = useState<string>(
+    "/images/aboutus/ourmission.png"
+  );
+
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      const res = await articlesApi.getAboutUsArticles();
+      if (!isMounted) return;
+      if (res.success && Array.isArray(res.data)) {
+        const items = res.data as HomepageArticleItem[];
+        const item =
+          items.find((a) => (a.slug || "").toLowerCase() === "our-mission") ||
+          items.find((a) => (a.name || "").toLowerCase() === "our mission");
+        const cleaned = sanitizeCmsHtml(item?.content || "");
+        setHtml(cleaned);
+        if (item?.thumbnail?.url) setImageUrl(item.thumbnail.url);
+      } else {
+        setHtml("");
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const hasHtml = useMemo(() => !!html && html.trim().length > 0, [html]);
+
   return (
     <section className={`${styles.mission} ${className}`}>
       <div className={styles.mission__container}>
@@ -15,14 +69,15 @@ const AboutUsMission: React.FC<AboutUsMissionProps> = ({ className = '' }) => {
           <div className={styles.mission__left}>
             <div className={styles.mission__imageWrapper}>
               <Image
-                src="/images/aboutus/ourmission.png"
+                src={imageUrl}
                 alt="Mission - Urban Learning Platform visualization"
-                width={600}
-                height={400}
+                fill
+                sizes="(max-width: 968px) 100vw, 560px"
                 className={styles.mission__image}
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
-                  target.src = 'https://via.placeholder.com/500x400/054365/FFFFFF?text=Mission+Vision';
+                  target.src =
+                    "https://via.placeholder.com/560x370/054365/FFFFFF?text=Mission";
                 }}
               />
             </div>
@@ -31,12 +86,12 @@ const AboutUsMission: React.FC<AboutUsMissionProps> = ({ className = '' }) => {
           {/* Right side - Text Content */}
           <div className={styles.mission__right}>
             <div className={styles.mission__header}>
-              <h2 className={styles.mission__title}><span className={styles.mission__accent}>Our</span> Mission</h2>
-            </div>
-            <div className={styles.mission__text}>
-              <p>
-                To create an Urban Learning Platform, supplementing <strong>traditional capacity building with online learning </strong>to
-                enhance skills of urban practitioners in an ever-changing ecosystem.              </p>
+              {hasHtml && (
+                <div
+                  className={styles.mission__cms}
+                  dangerouslySetInnerHTML={{ __html: html }}
+                />
+              )}
             </div>
           </div>
         </div>
@@ -45,4 +100,4 @@ const AboutUsMission: React.FC<AboutUsMissionProps> = ({ className = '' }) => {
   );
 };
 
-export default AboutUsMission; 
+export default AboutUsMission;
