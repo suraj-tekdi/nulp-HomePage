@@ -1039,12 +1039,24 @@ export interface HomepageTestimonialThumbnail {
   publishedAt: string;
 }
 
+export interface HomepageTestimonialVideo {
+  id: number;
+  documentId: string;
+  name: string;
+  mime: string; // e.g., video/mp4, video/webm
+  url: string;
+  ext?: string;
+  size?: number;
+  width?: number | null;
+  height?: number | null;
+}
+
 export interface HomepageTestimonialItem {
   id: number;
   documentId: string;
   user_name: string;
   user_details: string;
-  testimonial: string; // HTML content
+  testimonial: string; // HTML content (may be empty when mode="Video")
   state: string;
   start_publish_date: string | null;
   end_publish_date: string | null;
@@ -1052,6 +1064,8 @@ export interface HomepageTestimonialItem {
   createdAt: string;
   updatedAt: string;
   publishedAt: string;
+  mode?: string; // "Text" | "Video"
+  video_upload?: HomepageTestimonialVideo | null;
   category: {
     id: number;
     documentId: string;
