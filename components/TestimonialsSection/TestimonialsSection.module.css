@@ -1,11 +1,27 @@
 /* TestimonialsSection Component - BEM Methodology */
 .testimonials {
-  background-color: #F5F7FA;
+  background-color: #f5f7fa;
   padding: var(--spacing-xxl) 0;
   position: relative;
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
+}
+
+/* Video styles */
+.testimonials__videoWrapper {
+  width: 100%;
+  margin-bottom: var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.testimonials__video {
+  margin-top: 2rem;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
 }
 
 .testimonials__container {
@@ -19,7 +35,7 @@
 .testimonials__accent {
   width: 60px;
   height: 4px;
-  background: linear-gradient(90deg, #F39C12 0%, #E67E22 100%);
+  background: linear-gradient(90deg, #f39c12 0%, #e67e22 100%);
   border-radius: 2px;
   margin-bottom: var(--spacing-lg);
 }
@@ -92,7 +108,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  height: 420px;
+  min-height: 420px;
+  height: auto;
 }
 
 .testimonials__card:hover {
@@ -106,6 +123,7 @@
   height: 80px;
   margin: 0 auto var(--spacing-lg);
   position: relative;
+  flex: 0 0 auto; /* do not shrink when video controls expand */
 }
 
 .testimonials__card__image {
@@ -113,7 +131,7 @@
   height: 100%;
   border-radius: 50%;
   object-fit: cover;
-  border: 4px solid #F4C430;
+  border: 4px solid #f4c430;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
@@ -257,7 +275,7 @@
   .testimonials__container {
     padding: 0 var(--spacing-md);
   }
-  
+
   .testimonials__card {
     min-width: 320px;
   }
@@ -267,38 +285,43 @@
   .testimonials {
     padding: var(--spacing-xl) 0;
   }
-  
+
   .testimonials__title {
     font-size: 2rem;
   }
-  
+
   .testimonials__arrow {
     width: 160px;
     height: 14px;
   }
-  
+
   .testimonials__card {
     min-width: 280px;
-    height: 380px;
+    min-height: 380px;
+    height: auto;
     padding: var(--spacing-lg);
   }
-  
+
   .testimonials__card__imageContainer {
     width: 70px;
     height: 70px;
   }
-  
+
   .testimonials__card__quote {
     font-size: 0.9rem;
   }
-  
+
   .testimonials__controls {
     flex-direction: column;
     gap: var(--spacing-md);
   }
-  
+
   .testimonials__navigation {
     position: static;
+  }
+
+  .testimonials__video {
+    width: 70px;
   }
 }
 
@@ -306,62 +329,67 @@
   .testimonials {
     padding: var(--spacing-lg) 0;
   }
-  
+
   .testimonials__container {
     padding: 0 var(--spacing-sm);
   }
-  
+
   .testimonials__title {
     font-size: 1.8rem;
   }
-  
+
   .testimonials__arrow {
     width: 140px;
     height: 12px;
   }
-  
+
   .testimonials__card {
     min-width: 260px;
-    height: 360px;
+    min-height: 360px;
+    height: auto;
     padding: var(--spacing-md);
   }
-  
+
   .testimonials__card__imageContainer {
     width: 60px;
     height: 60px;
     margin-bottom: var(--spacing-md);
   }
-  
+
   .testimonials__card__quote {
     font-size: 0.85rem;
     line-height: 1.5;
   }
-  
+
   .testimonials__card__name {
     font-size: 1rem;
   }
-  
+
   .testimonials__card__position {
     font-size: 0.8rem;
   }
-  
+
   .testimonials__arrow {
     width: 40px !important;
     height: 40px !important;
   }
-  
-        .testimonials__arrow svg {
-   font-size: 16px !important;
- }
+
+  .testimonials__arrow svg {
+    font-size: 16px !important;
+  }
+
+  .testimonials__video {
+    width: 60px;
+  }
 }
 
 @media (max-width: 480px) {
   .testimonials__title {
     font-size: 1.5rem;
   }
-  
+
   .testimonials__arrow {
     width: 120px;
     height: 10px;
   }
-} 
+}

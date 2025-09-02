@@ -90,6 +90,26 @@
   max-width: 600px;
 }
 
+/* Reset CMS-injected background styles inside banner content */
+.banner__content-wrapper h1,
+.banner__content-wrapper h2,
+.banner__content-wrapper h3,
+.banner__content-wrapper h4,
+.banner__content-wrapper h5,
+.banner__content-wrapper h6,
+.banner__content-wrapper p,
+.banner__content-wrapper span,
+.banner__content-wrapper strong,
+.banner__content-wrapper em {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Keep CTA button styled */
+.banner__content-wrapper button {
+  background: var(--color-neutral-white);
+}
+
 .banner__content-subtitle {
   font-size: 24px;
   font-weight: 700;

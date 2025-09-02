@@ -9,7 +9,7 @@ import Image from "next/image";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import styles from "./TrendingGoodPracticesSection.module.css";
-import { courseApi, NulpGoodPractice } from "../../services/api";
+import { slidersApi, type NulpGoodPractice } from "../../services";
 import domainImages from "../../services/domain-images.json";
 
 interface GoodPractice {
@@ -98,15 +98,31 @@ const TrendingGoodPracticesSection: React.FC<
     setCurrentSlide((prev) => Math.min(prev, slides - 1));
   }, []);
 
-  // Fetch good practices from API
+  // Fetch good practices IDs from sliders, then fetch items by IDs
   useEffect(() => {
     const fetchGoodPractices = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        const response = await courseApi.getNulpGoodPractices(
-          selectedDomain || undefined
+        // 1) Read good-practice IDs from sliders API
+        const idsRes = await slidersApi.getTrendingGoodPracticeIds();
+        if (!idsRes.success) {
+          setError(idsRes.error || "No trending good practices configured");
+          setGoodPractices([]);
+          return;
+        }
+        const ids = (idsRes.data || []).filter(Boolean);
+        if (!ids.length) {
+          setError("No trending good practice IDs configured");
+          setGoodPractices([]);
+          return;
+        }
+
+        // 2) Fetch good practices constrained to those IDs with optional domain filter
+        const response = await slidersApi.getGoodPracticesByIds(
+          ids,
+          selectedDomain || null
         );
 
         if (response.success && response.data) {
@@ -116,7 +132,6 @@ const TrendingGoodPracticesSection: React.FC<
           setGoodPractices(transformedPractices);
         } else {
           setError(response.error || "Failed to fetch good practices");
-          // Fallback to empty array
           setGoodPractices([]);
         }
       } catch (err) {

@@ -9,7 +9,7 @@ import Image from "next/image";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import styles from "./TrendingCoursesSection.module.css";
-import { courseApi, NulpCourse } from "../../services/api";
+import { slidersApi, type NulpCourse } from "../../services";
 import domainImages from "../../services/domain-images.json";
 
 interface Course {
@@ -40,6 +40,7 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isVisible, setIsVisible] = useState<boolean>(true);
 
   // Pagination state derived from container size
   const [totalSlides, setTotalSlides] = useState<number>(1);
@@ -92,15 +93,28 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
     setCurrentSlide((prev) => Math.min(prev, slides - 1));
   }, []);
 
-  // Fetch courses from API
+  // Fetch course IDs from sliders, then fetch courses from NULP
   useEffect(() => {
     const fetchCourses = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        const response = await courseApi.getNulpCourses(
-          selectedDomain || undefined
+        // 1) Read course IDs from sliders API
+        const sliderRes = await slidersApi.getTrendingCourseIds();
+        if (!sliderRes.success) {
+          setIsVisible(false);
+          setCourses([]);
+          setError(sliderRes.error || "No trending courses configured");
+          return;
+        }
+        const ids = (sliderRes.data || []).filter(Boolean);
+        setIsVisible(ids.length > 0);
+
+        // 2) Fetch courses using NULP search constrained to IDs via sliders API
+        const response = await slidersApi.getCoursesByIds(
+          ids,
+          selectedDomain || null
         );
 
         if (response.success && response.data) {
@@ -108,7 +122,6 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
           setCourses(transformedCourses);
         } else {
           setError(response.error || "Failed to fetch courses");
-          // Fallback to empty array
           setCourses([]);
         }
       } catch (err) {
@@ -278,7 +291,7 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
     [handleCourseClick]
   );
 
-  return (
+  return isVisible ? (
     <section
       id="trending-courses"
       className={`${styles.trending} ${className}`}
@@ -444,7 +457,7 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
         </div>
       </div>
     </section>
-  );
+  ) : null;
 };
 
 export default TrendingCoursesSection;
