@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { GetServerSideProps } from "next";
+import { GetStaticProps, GetStaticPaths } from "next";
 import {
   DynamicPageLayout,
   DynamicPageBanner,
@@ -18,7 +18,6 @@ interface DynamicPageProps {
   pageContent: DynamicPageContent | null;
   fullContent: DynamicPageFullContent | null;
   menuItem: HomepageMenuItem | null;
-  notFound?: boolean;
 }
 
 const DynamicPage: React.FC<DynamicPageProps> = ({
@@ -26,28 +25,8 @@ const DynamicPage: React.FC<DynamicPageProps> = ({
   pageContent,
   fullContent,
   menuItem,
-  notFound,
 }) => {
   const [loading, setLoading] = useState(false);
-
-  if (notFound) {
-    return (
-      <DynamicPageLayout
-        title="Page Not Found"
-        content={`<div style="text-align: center; padding: 2rem 0;">
-          <p style="color: #666; font-size: 1.1rem; margin-bottom: 1rem;">
-            The page "/${slug}" could not be found.
-          </p>
-          <p style="color: #888;">
-            This route may not be configured in the menu system or the content is not available.
-          </p>
-        </div>`}
-        meta={{
-          description: "The requested page could not be found.",
-        }}
-      />
-    );
-  }
 
   // Determine page title and meta information
   const pageTitle =
@@ -119,18 +98,44 @@ const DynamicPage: React.FC<DynamicPageProps> = ({
 
 export default DynamicPage;
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
+// Generate static paths for all menu items at build time
+export const getStaticPaths: GetStaticPaths = async () => {
+  try {
+    // Fetch all menu items to generate paths
+    const menusResponse = await menusApi.getHomepageMenus();
+    const paths: { params: { slug: string } }[] = [];
+
+    if (menusResponse.success && menusResponse.data) {
+      menusResponse.data.forEach((item) => {
+        const link = item.link || "";
+        // Convert link to slug (handle both /privacy and privacy)
+        const slug = link.startsWith("/") ? link.slice(1) : link;
+        if (slug) {
+          paths.push({ params: { slug } });
+        }
+      });
+    }
+
+    return {
+      paths,
+      fallback: false, // Show 404 for non-existent pages
+    };
+  } catch (error) {
+    console.error("Error generating static paths:", error);
+    return {
+      paths: [],
+      fallback: false,
+    };
+  }
+};
+
+// Generate static props for each page at build time
+export const getStaticProps: GetStaticProps = async (context) => {
   const { slug } = context.params!;
 
   if (!slug || typeof slug !== "string") {
     return {
-      props: {
-        slug: "",
-        pageContent: null,
-        fullContent: null,
-        menuItem: null,
-        notFound: true,
-      },
+      notFound: true,
     };
   }
 
@@ -153,13 +158,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     // If no matching menu item found, return 404
     if (!menuItem) {
       return {
-        props: {
-          slug,
-          pageContent: null,
-          fullContent: null,
-          menuItem: null,
-          notFound: true,
-        },
+        notFound: true,
       };
     }
 
@@ -233,16 +232,10 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       },
     };
   } catch (error) {
-    console.error("Error in getServerSideProps for dynamic page:", error);
+    console.error("Error in getStaticProps for dynamic page:", error);
 
     return {
-      props: {
-        slug,
-        pageContent: null,
-        fullContent: null,
-        menuItem: null,
-        notFound: true,
-      },
+      notFound: true,
     };
   }
 };
