@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { GetStaticProps, GetStaticPaths } from "next";
+import { useRouter } from "next/router";
 import {
   DynamicPageLayout,
   DynamicPageBanner,
@@ -26,6 +27,8 @@ const DynamicPage: React.FC<DynamicPageProps> = ({
   fullContent: initialFullContent,
   menuItem: initialMenuItem,
 }) => {
+  const router = useRouter();
+
   // State for dynamic data that can be updated client-side
   const [pageContent, setPageContent] = useState(initialPageContent);
   const [fullContent, setFullContent] = useState(initialFullContent);
@@ -39,7 +42,35 @@ const DynamicPage: React.FC<DynamicPageProps> = ({
     setIsClient(true);
   }, []);
 
-  // Extract slug from URL on client-side for production static hosting
+  // Listen for route changes to handle client-side navigation
+  useEffect(() => {
+    const handleRouteChange = (url: string) => {
+      console.log("🚀 [DEBUG] Route change detected:", url);
+      const newSlug = url.startsWith("/") ? url.slice(1) : url;
+      if (newSlug && newSlug !== clientSlug) {
+        console.log(
+          "🔄 [DEBUG] Route change: updating slug from",
+          clientSlug,
+          "to",
+          newSlug
+        );
+        setClientSlug(newSlug);
+        // Clear existing content to show loading state
+        setFullContent(null);
+        setMenuItem(null);
+        setPageContent(null);
+        setLoading(true);
+      }
+    };
+
+    router.events.on("routeChangeStart", handleRouteChange);
+
+    return () => {
+      router.events.off("routeChangeStart", handleRouteChange);
+    };
+  }, [router, clientSlug]);
+
+  // Extract slug from URL and detect navigation changes
   useEffect(() => {
     if (typeof window !== "undefined") {
       const currentPath = window.location.pathname;
@@ -50,36 +81,54 @@ const DynamicPage: React.FC<DynamicPageProps> = ({
         currentPath,
         urlSlug,
         originalSlug: slug,
+        currentClientSlug: clientSlug,
         hostname: window.location.hostname,
       });
 
-      if (urlSlug && urlSlug !== slug) {
-        console.log("🔄 [DEBUG] Using URL slug instead of props slug");
+      // Always use URL slug and detect changes for client-side navigation
+      if (urlSlug && urlSlug !== clientSlug) {
+        console.log(
+          "🔄 [DEBUG] URL changed, updating client slug from",
+          clientSlug,
+          "to",
+          urlSlug
+        );
         setClientSlug(urlSlug);
+        // Clear existing content to show loading state for new page
+        setFullContent(null);
+        setMenuItem(null);
+        setPageContent(null);
       }
     }
-  }, [slug]);
+  }, [slug, clientSlug]); // Add clientSlug to dependencies to detect changes
 
-  // Fetch data client-side if not available from static props or if slug changed
+  // Fetch data client-side when slug changes or initial load
   useEffect(() => {
-    if (!isClient || !clientSlug) return;
-
-    // If we already have full content and it matches our slug, don't fetch again
-    if (
-      fullContent &&
-      fullContent.menu_slug === clientSlug &&
-      fullContent.articles &&
-      fullContent.articles.length > 0
-    ) {
+    if (!isClient || !clientSlug) {
       console.log(
-        "✅ [DEBUG] Already have matching full content, skipping fetch"
+        "❌ [DEBUG] Early return: isClient =",
+        isClient,
+        "clientSlug =",
+        clientSlug
+      );
+      return;
+    }
+
+    // Always fetch data when clientSlug changes (for navigation) or when we don't have content
+    const shouldFetch = !fullContent || fullContent.menu_slug !== clientSlug;
+
+    if (!shouldFetch) {
+      console.log(
+        "✅ [DEBUG] Already have matching content for slug:",
+        clientSlug
       );
       return;
     }
 
     console.log(
       "🚀 [DEBUG] Starting client-side data fetch for slug:",
-      clientSlug
+      clientSlug,
+      "(reason: slug change or missing content)"
     );
 
     const fetchData = async () => {
