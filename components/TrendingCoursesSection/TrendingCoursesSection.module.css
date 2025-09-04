@@ -180,6 +180,11 @@
   color: var(--color-neutral-dark);
   margin-bottom: var(--spacing-sm);
   line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .trending__card__description {
@@ -203,7 +208,7 @@
   margin: 0;
   opacity: 0.8;
   flex: 1;
-  overflow-y: auto;
+  overflow: hidden auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
   padding-right: 8px;

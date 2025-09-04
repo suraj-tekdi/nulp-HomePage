@@ -17,11 +17,12 @@
 .offerings__title {
   font-size: 2rem;
   font-weight: 700;
-  color: #0B2447;
+  color: #0b2447;
   margin: 0;
   line-height: 1.2;
 }
 
+/* Existing grid styles (kept for fallback if needed) */
 .offerings__grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -49,9 +50,36 @@
 .offerings__cardTitle {
   font-size: 1rem;
   font-weight: 600;
-  color: #0B2447;
+  color: #0b2447;
   margin: 0;
   line-height: 1.4;
+}
+
+/* CMS HTML normalizer */
+.offerings__cms {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
+  gap: 40px !important;
+  max-width: 1000px;
+  margin: 0 auto !important;
+  align-items: start !important;
+  justify-items: center !important;
+}
+
+.offerings__cms img {
+  width: 120px !important;
+  height: auto !important;
+  object-fit: contain !important;
+  display: block !important;
+  margin: 0 auto 20px !important;
+}
+
+.offerings__cms p {
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  color: #0b2447 !important;
+  margin: 0 !important;
+  line-height: 1.4 !important;
 }
 
 /* Responsive Design */
@@ -71,5 +99,10 @@
   .offerings__grid {
     grid-template-columns: 1fr;
     gap: 30px;
+  }
+
+  .offerings__cms {
+    grid-template-columns: 1fr !important;
+    gap: 30px !important;
   }
 }

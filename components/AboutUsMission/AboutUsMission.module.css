@@ -1,6 +1,5 @@
 /* AboutUsMission Component */
 .mission {
-  background-color: #f8fafb;
   padding: 80px 0;
   position: relative;
 }
@@ -14,27 +13,36 @@
 .mission__content {
   display: flex;
   align-items: center;
+  justify-content: space-between; /* ensure columns sit flush left/right */
   gap: 60px;
 }
 
 /* Left Side - Image */
 .mission__left {
   flex: 1;
-  max-width: 500px;
+  display: flex; /* allow inner wrapper control */
+  justify-content: flex-start;
+  max-width: 560px; /* slightly wider for better balance */
 }
 
 .mission__imageWrapper {
   position: relative;
-  /* border-radius: 20px; */
+  width: 100%; /* image fills the allotted column */
+  max-width: 560px;
   overflow: hidden;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  border-radius: 20px; /* ensure wrapper radius matches image */
+  /* Maintain a soft aspect ratio for the image area */
+  aspect-ratio: 3 / 2; /* ~560x373 */
 }
 
 .mission__image {
   width: 100%;
-  height: auto;
+  height: 100%;
   display: block;
   border-radius: 20px;
+  object-fit: cover;
+  object-position: center;
 }
 
 /* Right Side - Text */
@@ -48,7 +56,7 @@
 }
 
 .mission__accent {
-  color: #F39C12;
+  color: #f39c12;
 }
 
 .mission__title {
@@ -57,6 +65,21 @@
   color: #031749;
   margin: 0;
   line-height: 1.2;
+}
+
+/* Reset CMS-injected styles to avoid odd spacing/backgrounds */
+.mission__cms h1,
+.mission__cms h2,
+.mission__cms h3,
+.mission__cms h4,
+.mission__cms h5,
+.mission__cms h6,
+.mission__cms p,
+.mission__cms span,
+.mission__cms strong,
+.mission__cms em {
+  background: transparent !important;
+  background-color: transparent !important;
 }
 
 .mission__text {
@@ -75,17 +98,22 @@
   .mission {
     padding: 60px 0;
   }
-  
+
   .mission__content {
     flex-direction: column;
     gap: 40px;
     text-align: center;
   }
-  
+
+  .mission__left,
+  .mission__right {
+    max-width: 100%;
+  }
+
   .mission__title {
     font-size: 2.5rem;
   }
-  
+
   .mission__text {
     font-size: 1.1rem;
   }
@@ -95,20 +123,20 @@
   .mission {
     padding: 40px 0;
   }
-  
+
   .mission__container {
     padding: 0 15px;
   }
-  
+
   .mission__title {
     font-size: 2rem;
   }
-  
+
   .mission__text {
     font-size: 1rem;
   }
-  
+
   .mission__accent {
     font-size: 1rem;
   }
-} 
+}

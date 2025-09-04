@@ -233,6 +233,101 @@ export const searchApi = {
 
 // Other API services can be added here
 export const courseApi = {
+  // Get courses by specific identifiers (for CMS sliders)
+  getNulpCoursesByIds: async (
+    identifiers: string[]
+  ): Promise<ApiResponse<NulpCourse[]>> => {
+    try {
+      if (!identifiers || identifiers.length === 0) {
+        return { success: true, data: [] };
+      }
+      const filters: any = {
+        status: ["Live"],
+        visibility: ["Default", "Parent"],
+        identifier: identifiers,
+      };
+      const requestBody = {
+        request: {
+          filters,
+          limit: identifiers.length,
+          sort_by: { createdOn: "desc" },
+          fields: [
+            "name",
+            "appIcon",
+            "mimeType",
+            "gradeLevel",
+            "identifier",
+            "medium",
+            "pkgVersion",
+            "board",
+            "subject",
+            "resourceType",
+            "primaryCategory",
+            "contentType",
+            "channel",
+            "organisation",
+            "trackable",
+            "primaryCategory",
+            "se_boards",
+            "se_gradeLevels",
+            "se_subjects",
+            "se_mediums",
+          ],
+          facets: [
+            "se_boards",
+            "se_gradeLevels",
+            "se_subjects",
+            "se_mediums",
+            "primaryCategory",
+          ],
+          offset: 0,
+        },
+      };
+
+      const urls = getDynamicNulpUrls();
+      const baseUrl = urls.base;
+      const response = await fetch(
+        `${baseUrl}/api/content/v1/search?orgdetails=orgName,email&licenseDetails=name,description,url`,
+        {
+          method: "POST",
+          headers: {
+            Accept: "*/*",
+            "Accept-Language": "en-GB,en-US;q=0.9,en;q=0.8",
+            Connection: "keep-alive",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestBody),
+        }
+      );
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data: NulpApiResponse = await response.json();
+      if (data.responseCode === "OK" && data.result?.content) {
+        return {
+          success: true,
+          data: data.result.content,
+          status: response.status,
+        };
+      } else {
+        return {
+          success: false,
+          error: "Invalid response from NULP API",
+          status: response.status,
+        };
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch courses by ids",
+        status: 0,
+      };
+    }
+  },
+
   // Get courses from NULP API
   getNulpCourses: async (
     selectedDomain?: string
@@ -956,12 +1051,24 @@ export interface HomepageTestimonialThumbnail {
   publishedAt: string;
 }
 
+export interface HomepageTestimonialVideo {
+  id: number;
+  documentId: string;
+  name: string;
+  mime: string; // e.g., video/mp4, video/webm
+  url: string;
+  ext?: string;
+  size?: number;
+  width?: number | null;
+  height?: number | null;
+}
+
 export interface HomepageTestimonialItem {
   id: number;
   documentId: string;
   user_name: string;
   user_details: string;
-  testimonial: string; // HTML content
+  testimonial: string; // HTML content (may be empty when mode="Video")
   state: string;
   start_publish_date: string | null;
   end_publish_date: string | null;
@@ -969,6 +1076,8 @@ export interface HomepageTestimonialItem {
   createdAt: string;
   updatedAt: string;
   publishedAt: string;
+  mode?: string; // "Text" | "Video"
+  video_upload?: HomepageTestimonialVideo | null;
   category: {
     id: number;
     documentId: string;

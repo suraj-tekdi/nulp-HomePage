@@ -219,25 +219,43 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
                     className={styles.testimonials__card__image}
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      // Prevent infinite loop by checking if we're already using the fallback
                       if (
                         target.src.includes(
                           "/images/testimonials/default-avatar.png"
                         )
                       ) {
-                        return; // Already using fallback, don't trigger again
+                        return;
                       }
-                      // Use the correct fallback image (png not svg)
                       target.src = "/images/testimonials/default-avatar.png";
                     }}
                   />
                 </div>
 
-                {/* Quote */}
+                {/* Content */}
                 <div className={styles.testimonials__card__content}>
-                  <blockquote className={styles.testimonials__card__quote}>
-                    <span dangerouslySetInnerHTML={{ __html: t.testimonial }} />
-                  </blockquote>
+                  {t.mode === "Video" && t.video_upload?.url ? (
+                    <div className={styles.testimonials__videoWrapper}>
+                      <video
+                        className={styles.testimonials__video}
+                        controls
+                        preload="metadata"
+                      >
+                        <source
+                          src={t.video_upload.url}
+                          type={t.video_upload.mime || "video/mp4"}
+                        />
+                        Your browser does not support the video tag.
+                      </video>
+                    </div>
+                  ) : (
+                    <blockquote className={styles.testimonials__card__quote}>
+                      <span
+                        dangerouslySetInnerHTML={{
+                          __html: t.testimonial || "",
+                        }}
+                      />
+                    </blockquote>
+                  )}
 
                   {/* Attribution */}
                   <div className={styles.testimonials__card__attribution}>
