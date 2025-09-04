@@ -35,39 +35,90 @@ const DynamicPage: React.FC<DynamicPageProps> = ({
 
   // Enable client-side rendering
   useEffect(() => {
+    console.log("🔥 [DEBUG] Setting isClient to true");
     setIsClient(true);
   }, []);
 
   // Fetch fresh data from CMS on client-side
   useEffect(() => {
-    if (!isClient || !slug) return;
+    console.log("🔍 [DEBUG] useEffect triggered:", {
+      isClient,
+      slug,
+      initialFullContent: !!initialFullContent,
+      initialMenuItem: !!initialMenuItem,
+    });
+
+    // Don't wait for isClient - start fetching immediately after component mounts
+    if (!slug || typeof window === "undefined") {
+      console.log("❌ [DEBUG] Early return:", {
+        slug,
+        isServer: typeof window === "undefined",
+      });
+      return;
+    }
 
     const fetchFreshData = async () => {
+      console.log("🚀 [DEBUG] Starting fetchFreshData for slug:", slug);
       setLoading(true);
+
       try {
+        console.log("📡 [DEBUG] Fetching menu data...");
         // Fetch menu data to get the current menu item
         const menusResponse = await menusApi.getHomepageMenus();
+        console.log("📡 [DEBUG] Menus response:", {
+          success: menusResponse.success,
+          dataLength: menusResponse.data?.length,
+        });
+
         let currentMenuItem = null;
 
         if (menusResponse.success && menusResponse.data) {
+          console.log("🔍 [DEBUG] Looking for menu item with slug:", slug);
           currentMenuItem = menusResponse.data.find((item) => {
             const link = item.link || "";
             const menuSlug = link.startsWith("/") ? link.slice(1) : link;
+            console.log("🔍 [DEBUG] Checking menu item:", {
+              title: item.title,
+              link,
+              menuSlug,
+              matches: menuSlug === slug,
+            });
             return menuSlug === slug;
           });
+          console.log(
+            "✅ [DEBUG] Found menu item:",
+            currentMenuItem ? currentMenuItem.title : "NOT FOUND"
+          );
           setMenuItem(currentMenuItem || null);
         }
 
+        console.log("📡 [DEBUG] Fetching full content for slug:", slug);
         // Fetch content data
         const fullContentResponse = await contentApi.getFullPageContent(slug);
+        console.log("📡 [DEBUG] Full content response:", {
+          success: fullContentResponse.success,
+          hasData: !!fullContentResponse.data,
+        });
+
         if (fullContentResponse.success && fullContentResponse.data) {
+          console.log("✅ [DEBUG] Using full content data");
           setFullContent(fullContentResponse.data);
         } else {
+          console.log(
+            "📡 [DEBUG] No full content, trying individual API calls..."
+          );
           // If no full content, try individual API calls
           const [bannersResponse, articlesResponse] = await Promise.all([
             contentApi.getBannersByMenu(slug),
             contentApi.getArticlesByMenu(slug),
           ]);
+
+          console.log("📡 [DEBUG] Individual API responses:", {
+            bannersSuccess: bannersResponse.success,
+            bannersCount: bannersResponse.data?.length || 0,
+            articlesSuccess: articlesResponse.success,
+            articlesCount: articlesResponse.data?.length || 0,
+          });
 
           if (bannersResponse.success || articlesResponse.success) {
             const combinedContent = {
@@ -80,25 +131,32 @@ const DynamicPage: React.FC<DynamicPageProps> = ({
                 ? articlesResponse.data || []
                 : [],
             };
+            console.log("✅ [DEBUG] Setting combined content:", {
+              page_title: combinedContent.page_title,
+              bannersCount: combinedContent.banners.length,
+              articlesCount: combinedContent.articles.length,
+            });
             setFullContent(combinedContent);
+          } else {
+            console.log("❌ [DEBUG] No content found from any API");
           }
         }
       } catch (error) {
-        console.error("Error fetching fresh data:", error);
+        console.error("❌ [DEBUG] Error fetching fresh data:", error);
       } finally {
+        console.log(
+          "🏁 [DEBUG] Finished fetching data, setting loading to false"
+        );
         setLoading(false);
       }
     };
 
-    // Only fetch if we don't have initial data or after a delay to check for updates
-    if (!initialFullContent || !initialMenuItem) {
-      fetchFreshData();
-    } else {
-      // Check for updates after initial load
-      const timer = setTimeout(fetchFreshData, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [slug, isClient, initialFullContent, initialMenuItem]);
+    // For now, let's not fetch client-side data and just use what we got from getStaticProps
+    // This can be enhanced later with client-side fetching when needed
+    console.log(
+      "ℹ️ [DEBUG] Using static props data, no client-side fetching for now"
+    );
+  }, []); // Empty dependency array - don't fetch client-side data
 
   // Determine page title and meta information
   const pageTitle =
@@ -114,6 +172,19 @@ const DynamicPage: React.FC<DynamicPageProps> = ({
     fullContent?.banners[0]?.description ||
     pageContent?.meta?.description ||
     `Learn more about ${pageTitle} on NULP - National Urban Learning Platform`;
+
+  console.log("🎨 [DEBUG] Render state:", {
+    slug,
+    loading,
+    isClient,
+    hasFullContent: !!fullContent,
+    hasPageContent: !!pageContent,
+    hasMenuItem: !!menuItem,
+    pageTitle,
+    fullContentType: fullContent ? "has-content" : "null",
+    bannersCount: fullContent?.banners?.length || 0,
+    articlesCount: fullContent?.articles?.length || 0,
+  });
 
   // Show loading state when fetching fresh data
   if (loading && !fullContent && !pageContent) {
@@ -196,6 +267,16 @@ const DynamicPage: React.FC<DynamicPageProps> = ({
     <p style="color: #888; font-size: 0.9rem;">
       Page: ${pageTitle}${slug ? ` (${slug})` : ""}
     </p>
+    <div style="margin-top: 2rem; padding: 1rem; background: #f0f8ff; border-radius: 8px; border-left: 4px solid #007bff;">
+      <p style="color: #0066cc; font-size: 0.9rem; margin: 0;">
+        🔍 <strong>Debug Info:</strong><br>
+        • Client-side: ${isClient ? "Active" : "Loading..."}<br>
+        • Loading: ${loading ? "Yes" : "No"}<br>
+        • Full Content: ${fullContent ? "Found" : "None"}<br>
+        • Menu Item: ${menuItem ? menuItem.title : "None"}<br>
+        • Slug: ${slug}
+      </p>
+    </div>
   </div>`;
 
   return (
@@ -242,24 +323,90 @@ export const getStaticPaths: GetStaticPaths = async () => {
 };
 
 // Generate static props for each page at build time
-// Generate minimal static props - real data will be fetched client-side
+// Generate static props with real data for static hosting
 export const getStaticProps: GetStaticProps = async (context) => {
   const { slug } = context.params!;
+  console.log("🏗️ [DEBUG] getStaticProps called for slug:", slug);
 
   if (!slug || typeof slug !== "string") {
+    console.log("❌ [DEBUG] Invalid slug, returning 404");
     return {
       notFound: true,
     };
   }
 
-  // Return minimal props - client-side will fetch fresh data from CMS APIs
-  // This allows the static site to work with dynamic content updates
-  return {
-    props: {
-      slug,
-      pageContent: null,
-      fullContent: null,
-      menuItem: null,
-    },
-  };
+  try {
+    // Fetch menu items to validate the route
+    const menusResponse = await menusApi.getHomepageMenus();
+    let menuItem: HomepageMenuItem | null = null;
+
+    if (menusResponse.success && menusResponse.data) {
+      // Find the menu item that matches this slug
+      menuItem =
+        menusResponse.data.find((item) => {
+          const link = item.link || "";
+          const menuSlug = link.startsWith("/") ? link.slice(1) : link;
+          return menuSlug === slug;
+        }) || null;
+    }
+
+    console.log(
+      "🔍 [DEBUG] Found menu item:",
+      menuItem ? menuItem.title : "NOT FOUND"
+    );
+
+    // If no matching menu item found, return 404
+    if (!menuItem) {
+      console.log("❌ [DEBUG] No menu item found, returning 404");
+      return {
+        notFound: true,
+      };
+    }
+
+    // Fetch content data
+    let fullContent = null;
+
+    try {
+      // Try individual API calls
+      const [bannersResponse, articlesResponse] = await Promise.all([
+        contentApi.getBannersByMenu(slug),
+        contentApi.getArticlesByMenu(slug),
+      ]);
+
+      console.log("📡 [DEBUG] API responses:", {
+        bannersSuccess: bannersResponse.success,
+        bannersCount: bannersResponse.data?.length || 0,
+        articlesSuccess: articlesResponse.success,
+        articlesCount: articlesResponse.data?.length || 0,
+      });
+
+      if (bannersResponse.success || articlesResponse.success) {
+        fullContent = {
+          page_title: menuItem.title || slug,
+          menu_slug: slug,
+          banners: bannersResponse.success ? bannersResponse.data || [] : [],
+          articles: articlesResponse.success ? articlesResponse.data || [] : [],
+        };
+        console.log("✅ [DEBUG] Created full content with data");
+      }
+    } catch (contentError) {
+      console.warn("⚠️ [DEBUG] Failed to fetch content:", contentError);
+    }
+
+    console.log("✅ [DEBUG] Returning props for slug:", slug);
+    return {
+      props: {
+        slug,
+        pageContent: null,
+        fullContent,
+        menuItem,
+      },
+    };
+  } catch (error) {
+    console.error("❌ [DEBUG] Error in getStaticProps:", error);
+
+    return {
+      notFound: true,
+    };
+  }
 };
