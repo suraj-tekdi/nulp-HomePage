@@ -34,7 +34,8 @@ const DynamicPage: React.FC<DynamicPageProps> = ({
     fullContent?.articles[0]?.title ||
     fullContent?.banners[0]?.title ||
     menuItem?.title ||
-    slug;
+    slug ||
+    "Page";
 
   const pageDescription =
     fullContent?.articles[0]?.meta?.description ||
@@ -82,7 +83,7 @@ const DynamicPage: React.FC<DynamicPageProps> = ({
       Content for this page is being prepared. Please check back later.
     </p>
     <p style="color: #888; font-size: 0.9rem;">
-      Page: ${pageTitle}
+      Page: ${pageTitle}${slug ? ` (${slug})` : ""}
     </p>
   </div>`;
 
@@ -181,9 +182,11 @@ export const getStaticProps: GetStaticProps = async (context) => {
         } else {
           // Create fallback content if no API content is available
           pageContent = {
-            title: menuItem.title,
+            title: menuItem?.title || slug || "Page",
             content: `<div style="text-align: center; padding: 3rem 0;">
-              <h2 style="color: #333; margin-bottom: 1rem;">Welcome to ${menuItem.title}</h2>
+              <h2 style="color: #333; margin-bottom: 1rem;">Welcome to ${
+                menuItem?.title || slug || "this page"
+              }</h2>
               <p style="color: #666; font-size: 1.1rem; line-height: 1.6;">
                 This page content will be loaded from the CMS API. 
                 The content management system will provide the detailed information for this section.
@@ -194,7 +197,9 @@ export const getStaticProps: GetStaticProps = async (context) => {
             </div>`,
             slug: slug,
             meta: {
-              description: `Learn more about ${menuItem.title} on NULP - National Urban Learning Platform`,
+              description: `Learn more about ${
+                menuItem?.title || slug || "this page"
+              } on NULP - National Urban Learning Platform`,
             },
           };
         }
@@ -204,9 +209,11 @@ export const getStaticProps: GetStaticProps = async (context) => {
 
       // Create error fallback content
       pageContent = {
-        title: menuItem.title,
+        title: menuItem?.title || slug || "Page",
         content: `<div style="text-align: center; padding: 3rem 0;">
-          <h2 style="color: #333; margin-bottom: 1rem;">${menuItem.title}</h2>
+          <h2 style="color: #333; margin-bottom: 1rem;">${
+            menuItem?.title || slug || "Page"
+          }</h2>
           <p style="color: #666; font-size: 1.1rem; line-height: 1.6;">
             Content is temporarily unavailable. Please try again later.
           </p>
@@ -218,7 +225,9 @@ export const getStaticProps: GetStaticProps = async (context) => {
         </div>`,
         slug: slug,
         meta: {
-          description: `Learn more about ${menuItem.title} on NULP`,
+          description: `Learn more about ${
+            menuItem?.title || slug || "this page"
+          } on NULP`,
         },
       };
     }
