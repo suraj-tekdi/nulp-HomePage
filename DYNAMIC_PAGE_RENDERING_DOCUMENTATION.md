@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document explains how the NULP (National Urban Learning Platform) dynamic page rendering system works, including its integration with the CMS (Content Management System) and support for static hosting.
+This document explains how the Home Page's dynamic page rendering system works, including its integration with the CMS (Content Management System) and support for static hosting.
 
 ## Architecture Overview
 
@@ -23,7 +23,7 @@ This document explains how the NULP (National Urban Learning Platform) dynamic p
 
 ### 2. CMS Integration
 
-- **Base URL**: `https://devnulp.niua.org/mw-cms/api/v1/`
+- **Base URL**: `{base_url}/mw-cms/api/v1/`
 - **Services**: Located in `services/api.ts` and `services/menus.ts`
 
 ### 3. Static Hosting Support
@@ -445,15 +445,3 @@ npm run export  # or next export
 2. Verify API responses in Network tab
 3. Check debug info panel on page
 4. Verify CMS content is published
-
-## Conclusion
-
-This dynamic page rendering system provides:
-
-- **Flexibility**: Easy content management via CMS
-- **Performance**: Static hosting with dynamic content
-- **Reliability**: Robust error handling and fallbacks
-- **Maintainability**: Clean separation of concerns
-- **Scalability**: Handles unlimited dynamic pages
-
-The system successfully combines the benefits of static site generation with the flexibility of dynamic content management, making it ideal for the NULP platform's requirements.
