@@ -119,13 +119,13 @@ export const getStaticPaths: GetStaticPaths = async () => {
 
     return {
       paths,
-      fallback: false, // Show 404 for non-existent pages
+      fallback: "blocking", // Show 404 for non-existent pages
     };
   } catch (error) {
     console.error("Error generating static paths:", error);
     return {
       paths: [],
-      fallback: false,
+      fallback: "blocking",
     };
   }
 };
