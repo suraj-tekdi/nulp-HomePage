@@ -26,23 +26,157 @@ const DynamicPage: React.FC<DynamicPageProps> = ({
   fullContent: initialFullContent,
   menuItem: initialMenuItem,
 }) => {
-  // Use the data directly from getStaticProps - perfect for static hosting
-  const pageContent = initialPageContent;
-  const fullContent = initialFullContent;
-  const menuItem = initialMenuItem;
-  const loading = false;
-  const isClient = true; // For static hosting, we can assume client-side rendering
+  // State for dynamic data that can be updated client-side
+  const [pageContent, setPageContent] = useState(initialPageContent);
+  const [fullContent, setFullContent] = useState(initialFullContent);
+  const [menuItem, setMenuItem] = useState(initialMenuItem);
+  const [loading, setLoading] = useState(false);
+  const [clientSlug, setClientSlug] = useState(slug);
+  const [isClient, setIsClient] = useState(false);
 
-  // Log the data we received from getStaticProps
+  // Enable client-side rendering
   useEffect(() => {
-    console.log("📋 [DEBUG] Component received from getStaticProps:", {
-      slug,
-      hasPageContent: !!pageContent,
-      hasFullContent: !!fullContent,
-      hasMenuItem: !!menuItem,
-      pageTitle: fullContent?.page_title || menuItem?.title || slug,
-    });
-  }, [slug, pageContent, fullContent, menuItem]);
+    setIsClient(true);
+  }, []);
+
+  // Extract slug from URL on client-side for production static hosting
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const currentPath = window.location.pathname;
+      const urlSlug = currentPath.startsWith("/")
+        ? currentPath.slice(1)
+        : currentPath;
+      console.log("🌐 [DEBUG] URL-based slug extraction:", {
+        currentPath,
+        urlSlug,
+        originalSlug: slug,
+        hostname: window.location.hostname,
+      });
+
+      if (urlSlug && urlSlug !== slug) {
+        console.log("🔄 [DEBUG] Using URL slug instead of props slug");
+        setClientSlug(urlSlug);
+      }
+    }
+  }, [slug]);
+
+  // Fetch data client-side if not available from static props or if slug changed
+  useEffect(() => {
+    if (!isClient || !clientSlug) return;
+
+    // If we already have full content and it matches our slug, don't fetch again
+    if (
+      fullContent &&
+      fullContent.menu_slug === clientSlug &&
+      fullContent.articles &&
+      fullContent.articles.length > 0
+    ) {
+      console.log(
+        "✅ [DEBUG] Already have matching full content, skipping fetch"
+      );
+      return;
+    }
+
+    console.log(
+      "🚀 [DEBUG] Starting client-side data fetch for slug:",
+      clientSlug
+    );
+
+    const fetchData = async () => {
+      setLoading(true);
+
+      try {
+        console.log("📡 [DEBUG] Fetching menu data...");
+
+        // Fetch menu data
+        const menusResponse = await menusApi.getHomepageMenus();
+        console.log("📡 [DEBUG] Menus response:", {
+          success: menusResponse.success,
+          dataLength: menusResponse.data?.length,
+        });
+
+        let currentMenuItem = null;
+        if (menusResponse.success && menusResponse.data) {
+          currentMenuItem = menusResponse.data.find((item) => {
+            const link = item.link || "";
+            const menuSlug = link.startsWith("/") ? link.slice(1) : link;
+            console.log("🔍 [DEBUG] Checking menu item:", {
+              title: item.title,
+              link,
+              menuSlug,
+              matches: menuSlug === clientSlug,
+            });
+            return menuSlug === clientSlug;
+          });
+
+          console.log(
+            "✅ [DEBUG] Found menu item:",
+            currentMenuItem ? currentMenuItem.title : "NOT FOUND"
+          );
+          setMenuItem(currentMenuItem || null);
+        }
+
+        console.log("📡 [DEBUG] Fetching content data for slug:", clientSlug);
+        // Try full content first
+        const fullContentResponse = await contentApi.getFullPageContent(
+          clientSlug
+        );
+        console.log("📡 [DEBUG] Full content response:", {
+          success: fullContentResponse.success,
+          hasData: !!fullContentResponse.data,
+        });
+
+        if (fullContentResponse.success && fullContentResponse.data) {
+          console.log("✅ [DEBUG] Setting full content data");
+          setFullContent(fullContentResponse.data);
+        } else {
+          console.log("📡 [DEBUG] Trying individual API calls...");
+          // Fallback to individual calls
+          const [bannersResponse, articlesResponse] = await Promise.all([
+            contentApi.getBannersByMenu(clientSlug),
+            contentApi.getArticlesByMenu(clientSlug),
+          ]);
+
+          console.log("📡 [DEBUG] Individual responses:", {
+            bannersSuccess: bannersResponse.success,
+            bannersCount: bannersResponse.data?.length || 0,
+            articlesSuccess: articlesResponse.success,
+            articlesCount: articlesResponse.data?.length || 0,
+          });
+
+          if (bannersResponse.success || articlesResponse.success) {
+            const combinedContent = {
+              page_title: currentMenuItem?.title || clientSlug,
+              menu_slug: clientSlug,
+              banners: bannersResponse.success
+                ? bannersResponse.data || []
+                : [],
+              articles: articlesResponse.success
+                ? articlesResponse.data || []
+                : [],
+            };
+
+            console.log("✅ [DEBUG] Setting combined content:", {
+              page_title: combinedContent.page_title,
+              bannersCount: combinedContent.banners.length,
+              articlesCount: combinedContent.articles.length,
+            });
+            setFullContent(combinedContent);
+          } else {
+            console.log("❌ [DEBUG] No content found from any API");
+          }
+        }
+      } catch (error) {
+        console.error("❌ [DEBUG] Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Small delay to ensure DOM is ready
+    const timer = setTimeout(fetchData, 100);
+    return () => clearTimeout(timer);
+  }, [isClient, clientSlug, fullContent]);
 
   // Determine page title and meta information
   const pageTitle =
@@ -158,9 +292,21 @@ const DynamicPage: React.FC<DynamicPageProps> = ({
         🔍 <strong>Debug Info:</strong><br>
         • Client-side: ${isClient ? "Active" : "Loading..."}<br>
         • Loading: ${loading ? "Yes" : "No"}<br>
-        • Full Content: ${fullContent ? "Found" : "None"}<br>
+        • Full Content: ${
+          fullContent
+            ? `${(fullContent as any).articles?.length || 0} articles, ${
+                (fullContent as any).banners?.length || 0
+              } banners`
+            : "None"
+        }<br>
         • Menu Item: ${menuItem ? menuItem.title : "None"}<br>
-        • Slug: ${slug}
+        • Props Slug: ${slug}<br>
+        • Client Slug: ${clientSlug}<br>
+        • URL: ${
+          typeof window !== "undefined"
+            ? window.location.pathname
+            : "Server-side"
+        }
       </p>
     </div>
   </div>`;
