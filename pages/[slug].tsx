@@ -239,6 +239,9 @@ export const getStaticProps: GetStaticProps = async (context) => {
         fullContent,
         menuItem,
       },
+      // Enable Incremental Static Regeneration (ISR)
+      // Pages will be regenerated at most once every 60 seconds when there's a request
+      revalidate: 40,
     };
   } catch (error) {
     console.error("Error in getStaticProps for dynamic page:", error);
