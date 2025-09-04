@@ -22,11 +22,83 @@ interface DynamicPageProps {
 
 const DynamicPage: React.FC<DynamicPageProps> = ({
   slug,
-  pageContent,
-  fullContent,
-  menuItem,
+  pageContent: initialPageContent,
+  fullContent: initialFullContent,
+  menuItem: initialMenuItem,
 }) => {
+  // Client-side state for dynamic data fetching
+  const [pageContent, setPageContent] = useState(initialPageContent);
+  const [fullContent, setFullContent] = useState(initialFullContent);
+  const [menuItem, setMenuItem] = useState(initialMenuItem);
   const [loading, setLoading] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  // Enable client-side rendering
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Fetch fresh data from CMS on client-side
+  useEffect(() => {
+    if (!isClient || !slug) return;
+
+    const fetchFreshData = async () => {
+      setLoading(true);
+      try {
+        // Fetch menu data to get the current menu item
+        const menusResponse = await menusApi.getHomepageMenus();
+        let currentMenuItem = null;
+
+        if (menusResponse.success && menusResponse.data) {
+          currentMenuItem = menusResponse.data.find((item) => {
+            const link = item.link || "";
+            const menuSlug = link.startsWith("/") ? link.slice(1) : link;
+            return menuSlug === slug;
+          });
+          setMenuItem(currentMenuItem || null);
+        }
+
+        // Fetch content data
+        const fullContentResponse = await contentApi.getFullPageContent(slug);
+        if (fullContentResponse.success && fullContentResponse.data) {
+          setFullContent(fullContentResponse.data);
+        } else {
+          // If no full content, try individual API calls
+          const [bannersResponse, articlesResponse] = await Promise.all([
+            contentApi.getBannersByMenu(slug),
+            contentApi.getArticlesByMenu(slug),
+          ]);
+
+          if (bannersResponse.success || articlesResponse.success) {
+            const combinedContent = {
+              page_title: currentMenuItem?.title || slug,
+              menu_slug: slug,
+              banners: bannersResponse.success
+                ? bannersResponse.data || []
+                : [],
+              articles: articlesResponse.success
+                ? articlesResponse.data || []
+                : [],
+            };
+            setFullContent(combinedContent);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching fresh data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Only fetch if we don't have initial data or after a delay to check for updates
+    if (!initialFullContent || !initialMenuItem) {
+      fetchFreshData();
+    } else {
+      // Check for updates after initial load
+      const timer = setTimeout(fetchFreshData, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [slug, isClient, initialFullContent, initialMenuItem]);
 
   // Determine page title and meta information
   const pageTitle =
@@ -42,6 +114,26 @@ const DynamicPage: React.FC<DynamicPageProps> = ({
     fullContent?.banners[0]?.description ||
     pageContent?.meta?.description ||
     `Learn more about ${pageTitle} on NULP - National Urban Learning Platform`;
+
+  // Show loading state when fetching fresh data
+  if (loading && !fullContent && !pageContent) {
+    return (
+      <DynamicPageLayout
+        title="Loading..."
+        content={`<div style="text-align: center; padding: 3rem 0;">
+          <div style="display: inline-block; width: 40px; height: 40px; border: 3px solid #f3f3f3; border-top: 3px solid #007bff; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+          <p style="color: #666; margin-top: 1rem;">Loading page content...</p>
+          <style>
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          </style>
+        </div>`}
+        meta={{ description: `Loading ${slug} page` }}
+      />
+    );
+  }
 
   // If we have full content (banners + articles), use the new layout
   if (fullContent) {
@@ -60,6 +152,25 @@ const DynamicPage: React.FC<DynamicPageProps> = ({
         hideTitle={true} // Hide the main title since we have banner/article titles
         fullWidthSections={
           <>
+            {loading && (
+              <div
+                style={{
+                  position: "fixed",
+                  top: "70px",
+                  right: "20px",
+                  background: "#007bff",
+                  color: "white",
+                  padding: "8px 16px",
+                  borderRadius: "20px",
+                  fontSize: "14px",
+                  zIndex: 1000,
+                  opacity: 0.9,
+                }}
+              >
+                🔄 Checking for updates...
+              </div>
+            )}
+
             {/* Show banners at top if they exist - full width */}
             {banners && banners.length > 0 && (
               <DynamicPageBanner banners={banners} />
@@ -119,7 +230,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 
     return {
       paths,
-      fallback: "blocking", // Show 404 for non-existent pages
+      fallback: "blocking", // Allow new pages to be generated dynamically
     };
   } catch (error) {
     console.error("Error generating static paths:", error);
@@ -131,6 +242,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 };
 
 // Generate static props for each page at build time
+// Generate minimal static props - real data will be fetched client-side
 export const getStaticProps: GetStaticProps = async (context) => {
   const { slug } = context.params!;
 
@@ -140,114 +252,14 @@ export const getStaticProps: GetStaticProps = async (context) => {
     };
   }
 
-  try {
-    // Fetch menu items to validate the route
-    const menusResponse = await menusApi.getHomepageMenus();
-    let menuItem: HomepageMenuItem | null = null;
-
-    if (menusResponse.success && menusResponse.data) {
-      // Find the menu item that matches this slug
-      menuItem =
-        menusResponse.data.find((item) => {
-          const link = item.link || "";
-          // Check if link matches the slug (handle both /privacy and privacy)
-          const normalizedLink = link.startsWith("/") ? link.slice(1) : link;
-          return normalizedLink === slug || link === `/${slug}`;
-        }) || null;
-    }
-
-    // If no matching menu item found, return 404
-    if (!menuItem) {
-      return {
-        notFound: true,
-      };
-    }
-
-    // Try to fetch content from middleware API using new format
-    let pageContent: DynamicPageContent | null = null;
-    let fullContent: DynamicPageFullContent | null = null;
-
-    try {
-      // First, try to get full content (banners + articles) using menu slug
-      const fullContentResponse = await contentApi.getFullPageContent(slug);
-
-      if (fullContentResponse.success && fullContentResponse.data) {
-        fullContent = fullContentResponse.data;
-      } else {
-        // If no full content, try legacy approach for backward compatibility
-        const contentResponse = await contentApi.getDynamicPageContent(slug);
-
-        if (contentResponse.success && contentResponse.data) {
-          pageContent = contentResponse.data;
-        } else {
-          // Create fallback content if no API content is available
-          pageContent = {
-            title: menuItem?.title || slug || "Page",
-            content: `<div style="text-align: center; padding: 3rem 0;">
-              <h2 style="color: #333; margin-bottom: 1rem;">Welcome to ${
-                menuItem?.title || slug || "this page"
-              }</h2>
-              <p style="color: #666; font-size: 1.1rem; line-height: 1.6;">
-                This page content will be loaded from the CMS API. 
-                The content management system will provide the detailed information for this section.
-              </p>
-              <p style="color: #888; margin-top: 2rem; font-size: 0.9rem;">
-                Route: /${slug} | API Status: Content not found
-              </p>
-            </div>`,
-            slug: slug,
-            meta: {
-              description: `Learn more about ${
-                menuItem?.title || slug || "this page"
-              } on NULP - National Urban Learning Platform`,
-            },
-          };
-        }
-      }
-    } catch (contentError) {
-      console.warn(`Failed to fetch content for ${slug}:`, contentError);
-
-      // Create error fallback content
-      pageContent = {
-        title: menuItem?.title || slug || "Page",
-        content: `<div style="text-align: center; padding: 3rem 0;">
-          <h2 style="color: #333; margin-bottom: 1rem;">${
-            menuItem?.title || slug || "Page"
-          }</h2>
-          <p style="color: #666; font-size: 1.1rem; line-height: 1.6;">
-            Content is temporarily unavailable. Please try again later.
-          </p>
-          <p style="color: #888; margin-top: 2rem; font-size: 0.9rem;">
-            Route: /${slug} | Error: ${
-          contentError instanceof Error ? contentError.message : "Unknown error"
-        }
-          </p>
-        </div>`,
-        slug: slug,
-        meta: {
-          description: `Learn more about ${
-            menuItem?.title || slug || "this page"
-          } on NULP`,
-        },
-      };
-    }
-
-    return {
-      props: {
-        slug,
-        pageContent,
-        fullContent,
-        menuItem,
-      },
-      // Enable Incremental Static Regeneration (ISR)
-      // Pages will be regenerated at most once every 60 seconds when there's a request
-      revalidate: 40,
-    };
-  } catch (error) {
-    console.error("Error in getStaticProps for dynamic page:", error);
-
-    return {
-      notFound: true,
-    };
-  }
+  // Return minimal props - client-side will fetch fresh data from CMS APIs
+  // This allows the static site to work with dynamic content updates
+  return {
+    props: {
+      slug,
+      pageContent: null,
+      fullContent: null,
+      menuItem: null,
+    },
+  };
 };
