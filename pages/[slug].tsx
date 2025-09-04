@@ -26,137 +26,23 @@ const DynamicPage: React.FC<DynamicPageProps> = ({
   fullContent: initialFullContent,
   menuItem: initialMenuItem,
 }) => {
-  // Client-side state for dynamic data fetching
-  const [pageContent, setPageContent] = useState(initialPageContent);
-  const [fullContent, setFullContent] = useState(initialFullContent);
-  const [menuItem, setMenuItem] = useState(initialMenuItem);
-  const [loading, setLoading] = useState(false);
-  const [isClient, setIsClient] = useState(false);
+  // Use the data directly from getStaticProps - perfect for static hosting
+  const pageContent = initialPageContent;
+  const fullContent = initialFullContent;
+  const menuItem = initialMenuItem;
+  const loading = false;
+  const isClient = true; // For static hosting, we can assume client-side rendering
 
-  // Enable client-side rendering
+  // Log the data we received from getStaticProps
   useEffect(() => {
-    console.log("🔥 [DEBUG] Setting isClient to true");
-    setIsClient(true);
-  }, []);
-
-  // Fetch fresh data from CMS on client-side
-  useEffect(() => {
-    console.log("🔍 [DEBUG] useEffect triggered:", {
-      isClient,
+    console.log("📋 [DEBUG] Component received from getStaticProps:", {
       slug,
-      initialFullContent: !!initialFullContent,
-      initialMenuItem: !!initialMenuItem,
+      hasPageContent: !!pageContent,
+      hasFullContent: !!fullContent,
+      hasMenuItem: !!menuItem,
+      pageTitle: fullContent?.page_title || menuItem?.title || slug,
     });
-
-    // Don't wait for isClient - start fetching immediately after component mounts
-    if (!slug || typeof window === "undefined") {
-      console.log("❌ [DEBUG] Early return:", {
-        slug,
-        isServer: typeof window === "undefined",
-      });
-      return;
-    }
-
-    const fetchFreshData = async () => {
-      console.log("🚀 [DEBUG] Starting fetchFreshData for slug:", slug);
-      setLoading(true);
-
-      try {
-        console.log("📡 [DEBUG] Fetching menu data...");
-        // Fetch menu data to get the current menu item
-        const menusResponse = await menusApi.getHomepageMenus();
-        console.log("📡 [DEBUG] Menus response:", {
-          success: menusResponse.success,
-          dataLength: menusResponse.data?.length,
-        });
-
-        let currentMenuItem = null;
-
-        if (menusResponse.success && menusResponse.data) {
-          console.log("🔍 [DEBUG] Looking for menu item with slug:", slug);
-          currentMenuItem = menusResponse.data.find((item) => {
-            const link = item.link || "";
-            const menuSlug = link.startsWith("/") ? link.slice(1) : link;
-            console.log("🔍 [DEBUG] Checking menu item:", {
-              title: item.title,
-              link,
-              menuSlug,
-              matches: menuSlug === slug,
-            });
-            return menuSlug === slug;
-          });
-          console.log(
-            "✅ [DEBUG] Found menu item:",
-            currentMenuItem ? currentMenuItem.title : "NOT FOUND"
-          );
-          setMenuItem(currentMenuItem || null);
-        }
-
-        console.log("📡 [DEBUG] Fetching full content for slug:", slug);
-        // Fetch content data
-        const fullContentResponse = await contentApi.getFullPageContent(slug);
-        console.log("📡 [DEBUG] Full content response:", {
-          success: fullContentResponse.success,
-          hasData: !!fullContentResponse.data,
-        });
-
-        if (fullContentResponse.success && fullContentResponse.data) {
-          console.log("✅ [DEBUG] Using full content data");
-          setFullContent(fullContentResponse.data);
-        } else {
-          console.log(
-            "📡 [DEBUG] No full content, trying individual API calls..."
-          );
-          // If no full content, try individual API calls
-          const [bannersResponse, articlesResponse] = await Promise.all([
-            contentApi.getBannersByMenu(slug),
-            contentApi.getArticlesByMenu(slug),
-          ]);
-
-          console.log("📡 [DEBUG] Individual API responses:", {
-            bannersSuccess: bannersResponse.success,
-            bannersCount: bannersResponse.data?.length || 0,
-            articlesSuccess: articlesResponse.success,
-            articlesCount: articlesResponse.data?.length || 0,
-          });
-
-          if (bannersResponse.success || articlesResponse.success) {
-            const combinedContent = {
-              page_title: currentMenuItem?.title || slug,
-              menu_slug: slug,
-              banners: bannersResponse.success
-                ? bannersResponse.data || []
-                : [],
-              articles: articlesResponse.success
-                ? articlesResponse.data || []
-                : [],
-            };
-            console.log("✅ [DEBUG] Setting combined content:", {
-              page_title: combinedContent.page_title,
-              bannersCount: combinedContent.banners.length,
-              articlesCount: combinedContent.articles.length,
-            });
-            setFullContent(combinedContent);
-          } else {
-            console.log("❌ [DEBUG] No content found from any API");
-          }
-        }
-      } catch (error) {
-        console.error("❌ [DEBUG] Error fetching fresh data:", error);
-      } finally {
-        console.log(
-          "🏁 [DEBUG] Finished fetching data, setting loading to false"
-        );
-        setLoading(false);
-      }
-    };
-
-    // For now, let's not fetch client-side data and just use what we got from getStaticProps
-    // This can be enhanced later with client-side fetching when needed
-    console.log(
-      "ℹ️ [DEBUG] Using static props data, no client-side fetching for now"
-    );
-  }, []); // Empty dependency array - don't fetch client-side data
+  }, [slug, pageContent, fullContent, menuItem]);
 
   // Determine page title and meta information
   const pageTitle =
