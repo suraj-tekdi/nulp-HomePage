@@ -14,7 +14,9 @@ import {
   transformDomainDiscussionPost,
   DiscussionTopic,
   DomainDiscussionPost,
+  getDynamicNulpUrls,
 } from "../../services/api";
+import { slidersApi } from "../../services/sliders";
 import styles from "./TrendingDiscussionsSection.module.css";
 
 interface Discussion {
@@ -57,35 +59,46 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
         setLoading(true);
         setError(null);
 
-        let response;
-        let transformedDiscussions;
+        let response: any;
+        let transformedDiscussions: Discussion[] | undefined;
 
-        // Check if a specific domain is selected (not null/undefined)
+        // If a specific domain is selected -> use domain-specific API
         if (selectedDomain && selectedDomain.trim() !== "") {
-          // Use domain-based API
           response = await discussionApi.getDiscussionsByDomain(selectedDomain);
-
           if (response.success && response.data) {
-            // Transform domain-based API data to match our interface
-            transformedDiscussions = response.data.map(
-              transformDomainDiscussionPost
-            );
+            transformedDiscussions = (
+              response.data as DomainDiscussionPost[]
+            ).map(transformDomainDiscussionPost) as unknown as Discussion[];
           }
         } else {
-          // Use popular discussions API for 'All Domains' or no selection
-          response = await discussionApi.getPopularDiscussions();
+          // No domain selected -> use sliders to get curated trending discussions
+          const slugsRes = await slidersApi.getTrendingDiscussionSlugs();
+          if (!slugsRes.success) {
+            throw new Error(slugsRes.error || "Failed to get slider slugs");
+          }
+          const slugs = (slugsRes.data || []).slice(0, 12); // limit for safety
 
-          if (response.success && response.data) {
-            // Transform popular API data to match our interface
-            transformedDiscussions = response.data.map(
-              transformDiscussionTopic
+          if (slugs.length === 0) {
+            transformedDiscussions = [];
+          } else {
+            // Fetch each topic by slug path in parallel
+            const topicPromises = slugs.map((slugPath) =>
+              discussionApi.getTopicBySlugPath(slugPath as string)
             );
+            const topicsResults = await Promise.all(topicPromises);
+            const topics: DiscussionTopic[] = topicsResults
+              .filter((r) => r.success && r.data)
+              .map((r) => r.data as DiscussionTopic);
+
+            transformedDiscussions = topics.map((t) =>
+              transformDiscussionTopic(t)
+            ) as unknown as Discussion[];
           }
         }
 
-        if (response.success) {
+        if (transformedDiscussions) {
           setDiscussions(transformedDiscussions || []);
-        } else {
+        } else if (response && response.success === false) {
           setError(response.error || "Failed to fetch discussions");
         }
       } catch (err) {
@@ -220,7 +233,8 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
 
   // Handle discussion click to redirect to detailed page
   const handleDiscussionClick = useCallback((slug: string) => {
-    const discussionUrl = `/discussion-forum/topic/${slug}`;
+    const { base } = getDynamicNulpUrls();
+    const discussionUrl = `${base}/discussion-forum/topic/${slug}`;
     window.location.href = discussionUrl;
   }, []);
 

@@ -217,206 +217,63 @@ export const searchApi = {
     const urls = getDynamicNulpUrls();
     return urls.search(query);
   },
-
-  // Redirect to search results in new tab
-  redirectToSearch: async (query: string): Promise<void> => {
-    const searchUrl = await searchApi.performSearch(query);
-    window.open(searchUrl, "_blank", "noopener,noreferrer");
-  },
-
-  // Redirect to search results in same tab
-  redirectToSearchSameTab: async (query: string): Promise<void> => {
-    const searchUrl = await searchApi.performSearch(query);
-    window.location.href = searchUrl;
-  },
 };
 
-// Other API services can be added here
+// Courses & Good Practices APIs
 export const courseApi = {
-  // Get courses by specific identifiers (for CMS sliders)
-  getNulpCoursesByIds: async (
-    identifiers: string[]
-  ): Promise<ApiResponse<NulpCourse[]>> => {
+  // Fetch NULP courses based on query and filters
+  searchCourses: async (
+    params: SearchParams
+  ): Promise<ApiResponse<NulpApiResponse>> => {
     try {
-      if (!identifiers || identifiers.length === 0) {
-        return { success: true, data: [] };
-      }
-      const filters: any = {
-        status: ["Live"],
-        visibility: ["Default", "Parent"],
-        identifier: identifiers,
-      };
-      const requestBody = {
-        request: {
-          filters,
-          limit: identifiers.length,
-          sort_by: { createdOn: "desc" },
-          fields: [
-            "name",
-            "appIcon",
-            "mimeType",
-            "gradeLevel",
-            "identifier",
-            "medium",
-            "pkgVersion",
-            "board",
-            "subject",
-            "resourceType",
-            "primaryCategory",
-            "contentType",
-            "channel",
-            "organisation",
-            "trackable",
-            "primaryCategory",
-            "se_boards",
-            "se_gradeLevels",
-            "se_subjects",
-            "se_mediums",
-          ],
-          facets: [
-            "se_boards",
-            "se_gradeLevels",
-            "se_subjects",
-            "se_mediums",
-            "primaryCategory",
-          ],
-          offset: 0,
-        },
-      };
-
-      const urls = getDynamicNulpUrls();
-      const baseUrl = urls.base;
-      const response = await fetch(
-        `${baseUrl}/api/content/v1/search?orgdetails=orgName,email&licenseDetails=name,description,url`,
-        {
-          method: "POST",
-          headers: {
-            Accept: "*/*",
-            "Accept-Language": "en-GB,en-US;q=0.9,en;q=0.8",
-            Connection: "keep-alive",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(requestBody),
-        }
-      );
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data: NulpApiResponse = await response.json();
-      if (data.responseCode === "OK" && data.result?.content) {
-        return {
-          success: true,
-          data: data.result.content,
-          status: response.status,
-        };
-      } else {
-        return {
-          success: false,
-          error: "Invalid response from NULP API",
-          status: response.status,
-        };
-      }
-    } catch (error) {
-      return {
-        success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to fetch courses by ids",
-        status: 0,
-      };
-    }
-  },
-
-  // Get courses from NULP API
-  getNulpCourses: async (
-    selectedDomain?: string
-  ): Promise<ApiResponse<NulpCourse[]>> => {
-    try {
-      // Create filters based on selected domain
-      const filters: any = {
-        status: ["Live"],
-        visibility: ["Default", "Parent"],
-        identifier: [
-          "do_11422330454242099211",
-          "do_11420352388390912013",
-          "do_1136550052517314561308",
-          "do_1141747139141468161258",
-          "do_1136598919702609921643",
-          "do_1139974386277580801378",
-          "do_1140067897586974721570",
-          "do_1139973490818334721328",
-          "do_114165835604836352120",
-          "do_114284738848514048123",
+      const { query, filters = {}, page = 1, limit = 10 } = params;
+      const payload = {
+        filters: { ...filters },
+        limit,
+        sort_by: { createdOn: "desc" },
+        fields: [
+          "name",
+          "appIcon",
+          "mimeType",
+          "gradeLevel",
+          "identifier",
+          "medium",
+          "pkgVersion",
+          "board",
+          "subject",
+          "resourceType",
+          "primaryCategory",
+          "contentType",
+          "channel",
+          "organisation",
+          "trackable",
+          "primaryCategory",
+          "se_boards",
+          "se_gradeLevels",
+          "se_subjects",
+          "se_mediums",
         ],
-      };
-
-      // Add domain filter if a domain is selected
-      if (selectedDomain) {
-        filters.se_boards = [selectedDomain];
-      } else {
-        filters.se_boards = [null];
-      }
-
-      const requestBody = {
-        request: {
-          filters,
-          limit: 100,
-          sort_by: { createdOn: "desc" },
-          fields: [
-            "name",
-            "appIcon",
-            "mimeType",
-            "gradeLevel",
-            "identifier",
-            "medium",
-            "pkgVersion",
-            "board",
-            "subject",
-            "resourceType",
-            "primaryCategory",
-            "contentType",
-            "channel",
-            "organisation",
-            "trackable",
-            "primaryCategory",
-            "se_boards",
-            "se_gradeLevels",
-            "se_subjects",
-            "se_mediums",
-          ],
-          facets: [
-            "se_boards",
-            "se_gradeLevels",
-            "se_subjects",
-            "se_mediums",
-            "primaryCategory",
-          ],
-          offset: 0,
-        },
-      };
-
-      const urls = getDynamicNulpUrls();
-      const baseUrl = urls.base;
+        facets: [
+          "se_boards",
+          "se_gradeLevels",
+          "se_subjects",
+          "se_mediums",
+          "primaryCategory",
+        ],
+        offset: (page - 1) * limit,
+        query,
+      } as any;
 
       const response = await fetch(
-        `${baseUrl}/api/content/v1/search?orgdetails=orgName,email&licenseDetails=name,description,url`,
+        `https://nulp.niua.org/api/content/v1/search?orgdetails=orgName,email&licenseDetails=name,description,url`,
         {
           method: "POST",
           headers: {
             Accept: "*/*",
             "Accept-Language": "en-GB,en-US;q=0.9,en;q=0.8",
-            Connection: "keep-alive",
             "Content-Type": "application/json",
-            Origin: baseUrl,
-            Referer: `${baseUrl}/webapp/domainList`,
-            "Sec-Fetch-Dest": "empty",
-            "Sec-Fetch-Mode": "cors",
-            "Sec-Fetch-Site": "same-origin",
-            "User-Agent":
-              "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
           },
-          body: JSON.stringify(requestBody),
+          body: JSON.stringify({ request: payload }),
         }
       );
 
@@ -424,144 +281,13 @@ export const courseApi = {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data: NulpApiResponse = await response.json();
-
-      if (data.responseCode === "OK" && data.result?.content) {
-        return {
-          success: true,
-          data: data.result.content,
-          status: response.status,
-        };
-      } else {
-        return {
-          success: false,
-          error: "Invalid response from NULP API",
-          status: response.status,
-        };
-      }
+      const data = (await response.json()) as NulpApiResponse;
+      return { success: true, data, status: response.status };
     } catch (error) {
       return {
         success: false,
         error:
           error instanceof Error ? error.message : "Failed to fetch courses",
-        status: 0,
-      };
-    }
-  },
-
-  // Get good practices from NULP API
-  getNulpGoodPractices: async (
-    selectedDomain?: string
-  ): Promise<ApiResponse<NulpGoodPractice[]>> => {
-    try {
-      // Create filters based on selected domain
-      const filters: any = {
-        status: ["Live"],
-        primaryCategory: ["Good Practices", "Reports", "Manual/SOPs"],
-        visibility: ["Default", "Parent"],
-      };
-
-      // Add domain filter if a domain is selected
-      if (selectedDomain) {
-        filters.se_boards = [selectedDomain];
-      } else {
-        filters.se_boards = [null];
-      }
-
-      const requestBody = {
-        request: {
-          filters,
-          limit: 20,
-          sort_by: { createdOn: "desc" },
-          fields: [
-            "name",
-            "appIcon",
-            "mimeType",
-            "gradeLevel",
-            "identifier",
-            "medium",
-            "pkgVersion",
-            "board",
-            "subject",
-            "resourceType",
-            "primaryCategory",
-            "contentType",
-            "channel",
-            "organisation",
-            "trackable",
-            "primaryCategory",
-            "se_boards",
-            "se_gradeLevels",
-            "se_subjects",
-            "se_mediums",
-            "primaryCategory",
-          ],
-          facets: [
-            "se_boards",
-            "se_gradeLevels",
-            "se_subjects",
-            "se_mediums",
-            "primaryCategory",
-          ],
-          offset: 0,
-          query: "",
-        },
-      };
-
-      const urls = getDynamicNulpUrls();
-      const baseUrl = urls.base;
-
-      const response = await fetch(
-        `${baseUrl}/api/content/v1/search?orgdetails=orgName,email&licenseDetails=name,description,url`,
-        {
-          method: "POST",
-          headers: {
-            Accept: "*/*",
-            "Accept-Language": "en-GB,en-US;q=0.9,en;q=0.8",
-            Connection: "keep-alive",
-            "Content-Type": "application/json",
-            Origin: baseUrl,
-            Referer: `${baseUrl}/webapp/domainList`,
-            "Sec-Fetch-Dest": "empty",
-            "Sec-Fetch-Mode": "cors",
-            "Sec-Fetch-Site": "same-origin",
-            "User-Agent":
-              "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-            "sec-ch-ua":
-              '"Not)A;Brand";v="8", "Chromium";v="138", "Google Chrome";v="138"',
-            "sec-ch-ua-mobile": "?0",
-            "sec-ch-ua-platform": '"Linux"',
-          },
-          body: JSON.stringify(requestBody),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data: NulpGoodPracticesApiResponse = await response.json();
-
-      if (data.responseCode === "OK" && data.result?.content) {
-        return {
-          success: true,
-          data: data.result.content,
-          status: response.status,
-        };
-      } else {
-        return {
-          success: false,
-          error: "Invalid response from NULP API",
-          status: response.status,
-        };
-      }
-    } catch (error) {
-      return {
-        success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to fetch good practices",
         status: 0,
       };
     }
@@ -841,6 +567,69 @@ export const discussionApi = {
           error instanceof Error
             ? error.message
             : "Failed to fetch discussions by domain",
+        status: 0,
+      };
+    }
+  },
+
+  // Get a single topic by slug path from public forum API
+  // slugPath example: "105/how-to-incentivize-early-payment-of-property-tax"
+  getTopicBySlugPath: async (
+    slugPath: string
+  ): Promise<ApiResponse<DiscussionTopic>> => {
+    try {
+      const response = await fetch(
+        `${baseUrl}/discussion-forum/api/topic/${slugPath}`,
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const raw = await response.json();
+
+      // Map the topic API to DiscussionTopic shape (fields we need)
+      const mapped: DiscussionTopic = {
+        anonymous: raw.anonymous,
+        isQuestion: raw.isQuestion,
+        isSolved: raw.isSolved,
+        cid: raw.cid,
+        lastposttime: raw.lastposttime,
+        mainPid: raw.mainPid,
+        postcount: raw.postcount,
+        slug: raw.slug,
+        tid: raw.tid,
+        timestamp: raw.timestamp,
+        title: raw.title,
+        titleRaw: raw.titleRaw || raw.title,
+        uid: raw.uid,
+        viewcount: raw.viewcount || 0,
+        postercount: raw.postercount || 0,
+        upvotes: raw.upvotes || 0,
+        downvotes: raw.downvotes || 0,
+        votes: raw.votes || 0,
+        category: raw.category,
+        user: raw.user,
+        content: raw.content || raw.contentRaw || "",
+        contentRaw: raw.contentRaw || raw.content || "",
+        index: raw.postIndex || 0,
+      };
+
+      return { success: true, data: mapped, status: response.status };
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch topic by slug",
         status: 0,
       };
     }
