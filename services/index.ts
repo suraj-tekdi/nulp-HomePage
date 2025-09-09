@@ -70,3 +70,6 @@ export {
 
 // Partners API exports (moved out of api.ts)
 export { partnersApi, type HomepagePartnerItem } from "./partners";
+
+// Media (Launch Video) API exports
+export { mediaApi, type LaunchMedia } from "./media";

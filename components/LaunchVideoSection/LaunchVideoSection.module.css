@@ -29,7 +29,7 @@
 }
 
 .launchVideo__title::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -10px;
   left: 50%;
@@ -95,27 +95,25 @@
 .launchVideo__statsGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--spacing-md);
+  gap: var(--spacing-lg);
 }
 
 .launchVideo__statCard {
   background: #f8f9fa;
-  border-radius: 12px;
-  padding: 0;
+  border-radius: 16px;
+  padding: var(--spacing-lg);
   text-align: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid #e9ecef;
   transition: all 0.3s ease;
   position: relative;
-  /* allow content to define height */
   overflow: visible;
-  /* remove fixed aspect to prevent clipping */
-  min-height: 140px;
+  min-height: 170px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-sm);
 }
 
 .launchVideo__statCard:hover {
@@ -125,8 +123,8 @@
 }
 
 .launchVideo__statIcon {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   margin-bottom: var(--spacing-xs);
   opacity: 0.7;
   transition: all 0.3s ease;
@@ -146,20 +144,18 @@
 }
 
 .launchVideo__statNumber {
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: 2.4rem;
+  font-weight: 800;
   color: #054365;
   line-height: 1;
-  margin-bottom: var(--spacing-xs);
 }
 
 .launchVideo__statLabel {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: #555;
-  line-height: 1.2;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #3e4b57;
+  line-height: 1.25;
   text-align: center;
-  /* ensure wrapping */
   white-space: normal;
   word-break: break-word;
 }
@@ -169,26 +165,30 @@
   .launchVideo {
     padding: var(--spacing-xxl) var(--spacing-lg);
   }
-  
+
   .launchVideo__container {
     padding: 0 var(--spacing-lg);
   }
-  
+
   .launchVideo__content {
     gap: 3rem;
   }
-  
+
   .launchVideo__title {
     font-size: 2.5rem;
   }
-  
+
   .launchVideo__statCard {
-    padding: 0;
-    min-height: 130px;
+    padding: var(--spacing-md);
+    min-height: 150px;
   }
-  
+
   .launchVideo__statNumber {
-    font-size: 1.8rem;
+    font-size: 2rem;
+  }
+
+  .launchVideo__statLabel {
+    font-size: 0.95rem;
   }
 }
 
@@ -196,42 +196,42 @@
   .launchVideo {
     padding: var(--spacing-xl) var(--spacing-md);
   }
-  
+
   .launchVideo__container {
     padding: 0 var(--spacing-md);
   }
-  
+
   .launchVideo__content {
     grid-template-columns: 1fr;
     gap: 3rem;
   }
-  
+
   .launchVideo__title {
     font-size: 2.2rem;
   }
-  
+
   .launchVideo__subtitle {
     font-size: 1.1rem;
   }
-  
+
   .launchVideo__statsGrid {
     max-width: 100%;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--spacing-md);
     margin: 0 auto;
   }
-  
+
   .launchVideo__statCard {
-    padding: 0;
-    min-height: 120px;
+    padding: var(--spacing-md);
+    min-height: 140px;
   }
-  
+
   .launchVideo__statNumber {
-    font-size: 1.6rem;
+    font-size: 1.9rem;
   }
-  
+
   .launchVideo__statLabel {
-    font-size: 0.75rem;
+    font-size: 0.9rem;
   }
 }
 
@@ -239,49 +239,47 @@
   .launchVideo {
     padding: var(--spacing-xl) var(--spacing-sm);
   }
-  
+
   .launchVideo__container {
     padding: 0 var(--spacing-sm);
   }
-  
+
   .launchVideo__header {
     margin-bottom: var(--spacing-xxl);
   }
-  
+
   .launchVideo__title {
     font-size: 2rem;
   }
-  
+
   .launchVideo__subtitle {
     font-size: 1rem;
   }
-  
+
   .launchVideo__content {
     gap: 2rem;
   }
-  
+
   .launchVideo__statsGrid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: 1fr 1fr;
     gap: var(--spacing-sm);
   }
-  
+
   .launchVideo__statCard {
-    padding: 0;
-    min-height: 110px;
+    padding: var(--spacing-md);
+    min-height: 130px;
   }
-  
+
   .launchVideo__statIcon {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
   }
-  
+
   .launchVideo__statNumber {
-    font-size: 1.4rem;
+    font-size: 1.7rem;
   }
-  
+
   .launchVideo__statLabel {
-    font-size: 0.7rem;
+    font-size: 0.85rem;
   }
 }
-
- 
