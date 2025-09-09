@@ -1,21 +1,44 @@
-import React, { useState } from 'react';
-import Head from 'next/head';
-import { Header, Banner, LaunchVideoSection, DomainsSection, TrendingCoursesSection, TrendingGoodPracticesSection, TrendingDiscussionsSection, IndiaMapSection, TestimonialsSection, PartnersSection, Footer } from '../components';
-import { partnersApi, HomepagePartnerItem, testimonialsApi, HomepageTestimonialItem } from '../services/api';
+import React, { useState } from "react";
+import Head from "next/head";
+import {
+  Header,
+  Banner,
+  LaunchVideoSection,
+  DomainsSection,
+  TrendingCoursesSection,
+  TrendingGoodPracticesSection,
+  TrendingDiscussionsSection,
+  IndiaMapSection,
+  TestimonialsSection,
+  PartnersSection,
+  Footer,
+} from "../components";
+import {
+  partnersApi,
+  HomepagePartnerItem,
+  testimonialsApi,
+  HomepageTestimonialItem,
+} from "../services";
 
 interface HomePageProps {
   initialPartners: HomepagePartnerItem[];
   initialTestimonials: HomepageTestimonialItem[];
 }
 
-const HomePage: React.FC<HomePageProps> = ({ initialPartners, initialTestimonials }) => {
+const HomePage: React.FC<HomePageProps> = ({
+  initialPartners,
+  initialTestimonials,
+}) => {
   const [selectedDomain, setSelectedDomain] = useState<string | null>(null);
 
   return (
     <>
       <Head>
         <title>NULP - National Urban Learning Platform</title>
-        <meta name="description" content="Learn from well-curated courses and content. Explore domain experts from other cities and develop skills." />
+        <meta
+          name="description"
+          content="Learn from well-curated courses and content. Explore domain experts from other cities and develop skills."
+        />
       </Head>
 
       {/* Header */}
@@ -26,7 +49,10 @@ const HomePage: React.FC<HomePageProps> = ({ initialPartners, initialTestimonial
 
       {/* Domains Section */}
       <div id="domains-section">
-        <DomainsSection onDomainSelect={setSelectedDomain} selectedDomain={selectedDomain} />
+        <DomainsSection
+          onDomainSelect={setSelectedDomain}
+          selectedDomain={selectedDomain}
+        />
       </div>
 
       {/* Trending Courses Section */}
@@ -52,7 +78,6 @@ const HomePage: React.FC<HomePageProps> = ({ initialPartners, initialTestimonial
 
       {/* Footer */}
       <Footer />
-
     </>
   );
 };
@@ -65,11 +90,17 @@ export async function getStaticProps() {
     testimonialsApi.getHomepageTestimonials(),
   ]);
 
-  const partners = partnersRes.success && partnersRes.data ? partnersRes.data : [];
-  const sortedPartners = [...partners].sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+  const partners =
+    partnersRes.success && partnersRes.data ? partnersRes.data : [];
+  const sortedPartners = [...partners].sort(
+    (a, b) => (a.display_order || 0) - (b.display_order || 0)
+  );
 
-  const testimonials = testimonialsRes.success && testimonialsRes.data ? testimonialsRes.data : [];
-  const sortedTestimonials = [...testimonials].sort((a, b) => (a.id || 0) - (b.id || 0));
+  const testimonials =
+    testimonialsRes.success && testimonialsRes.data ? testimonialsRes.data : [];
+  const sortedTestimonials = [...testimonials].sort(
+    (a, b) => (a.id || 0) - (b.id || 0)
+  );
 
   return {
     props: {
@@ -77,4 +108,4 @@ export async function getStaticProps() {
       initialTestimonials: sortedTestimonials,
     },
   };
-} 
+}

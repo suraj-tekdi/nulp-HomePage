@@ -13,6 +13,8 @@ export {
   type DynamicPageBanner,
   type DynamicPageArticle,
   type DynamicPageFullContent,
+  testimonialsApi,
+  type HomepageTestimonialItem,
 } from "./api";
 
 // Export scroll utilities
@@ -65,3 +67,6 @@ export {
   type FooterSocialItem,
   type FooterMenuItem,
 } from "./footer";
+
+// Partners API exports (moved out of api.ts)
+export { partnersApi, type HomepagePartnerItem } from "./partners";

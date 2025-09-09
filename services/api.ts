@@ -666,129 +666,7 @@ export const userApi = {
   },
 };
 
-export interface HomepagePartnerLogoFormatThumb {
-  ext: string;
-  url: string;
-  hash: string;
-  mime: string;
-  name: string;
-  path: string | null;
-  size: number;
-  width: number;
-  height: number;
-  sizeInBytes?: number;
-}
-
-export interface HomepagePartnerLogo {
-  id: number;
-  documentId: string;
-  name: string;
-  alternativeText: string | null;
-  caption: string | null;
-  width: number;
-  height: number;
-  formats?: { thumbnail?: HomepagePartnerLogoFormatThumb };
-  hash: string;
-  ext: string;
-  mime: string;
-  size: number;
-  url: string; // path like /uploads/xxx.png
-  previewUrl: string | null;
-  provider: string;
-  provider_metadata: any;
-  createdAt: string;
-  updatedAt: string;
-  publishedAt: string;
-}
-
-export interface HomepagePartnerCategory {
-  id: number;
-  documentId: string;
-  slug: string;
-  name: string;
-  description: string | null;
-  state: string;
-  createdAt: string;
-  updatedAt: string;
-  publishedAt: string;
-}
-
-export interface HomepagePartnerItem {
-  id: number;
-  documentId: string;
-  name: string;
-  link: string;
-  slug: string;
-  state: string;
-  is_active: boolean;
-  display_order: number;
-  createdAt: string;
-  updatedAt: string;
-  publishedAt: string;
-  logo: HomepagePartnerLogo;
-  category: HomepagePartnerCategory;
-}
-
-export interface HomepagePartnersResponseMeta {
-  pagination: {
-    page: number;
-    pageSize: number;
-    pageCount: number;
-    total: number;
-  };
-  responseTime: number;
-  timestamp: string;
-  version: string;
-  requestId: string;
-}
-
-export interface HomepagePartnersResponse {
-  success: boolean;
-  data: HomepagePartnerItem[];
-  meta: HomepagePartnersResponseMeta;
-}
-
-export const partnersApi = {
-  getHomepagePartners: async (): Promise<
-    ApiResponse<HomepagePartnerItem[]>
-  > => {
-    try {
-      const response = await fetch(
-        `${baseUrl}/mw-cms/api/v1/homepage/partners`,
-        {
-          method: "GET",
-          headers: { Accept: "application/json" },
-        }
-      );
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data: HomepagePartnersResponse = await response.json();
-      if (data.success && Array.isArray(data.data)) {
-        return { success: true, data: data.data, status: response.status };
-      }
-      return {
-        success: false,
-        error: "Invalid partners API response",
-        status: response.status,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error:
-          error instanceof Error ? error.message : "Failed to fetch partners",
-        status: 0,
-      };
-    }
-  },
-  buildLogoUrl: (pathOrUrl?: string): string => {
-    if (!pathOrUrl) return "";
-    if (pathOrUrl.startsWith("http://") || pathOrUrl.startsWith("https://"))
-      return pathOrUrl;
-    const normalized = pathOrUrl.startsWith("/") ? pathOrUrl : `/${pathOrUrl}`;
-    return `${baseUrl}${normalized}`;
-  },
-};
+// (Partners API moved to services/partners.ts)
 
 // Testimonials types and API
 export interface HomepageTestimonialThumbnailFormats {
@@ -1363,7 +1241,6 @@ export default {
   course: courseApi,
   discussion: discussionApi,
   user: userApi,
-  partners: partnersApi,
   testimonials: testimonialsApi,
   stacks: stacksApi,
 };
