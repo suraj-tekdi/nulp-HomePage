@@ -217,206 +217,63 @@ export const searchApi = {
     const urls = getDynamicNulpUrls();
     return urls.search(query);
   },
-
-  // Redirect to search results in new tab
-  redirectToSearch: async (query: string): Promise<void> => {
-    const searchUrl = await searchApi.performSearch(query);
-    window.open(searchUrl, "_blank", "noopener,noreferrer");
-  },
-
-  // Redirect to search results in same tab
-  redirectToSearchSameTab: async (query: string): Promise<void> => {
-    const searchUrl = await searchApi.performSearch(query);
-    window.location.href = searchUrl;
-  },
 };
 
-// Other API services can be added here
+// Courses & Good Practices APIs
 export const courseApi = {
-  // Get courses by specific identifiers (for CMS sliders)
-  getNulpCoursesByIds: async (
-    identifiers: string[]
-  ): Promise<ApiResponse<NulpCourse[]>> => {
+  // Fetch NULP courses based on query and filters
+  searchCourses: async (
+    params: SearchParams
+  ): Promise<ApiResponse<NulpApiResponse>> => {
     try {
-      if (!identifiers || identifiers.length === 0) {
-        return { success: true, data: [] };
-      }
-      const filters: any = {
-        status: ["Live"],
-        visibility: ["Default", "Parent"],
-        identifier: identifiers,
-      };
-      const requestBody = {
-        request: {
-          filters,
-          limit: identifiers.length,
-          sort_by: { createdOn: "desc" },
-          fields: [
-            "name",
-            "appIcon",
-            "mimeType",
-            "gradeLevel",
-            "identifier",
-            "medium",
-            "pkgVersion",
-            "board",
-            "subject",
-            "resourceType",
-            "primaryCategory",
-            "contentType",
-            "channel",
-            "organisation",
-            "trackable",
-            "primaryCategory",
-            "se_boards",
-            "se_gradeLevels",
-            "se_subjects",
-            "se_mediums",
-          ],
-          facets: [
-            "se_boards",
-            "se_gradeLevels",
-            "se_subjects",
-            "se_mediums",
-            "primaryCategory",
-          ],
-          offset: 0,
-        },
-      };
-
-      const urls = getDynamicNulpUrls();
-      const baseUrl = urls.base;
-      const response = await fetch(
-        `${baseUrl}/api/content/v1/search?orgdetails=orgName,email&licenseDetails=name,description,url`,
-        {
-          method: "POST",
-          headers: {
-            Accept: "*/*",
-            "Accept-Language": "en-GB,en-US;q=0.9,en;q=0.8",
-            Connection: "keep-alive",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(requestBody),
-        }
-      );
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data: NulpApiResponse = await response.json();
-      if (data.responseCode === "OK" && data.result?.content) {
-        return {
-          success: true,
-          data: data.result.content,
-          status: response.status,
-        };
-      } else {
-        return {
-          success: false,
-          error: "Invalid response from NULP API",
-          status: response.status,
-        };
-      }
-    } catch (error) {
-      return {
-        success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to fetch courses by ids",
-        status: 0,
-      };
-    }
-  },
-
-  // Get courses from NULP API
-  getNulpCourses: async (
-    selectedDomain?: string
-  ): Promise<ApiResponse<NulpCourse[]>> => {
-    try {
-      // Create filters based on selected domain
-      const filters: any = {
-        status: ["Live"],
-        visibility: ["Default", "Parent"],
-        identifier: [
-          "do_11422330454242099211",
-          "do_11420352388390912013",
-          "do_1136550052517314561308",
-          "do_1141747139141468161258",
-          "do_1136598919702609921643",
-          "do_1139974386277580801378",
-          "do_1140067897586974721570",
-          "do_1139973490818334721328",
-          "do_114165835604836352120",
-          "do_114284738848514048123",
+      const { query, filters = {}, page = 1, limit = 10 } = params;
+      const payload = {
+        filters: { ...filters },
+        limit,
+        sort_by: { createdOn: "desc" },
+        fields: [
+          "name",
+          "appIcon",
+          "mimeType",
+          "gradeLevel",
+          "identifier",
+          "medium",
+          "pkgVersion",
+          "board",
+          "subject",
+          "resourceType",
+          "primaryCategory",
+          "contentType",
+          "channel",
+          "organisation",
+          "trackable",
+          "primaryCategory",
+          "se_boards",
+          "se_gradeLevels",
+          "se_subjects",
+          "se_mediums",
         ],
-      };
-
-      // Add domain filter if a domain is selected
-      if (selectedDomain) {
-        filters.se_boards = [selectedDomain];
-      } else {
-        filters.se_boards = [null];
-      }
-
-      const requestBody = {
-        request: {
-          filters,
-          limit: 100,
-          sort_by: { createdOn: "desc" },
-          fields: [
-            "name",
-            "appIcon",
-            "mimeType",
-            "gradeLevel",
-            "identifier",
-            "medium",
-            "pkgVersion",
-            "board",
-            "subject",
-            "resourceType",
-            "primaryCategory",
-            "contentType",
-            "channel",
-            "organisation",
-            "trackable",
-            "primaryCategory",
-            "se_boards",
-            "se_gradeLevels",
-            "se_subjects",
-            "se_mediums",
-          ],
-          facets: [
-            "se_boards",
-            "se_gradeLevels",
-            "se_subjects",
-            "se_mediums",
-            "primaryCategory",
-          ],
-          offset: 0,
-        },
-      };
-
-      const urls = getDynamicNulpUrls();
-      const baseUrl = urls.base;
+        facets: [
+          "se_boards",
+          "se_gradeLevels",
+          "se_subjects",
+          "se_mediums",
+          "primaryCategory",
+        ],
+        offset: (page - 1) * limit,
+        query,
+      } as any;
 
       const response = await fetch(
-        `${baseUrl}/api/content/v1/search?orgdetails=orgName,email&licenseDetails=name,description,url`,
+        `https://nulp.niua.org/api/content/v1/search?orgdetails=orgName,email&licenseDetails=name,description,url`,
         {
           method: "POST",
           headers: {
             Accept: "*/*",
             "Accept-Language": "en-GB,en-US;q=0.9,en;q=0.8",
-            Connection: "keep-alive",
             "Content-Type": "application/json",
-            Origin: baseUrl,
-            Referer: `${baseUrl}/webapp/domainList`,
-            "Sec-Fetch-Dest": "empty",
-            "Sec-Fetch-Mode": "cors",
-            "Sec-Fetch-Site": "same-origin",
-            "User-Agent":
-              "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
           },
-          body: JSON.stringify(requestBody),
+          body: JSON.stringify({ request: payload }),
         }
       );
 
@@ -424,144 +281,13 @@ export const courseApi = {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data: NulpApiResponse = await response.json();
-
-      if (data.responseCode === "OK" && data.result?.content) {
-        return {
-          success: true,
-          data: data.result.content,
-          status: response.status,
-        };
-      } else {
-        return {
-          success: false,
-          error: "Invalid response from NULP API",
-          status: response.status,
-        };
-      }
+      const data = (await response.json()) as NulpApiResponse;
+      return { success: true, data, status: response.status };
     } catch (error) {
       return {
         success: false,
         error:
           error instanceof Error ? error.message : "Failed to fetch courses",
-        status: 0,
-      };
-    }
-  },
-
-  // Get good practices from NULP API
-  getNulpGoodPractices: async (
-    selectedDomain?: string
-  ): Promise<ApiResponse<NulpGoodPractice[]>> => {
-    try {
-      // Create filters based on selected domain
-      const filters: any = {
-        status: ["Live"],
-        primaryCategory: ["Good Practices", "Reports", "Manual/SOPs"],
-        visibility: ["Default", "Parent"],
-      };
-
-      // Add domain filter if a domain is selected
-      if (selectedDomain) {
-        filters.se_boards = [selectedDomain];
-      } else {
-        filters.se_boards = [null];
-      }
-
-      const requestBody = {
-        request: {
-          filters,
-          limit: 20,
-          sort_by: { createdOn: "desc" },
-          fields: [
-            "name",
-            "appIcon",
-            "mimeType",
-            "gradeLevel",
-            "identifier",
-            "medium",
-            "pkgVersion",
-            "board",
-            "subject",
-            "resourceType",
-            "primaryCategory",
-            "contentType",
-            "channel",
-            "organisation",
-            "trackable",
-            "primaryCategory",
-            "se_boards",
-            "se_gradeLevels",
-            "se_subjects",
-            "se_mediums",
-            "primaryCategory",
-          ],
-          facets: [
-            "se_boards",
-            "se_gradeLevels",
-            "se_subjects",
-            "se_mediums",
-            "primaryCategory",
-          ],
-          offset: 0,
-          query: "",
-        },
-      };
-
-      const urls = getDynamicNulpUrls();
-      const baseUrl = urls.base;
-
-      const response = await fetch(
-        `${baseUrl}/api/content/v1/search?orgdetails=orgName,email&licenseDetails=name,description,url`,
-        {
-          method: "POST",
-          headers: {
-            Accept: "*/*",
-            "Accept-Language": "en-GB,en-US;q=0.9,en;q=0.8",
-            Connection: "keep-alive",
-            "Content-Type": "application/json",
-            Origin: baseUrl,
-            Referer: `${baseUrl}/webapp/domainList`,
-            "Sec-Fetch-Dest": "empty",
-            "Sec-Fetch-Mode": "cors",
-            "Sec-Fetch-Site": "same-origin",
-            "User-Agent":
-              "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-            "sec-ch-ua":
-              '"Not)A;Brand";v="8", "Chromium";v="138", "Google Chrome";v="138"',
-            "sec-ch-ua-mobile": "?0",
-            "sec-ch-ua-platform": '"Linux"',
-          },
-          body: JSON.stringify(requestBody),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data: NulpGoodPracticesApiResponse = await response.json();
-
-      if (data.responseCode === "OK" && data.result?.content) {
-        return {
-          success: true,
-          data: data.result.content,
-          status: response.status,
-        };
-      } else {
-        return {
-          success: false,
-          error: "Invalid response from NULP API",
-          status: response.status,
-        };
-      }
-    } catch (error) {
-      return {
-        success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to fetch good practices",
         status: 0,
       };
     }
@@ -846,6 +572,69 @@ export const discussionApi = {
     }
   },
 
+  // Get a single topic by slug path from public forum API
+  // slugPath example: "105/how-to-incentivize-early-payment-of-property-tax"
+  getTopicBySlugPath: async (
+    slugPath: string
+  ): Promise<ApiResponse<DiscussionTopic>> => {
+    try {
+      const response = await fetch(
+        `${baseUrl}/discussion-forum/api/topic/${slugPath}`,
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const raw = await response.json();
+
+      // Map the topic API to DiscussionTopic shape (fields we need)
+      const mapped: DiscussionTopic = {
+        anonymous: raw.anonymous,
+        isQuestion: raw.isQuestion,
+        isSolved: raw.isSolved,
+        cid: raw.cid,
+        lastposttime: raw.lastposttime,
+        mainPid: raw.mainPid,
+        postcount: raw.postcount,
+        slug: raw.slug,
+        tid: raw.tid,
+        timestamp: raw.timestamp,
+        title: raw.title,
+        titleRaw: raw.titleRaw || raw.title,
+        uid: raw.uid,
+        viewcount: raw.viewcount || 0,
+        postercount: raw.postercount || 0,
+        upvotes: raw.upvotes || 0,
+        downvotes: raw.downvotes || 0,
+        votes: raw.votes || 0,
+        category: raw.category,
+        user: raw.user,
+        content: raw.content || raw.contentRaw || "",
+        contentRaw: raw.contentRaw || raw.content || "",
+        index: raw.postIndex || 0,
+      };
+
+      return { success: true, data: mapped, status: response.status };
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch topic by slug",
+        status: 0,
+      };
+    }
+  },
+
   // Future: Get trending discussions (legacy)
   getTrendingDiscussions: async (): Promise<ApiResponse<any[]>> => {
     return apiRequest("/api/discussions/trending");
@@ -877,129 +666,7 @@ export const userApi = {
   },
 };
 
-export interface HomepagePartnerLogoFormatThumb {
-  ext: string;
-  url: string;
-  hash: string;
-  mime: string;
-  name: string;
-  path: string | null;
-  size: number;
-  width: number;
-  height: number;
-  sizeInBytes?: number;
-}
-
-export interface HomepagePartnerLogo {
-  id: number;
-  documentId: string;
-  name: string;
-  alternativeText: string | null;
-  caption: string | null;
-  width: number;
-  height: number;
-  formats?: { thumbnail?: HomepagePartnerLogoFormatThumb };
-  hash: string;
-  ext: string;
-  mime: string;
-  size: number;
-  url: string; // path like /uploads/xxx.png
-  previewUrl: string | null;
-  provider: string;
-  provider_metadata: any;
-  createdAt: string;
-  updatedAt: string;
-  publishedAt: string;
-}
-
-export interface HomepagePartnerCategory {
-  id: number;
-  documentId: string;
-  slug: string;
-  name: string;
-  description: string | null;
-  state: string;
-  createdAt: string;
-  updatedAt: string;
-  publishedAt: string;
-}
-
-export interface HomepagePartnerItem {
-  id: number;
-  documentId: string;
-  name: string;
-  link: string;
-  slug: string;
-  state: string;
-  is_active: boolean;
-  display_order: number;
-  createdAt: string;
-  updatedAt: string;
-  publishedAt: string;
-  logo: HomepagePartnerLogo;
-  category: HomepagePartnerCategory;
-}
-
-export interface HomepagePartnersResponseMeta {
-  pagination: {
-    page: number;
-    pageSize: number;
-    pageCount: number;
-    total: number;
-  };
-  responseTime: number;
-  timestamp: string;
-  version: string;
-  requestId: string;
-}
-
-export interface HomepagePartnersResponse {
-  success: boolean;
-  data: HomepagePartnerItem[];
-  meta: HomepagePartnersResponseMeta;
-}
-
-export const partnersApi = {
-  getHomepagePartners: async (): Promise<
-    ApiResponse<HomepagePartnerItem[]>
-  > => {
-    try {
-      const response = await fetch(
-        `${baseUrl}/mw-cms/api/v1/homepage/partners`,
-        {
-          method: "GET",
-          headers: { Accept: "application/json" },
-        }
-      );
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data: HomepagePartnersResponse = await response.json();
-      if (data.success && Array.isArray(data.data)) {
-        return { success: true, data: data.data, status: response.status };
-      }
-      return {
-        success: false,
-        error: "Invalid partners API response",
-        status: response.status,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error:
-          error instanceof Error ? error.message : "Failed to fetch partners",
-        status: 0,
-      };
-    }
-  },
-  buildLogoUrl: (pathOrUrl?: string): string => {
-    if (!pathOrUrl) return "";
-    if (pathOrUrl.startsWith("http://") || pathOrUrl.startsWith("https://"))
-      return pathOrUrl;
-    const normalized = pathOrUrl.startsWith("/") ? pathOrUrl : `/${pathOrUrl}`;
-    return `${baseUrl}${normalized}`;
-  },
-};
+// (Partners API moved to services/partners.ts)
 
 // Testimonials types and API
 export interface HomepageTestimonialThumbnailFormats {
@@ -1249,18 +916,6 @@ export const stacksApi = {
     }
   },
 };
-
-export interface HomepageContactCategory {
-  id: number;
-  documentId: string;
-  slug: string;
-  name: string;
-  description: string | null;
-  state: string;
-  createdAt: string;
-  updatedAt: string;
-  publishedAt: string;
-}
 
 // Dynamic Page Content Types
 export interface DynamicPageContent {
@@ -1578,154 +1233,7 @@ export const contentApi = {
   },
 };
 
-export interface HomepageContactLogoFormats {
-  large?: {
-    ext: string;
-    url: string;
-    hash: string;
-    mime: string;
-    name: string;
-    path: string | null;
-    size: number;
-    width: number;
-    height: number;
-    sizeInBytes?: number;
-  };
-  small?: {
-    ext: string;
-    url: string;
-    hash: string;
-    mime: string;
-    name: string;
-    path: string | null;
-    size: number;
-    width: number;
-    height: number;
-    sizeInBytes?: number;
-  };
-  medium?: {
-    ext: string;
-    url: string;
-    hash: string;
-    mime: string;
-    name: string;
-    path: string | null;
-    size: number;
-    width: number;
-    height: number;
-    sizeInBytes?: number;
-  };
-  thumbnail?: {
-    ext: string;
-    url: string;
-    hash: string;
-    mime: string;
-    name: string;
-    path: string | null;
-    size: number;
-    width: number;
-    height: number;
-    sizeInBytes?: number;
-  };
-}
-
-export interface HomepageContactLogo {
-  id: number;
-  documentId: string;
-  name: string;
-  alternativeText: string | null;
-  caption: string | null;
-  width: number;
-  height: number;
-  formats?: HomepageContactLogoFormats;
-  hash: string;
-  ext: string;
-  mime: string;
-  size: number;
-  url: string;
-  previewUrl: string | null;
-  provider: string;
-  provider_metadata: any;
-  createdAt: string;
-  updatedAt: string;
-  publishedAt: string;
-}
-
-export interface HomepageContactItem {
-  id: number;
-  documentId: string;
-  title: string;
-  state: string;
-  address: string; // HTML string
-  phone: string | null;
-  email: string | null;
-  is_active: boolean;
-  display_order: number;
-  createdAt: string;
-  updatedAt: string;
-  publishedAt: string;
-  slug: string;
-  category: HomepageContactCategory;
-  logo?: HomepageContactLogo | null;
-}
-
-export interface HomepageContactResponseMeta {
-  pagination: {
-    page: number;
-    pageSize: number;
-    pageCount: number;
-    total: number;
-  };
-  responseTime: number;
-  timestamp: string;
-  version: string;
-  requestId: string;
-}
-
-export interface HomepageContactResponse {
-  success: boolean;
-  data: HomepageContactItem[] | { data: HomepageContactItem[] };
-  meta: HomepageContactResponseMeta;
-}
-
-export const contactsApi = {
-  getHomepageContacts: async (): Promise<
-    ApiResponse<HomepageContactItem[]>
-  > => {
-    try {
-      const response = await fetch(
-        `${baseUrl}/mw-cms/api/v1/homepage/contact`,
-        {
-          method: "GET",
-          headers: { Accept: "application/json" },
-        }
-      );
-      if (!response.ok)
-        throw new Error(`HTTP error! status: ${response.status}`);
-      const raw: HomepageContactResponse | any = await response.json();
-      const items = Array.isArray(raw?.data)
-        ? raw.data
-        : Array.isArray(raw?.data?.data)
-        ? raw.data.data
-        : [];
-      if (raw?.success && Array.isArray(items)) {
-        return { success: true, data: items, status: response.status };
-      }
-      return {
-        success: false,
-        error: "Invalid contacts API response",
-        status: response.status,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error:
-          error instanceof Error ? error.message : "Failed to fetch contacts",
-        status: 0,
-      };
-    }
-  },
-};
+// (Footer contacts and social APIs moved to services/footer.ts)
 
 // Export default API object
 export default {
@@ -1733,8 +1241,6 @@ export default {
   course: courseApi,
   discussion: discussionApi,
   user: userApi,
-  partners: partnersApi,
   testimonials: testimonialsApi,
   stacks: stacksApi,
-  contacts: contactsApi,
 };

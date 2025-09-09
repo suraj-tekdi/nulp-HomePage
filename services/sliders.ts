@@ -289,6 +289,33 @@ export const slidersApi = {
     return { success: true, data: ids, status: res.status };
   },
 
+  // IDs for Trending Discussions from sliders
+  getTrendingDiscussionSlugs: async (): Promise<ApiResponse<string[]>> => {
+    const res = await slidersApi.getHomepageSliders();
+    if (!res.success || !Array.isArray(res.data)) {
+      return {
+        success: false,
+        error: res.error || "Failed",
+        status: res.status,
+      };
+    }
+    const items = res.data as HomepageSliderItem[];
+    const slider =
+      items.find((i) => (i.mode || "").toLowerCase() === "select_discussion") ||
+      items.find(
+        (i) => (i.name || "").toLowerCase() === "trending discussions"
+      ) ||
+      items.find(
+        (i) =>
+          Array.isArray(i.trending_discussions) &&
+          i.trending_discussions.length > 0
+      );
+    const slugs = (slider?.trending_discussions || []).filter(
+      Boolean
+    ) as string[];
+    return { success: true, data: slugs, status: res.status };
+  },
+
   // Fetch good practices by IDs with optional domain filter
   getGoodPracticesByIds: async (
     identifiers: string[],

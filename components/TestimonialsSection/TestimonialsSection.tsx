@@ -207,68 +207,73 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
           >
-            {testimonials.map((t) => (
-              <div key={t.id} className={styles.testimonials__card}>
-                {/* Profile Image */}
-                <div className={styles.testimonials__card__imageContainer}>
-                  <img
-                    src={testimonialsApi.buildImageUrl(
-                      t.thumbnail?.formats?.thumbnail?.url || t.thumbnail?.url
-                    )}
-                    alt={t.user_name}
-                    className={styles.testimonials__card__image}
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      if (
-                        target.src.includes(
-                          "/images/testimonials/default-avatar.png"
-                        )
-                      ) {
-                        return;
-                      }
-                      target.src = "/images/testimonials/default-avatar.png";
-                    }}
-                  />
-                </div>
+            {testimonials.map((t) => {
+              const cmsThumb =
+                t.thumbnail?.formats?.thumbnail?.url || t.thumbnail?.url || "";
+              const imgSrc = cmsThumb
+                ? testimonialsApi.buildImageUrl(cmsThumb)
+                : "/images/testimonials/person.jpeg";
+              return (
+                <div key={t.id} className={styles.testimonials__card}>
+                  {/* Profile Image */}
+                  <div className={styles.testimonials__card__imageContainer}>
+                    <img
+                      src={imgSrc}
+                      alt={t.user_name}
+                      className={styles.testimonials__card__image}
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        if (
+                          target.src.includes(
+                            "/images/testimonials/person.jpeg"
+                          )
+                        ) {
+                          return;
+                        }
+                        target.src = "/images/testimonials/person.jpeg";
+                      }}
+                    />
+                  </div>
 
-                {/* Content */}
-                <div className={styles.testimonials__card__content}>
-                  {t.mode === "Video" && t.video_upload?.url ? (
-                    <div className={styles.testimonials__videoWrapper}>
-                      <video
-                        className={styles.testimonials__video}
-                        controls
-                        preload="metadata"
-                      >
-                        <source
-                          src={t.video_upload.url}
-                          type={t.video_upload.mime || "video/mp4"}
+                  {/* Content */}
+                  <div className={styles.testimonials__card__content}>
+                    {t.mode === "Video" && t.video_upload?.url ? (
+                      <div className={styles.testimonials__videoWrapper}>
+                        <video
+                          className={styles.testimonials__video}
+                          controls
+                          preload="metadata"
+                        >
+                          <source
+                            src={t.video_upload.url}
+                            type={t.video_upload.mime || "video/mp4"}
+                          />
+                          Your browser does not support the video tag.
+                        </video>
+                      </div>
+                    ) : (
+                      <blockquote className={styles.testimonials__card__quote}>
+                        <span
+                          dangerouslySetInnerHTML={{
+                            __html: t.testimonial || "",
+                          }}
                         />
-                        Your browser does not support the video tag.
-                      </video>
-                    </div>
-                  ) : (
-                    <blockquote className={styles.testimonials__card__quote}>
-                      <span
-                        dangerouslySetInnerHTML={{
-                          __html: t.testimonial || "",
-                        }}
-                      />
-                    </blockquote>
-                  )}
+                      </blockquote>
+                    )}
 
-                  {/* Attribution */}
-                  <div className={styles.testimonials__card__attribution}>
-                    <div className={styles.testimonials__card__name}>
-                      — {t.user_name}
-                    </div>
-                    <div className={styles.testimonials__card__position}>
-                      {t.user_details}
+                    {/* Attribution */}
+                    <div className={styles.testimonials__card__attribution}>
+                      <div className={styles.testimonials__card__name}>
+                        — {t.user_name}
+                      </div>
+                      <div className={styles.testimonials__card__position}>
+                        {t.user_details}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Conditionally render controls only when needed */}

@@ -9,271 +9,221 @@ import styles from "./IndiaMapSection.module.css";
 interface GalleryImage {
   src: string;
   caption: string;
+  stateId?: string | null;
+  stateName?: string | null;
 }
 
-interface StateData {
-  id: string;
-  name: string;
-  images: GalleryImage[];
+// Utility: map API category slug/name to map state id and display name
+const CATEGORY_TO_STATE_ID: Record<string, { id: string; name: string }> = {
+  maharashtra: { id: "mh", name: "Maharashtra" },
+  maharashra: { id: "mh", name: "Maharashtra" }, // API typo support
+  karnataka: { id: "ka", name: "Karnataka" },
+  "uttar-pradesh": { id: "up", name: "Uttar Pradesh" },
+  uttarpradesh: { id: "up", name: "Uttar Pradesh" },
+  "west-bengal": { id: "wb", name: "West Bengal" },
+  west_bengal: { id: "wb", name: "West Bengal" },
+  "himachal-pradesh": { id: "hp", name: "Himachal Pradesh" },
+  himachalpradesh: { id: "hp", name: "Himachal Pradesh" },
+};
+
+function getStateFromCategory(
+  category: { slug?: string | null; name?: string | null } | null | undefined
+) {
+  const key = (category?.slug || category?.name || "")
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "-");
+  if (CATEGORY_TO_STATE_ID[key]) return CATEGORY_TO_STATE_ID[key];
+  // Try removing non-letters
+  const simplified = key.replace(/[^a-z-]/g, "");
+  if (CATEGORY_TO_STATE_ID[simplified]) return CATEGORY_TO_STATE_ID[simplified];
+  return { id: "", name: category?.name || "" };
 }
+
+// Prefer larger images from CMS formats
+function pickBestImageUrl(img: any): string | null {
+  return (
+    img?.formats?.large?.url ||
+    img?.formats?.medium?.url ||
+    img?.formats?.small?.url ||
+    img?.url ||
+    null
+  );
+}
+
+const CMS_MEDIA_URL =
+  "https://devnulp.niua.org/mw-cms/api/v1/homepage/media?state=Published";
 
 const IndiaMapSection: React.FC = () => {
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [selectedStateName, setSelectedStateName] = useState<string | null>(
     null
   );
-  const [stateImages, setStateImages] = useState<StateData[]>([]);
+  const [allImages, setAllImages] = useState<GalleryImage[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
+  // Fetch media from CMS and normalize into gallery items
   useEffect(() => {
-    const stateData: StateData[] = [
-      {
-        id: "mh", // Maharashtra
-        name: "Maharashtra",
-        images: [
-          {
-            src: "/images/gallery/maharashtra/maharashtra1.png",
-            caption: "Maharashtra event kickoff at Mumbai municipal office",
-          },
-          {
-            src: "/images/gallery/maharashtra/maharashtra2.png",
-            caption: "Urban planning workshop with city officials",
-          },
-          {
-            src: "/images/gallery/maharashtra/maharashtra3.png",
-            caption: "Community engagement session on waste management",
-          },
-          {
-            src: "/images/gallery/maharashtra/maharashtra4.png",
-            caption: "Digital governance showcase and demos",
-          },
-          {
-            src: "/images/gallery/maharashtra/maharashtra5.png",
-            caption: "Capacity building program for ULB teams",
-          },
-          {
-            src: "/images/gallery/maharashtra/maharashtra6.png",
-            caption: "Closing ceremony and certificates distribution",
-          },
-        ],
-      },
-      {
-        id: "ka", // Karnataka
-        name: "Karnataka",
-        images: [
-          {
-            src: "/images/gallery/karnataka/karnataka1.png",
-            caption: "Karnataka orientation on e-learning initiatives",
-          },
-          {
-            src: "/images/gallery/karnataka/karnataka2.png",
-            caption: "Hands-on session: data-driven governance",
-          },
-          {
-            src: "/images/gallery/karnataka/karnataka3.png",
-            caption: "Peer learning circle with domain experts",
-          },
-          {
-            src: "/images/gallery/karnataka/karnataka4.png",
-            caption: "Showcase of local innovations and tools",
-          },
-          {
-            src: "/images/gallery/karnataka/karnataka5.png",
-            caption: "City leaders roundtable and feedback",
-          },
-        ],
-      },
-      {
-        id: "up", // Uttar Pradesh
-        name: "Uttar Pradesh",
-        images: [
-          {
-            src: "/images/gallery/uttarpradesh/up1.png",
-            caption: "UP training cohort inaugural session",
-          },
-          {
-            src: "/images/gallery/uttarpradesh/up2.png",
-            caption: "Interactive module on sanitation best practices",
-          },
-          {
-            src: "/images/gallery/uttarpradesh/up3.png",
-            caption: "Experience sharing by participating cities",
-          },
-          {
-            src: "/images/gallery/uttarpradesh/up4.png",
-            caption: "Facilitated discussion and Q&A with mentors",
-          },
-        ],
-      },
-      {
-        id: "wb", // West Bengal
-        name: "West Bengal",
-        images: [
-          {
-            src: "/images/gallery/west_bengal/wb1.png",
-            caption: "West Bengal urban forum: opening remarks",
-          },
-          {
-            src: "/images/gallery/west_bengal/wb2.png",
-            caption: "Demonstration of GIS-based planning tools",
-          },
-          {
-            src: "/images/gallery/west_bengal/wb3.png",
-            caption: "Group photo with participants and trainers",
-          },
-        ],
-      },
-      {
-        id: "hp", // Himachal Pradesh
-        name: "Himachal Pradesh",
-        images: [
-          {
-            src: "/images/gallery/himachalpradesh/hp1.png",
-            caption: "Himachal onboarding session with ULB teams",
-          },
-          {
-            src: "/images/gallery/himachalpradesh/hp2.png",
-            caption: "Capacity enhancement track: service delivery",
-          },
-          {
-            src: "/images/gallery/himachalpradesh/hp3.png",
-            caption: "Participants discuss field implementation",
-          },
-        ],
-      },
-    ];
+    let isMounted = true;
+    async function fetchMedia() {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const res = await fetch(CMS_MEDIA_URL);
+        if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+        const json = await res.json();
+        const items = Array.isArray(json?.data) ? json.data : [];
+        const normalized: GalleryImage[] = [];
 
-    setStateImages(stateData);
-    // Set default selected state after data is loaded
-    setSelectedState("mh");
-    setSelectedStateName("Maharashtra");
+        items.forEach((entry: any) => {
+          const stateInfo = getStateFromCategory(entry?.category);
+          const title: string = entry?.title || "Untitled";
+          const images: any[] = Array.isArray(entry?.upload_image)
+            ? entry.upload_image
+            : [];
+          images.forEach((img: any) => {
+            const url = pickBestImageUrl(img);
+            if (!url) return;
+            normalized.push({
+              src: url,
+              caption: title,
+              stateId: stateInfo.id || null,
+              stateName: stateInfo.name || null,
+            });
+          });
+        });
+
+        if (isMounted) setAllImages(normalized);
+      } catch (e: any) {
+        if (isMounted) setError(e?.message || "Failed to load images");
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    }
+
+    fetchMedia();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleLocationClick = (event: any) => {
-    const stateId = event.target.id;
+    const stateId = event?.target?.id as string | undefined;
     const stateName =
-      event.target.getAttribute("name") ||
-      event.target.getAttribute("aria-label") ||
-      "Unknown State";
+      event?.target?.getAttribute("name") ||
+      event?.target?.getAttribute("aria-label") ||
+      null;
 
-    console.log("🖱️ Map clicked - State ID:", stateId, "Name:", stateName);
-
-    // Always set the selected state and name
-    setSelectedState(stateId);
-    setSelectedStateName(stateName);
-
-    // Check if we have image data for this state
-    const hasStateData = stateImages.some((state) => state.id === stateId);
-
-    if (hasStateData) {
-      console.log("✅ Switching to state with images:", stateId);
-    } else {
-      console.log("ℹ️ State selected but no images available:", stateId);
+    // Toggle select/deselect when clicking same state
+    if (stateId && selectedState === stateId) {
+      setSelectedState(null);
+      setSelectedStateName(null);
+      return;
     }
+
+    setSelectedState(stateId || null);
+    setSelectedStateName(stateName);
   };
 
-  const selected = stateImages.find((s) => s.id === selectedState);
-  const pics = selected ? selected.images : [];
+  // Filter images by selection
+  const currentImages: GalleryImage[] = selectedState
+    ? allImages.filter((img) => img.stateId === selectedState)
+    : allImages;
 
-  // Auto-scroll gallery when images are available
+  // Auto-rotation
   useEffect(() => {
-    if (pics.length > 1) {
+    if (currentImages.length > 1) {
       const interval = setInterval(() => {
-        setCurrentImageIndex((prev) => (prev + 1) % pics.length);
-      }, 3500); // Change image every 3.5 seconds (good timing for vertical scrolling)
-
+        setCurrentImageIndex((prev) => (prev + 1) % currentImages.length);
+      }, 3500);
       return () => clearInterval(interval);
     }
-  }, [pics.length]);
+  }, [currentImages.length]);
 
-  // Reset image index when state changes
+  // Reset index when dataset changes
   useEffect(() => {
     setCurrentImageIndex(0);
-  }, [selectedState]);
+  }, [selectedState, allImages.length]);
 
-  // Generate visible images for gallery (show 3 images with middle one centered)
+  // Compute 3 visible cards (top/center/bottom)
   const getVisibleImages = () => {
-    if (pics.length === 0)
+    if (currentImages.length === 0)
       return [] as Array<
-        GalleryImage & { index: number; position: "top" | "center" | "bottom" }
+        GalleryImage & {
+          index: number;
+          position: "top" | "center" | "bottom";
+          displayIndex?: number;
+        }
       >;
-    if (pics.length === 1)
-      return [{ ...pics[0], index: 0, position: "center" as const }];
-    if (pics.length === 2)
+    if (currentImages.length === 1)
+      return [{ ...currentImages[0], index: 0, position: "center" as const }];
+    if (currentImages.length === 2)
       return [
         {
-          ...pics[currentImageIndex % pics.length],
-          index: currentImageIndex % pics.length,
+          ...currentImages[currentImageIndex % currentImages.length],
+          index: currentImageIndex % currentImages.length,
           position: "center" as const,
         },
         {
-          ...pics[(currentImageIndex + 1) % pics.length],
-          index: (currentImageIndex + 1) % pics.length,
+          ...currentImages[(currentImageIndex + 1) % currentImages.length],
+          index: (currentImageIndex + 1) % currentImages.length,
           position: "bottom" as const,
         },
       ];
 
-    const visibleImages: Array<
+    const visible: Array<
       GalleryImage & {
         index: number;
         position: "top" | "center" | "bottom";
         displayIndex: number;
       }
     > = [];
-
-    // Top image (previous)
-    const topIndex = (currentImageIndex - 1 + pics.length) % pics.length;
-    visibleImages.push({
-      ...pics[topIndex],
+    const topIndex =
+      (currentImageIndex - 1 + currentImages.length) % currentImages.length;
+    visible.push({
+      ...currentImages[topIndex],
       index: topIndex,
       position: "top",
       displayIndex: 0,
     });
-
-    // Center image (current)
-    visibleImages.push({
-      ...pics[currentImageIndex],
+    visible.push({
+      ...currentImages[currentImageIndex],
       index: currentImageIndex,
       position: "center",
       displayIndex: 1,
     });
-
-    // Bottom image (next)
-    const bottomIndex = (currentImageIndex + 1) % pics.length;
-    visibleImages.push({
-      ...pics[bottomIndex],
+    const bottomIndex = (currentImageIndex + 1) % currentImages.length;
+    visible.push({
+      ...currentImages[bottomIndex],
       index: bottomIndex,
       position: "bottom",
       displayIndex: 2,
     });
-
-    return visibleImages;
+    return visible;
   };
 
   const visibleImages = getVisibleImages();
 
-  // Handle visual highlighting of selected state
+  // Visual highlight for selected state
   useEffect(() => {
-    // Remove selected class from all paths
     const allPaths = document.querySelectorAll(".mapSection__svgMap path");
     allPaths.forEach((path) => path.classList.remove("selected"));
-
-    // Add selected class to current state
     if (selectedState) {
       const selectedPath = document.querySelector(
         `.mapSection__svgMap path[id="${selectedState}"]`
       );
-      if (selectedPath) {
-        selectedPath.classList.add("selected");
-      }
+      if (selectedPath) selectedPath.classList.add("selected");
     }
   }, [selectedState]);
 
-  // Verify our states are available on mount
+  // Optional: verify some states are present (dev aid)
   useEffect(() => {
     const timer = setTimeout(() => {
-      const availableStates = ["mh", "ka", "up", "wb", "hp"];
-      availableStates.forEach((stateId) => {
+      const checkStates = ["mh", "ka", "up", "wb", "hp"];
+      checkStates.forEach((stateId) => {
         const element = document.querySelector(
           `.mapSection__svgMap path[id="${stateId}"]`
         );
@@ -284,7 +234,6 @@ const IndiaMapSection: React.FC = () => {
         }
       });
     }, 1000);
-
     return () => clearTimeout(timer);
   }, []);
 
@@ -319,7 +268,9 @@ const IndiaMapSection: React.FC = () => {
             {/* Instruction Text - Below Map */}
             <div className={styles.mapSection__stateInfo}>
               <p className={styles.mapSection__instructionText}>
-                Select a State to view images of events!
+                {selectedState
+                  ? `Showing images for ${selectedStateName || selectedState}`
+                  : "Select a State to filter images, or view all by default"}
               </p>
             </div>
           </div>
@@ -327,7 +278,15 @@ const IndiaMapSection: React.FC = () => {
           {/* Right Sidebar: Image Gallery */}
           <div className={styles.mapSection__gallery}>
             <div className={styles.gallery}>
-              {visibleImages.length > 0 ? (
+              {isLoading ? (
+                <div className={styles.mapSection__noImages}>
+                  <p>Loading images…</p>
+                </div>
+              ) : error ? (
+                <div className={styles.mapSection__noImages}>
+                  <p>{error}</p>
+                </div>
+              ) : visibleImages.length > 0 ? (
                 <div className={styles.gallery__autoScroll}>
                   {visibleImages.map((imageData, i) => (
                     <div
@@ -339,19 +298,38 @@ const IndiaMapSection: React.FC = () => {
                       <div className={styles.gallery__scrollImage}>
                         <img
                           src={imageData.src}
-                          alt={`${selected?.name} event ${imageData.index + 1}`}
+                          alt={`${imageData.stateName || "All States"} event ${
+                            imageData.index + 1
+                          }`}
                           onError={(e) => {
                             e.currentTarget.src = `https://via.placeholder.com/400x${
                               imageData.position === "center" ? "280" : "200"
-                            }/0097B2/FFFFFF?text=${selected?.name}+Event+${
-                              imageData.index + 1
-                            }`;
+                            }/0097B2/FFFFFF?text=${encodeURIComponent(
+                              imageData.stateName || "Event"
+                            )}`;
                           }}
                         />
                       </div>
                       {imageData.position === "center" && (
                         <div className={styles.gallery__caption}>
-                          {imageData.caption}
+                          <div>{imageData.caption}</div>
+                          <div
+                            style={{
+                              fontSize: "0.9em",
+                              opacity: 0.8,
+                              marginTop: 4,
+                            }}
+                          >
+                            {selectedState
+                              ? `Selected state: ${
+                                  selectedStateName ||
+                                  imageData.stateName ||
+                                  selectedState
+                                }`
+                              : imageData.stateName
+                              ? `State: ${imageData.stateName}`
+                              : "State: Multiple"}
+                          </div>
                         </div>
                       )}
                     </div>
