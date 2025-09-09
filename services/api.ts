@@ -1039,18 +1039,6 @@ export const stacksApi = {
   },
 };
 
-export interface HomepageContactCategory {
-  id: number;
-  documentId: string;
-  slug: string;
-  name: string;
-  description: string | null;
-  state: string;
-  createdAt: string;
-  updatedAt: string;
-  publishedAt: string;
-}
-
 // Dynamic Page Content Types
 export interface DynamicPageContent {
   title: string;
@@ -1367,154 +1355,7 @@ export const contentApi = {
   },
 };
 
-export interface HomepageContactLogoFormats {
-  large?: {
-    ext: string;
-    url: string;
-    hash: string;
-    mime: string;
-    name: string;
-    path: string | null;
-    size: number;
-    width: number;
-    height: number;
-    sizeInBytes?: number;
-  };
-  small?: {
-    ext: string;
-    url: string;
-    hash: string;
-    mime: string;
-    name: string;
-    path: string | null;
-    size: number;
-    width: number;
-    height: number;
-    sizeInBytes?: number;
-  };
-  medium?: {
-    ext: string;
-    url: string;
-    hash: string;
-    mime: string;
-    name: string;
-    path: string | null;
-    size: number;
-    width: number;
-    height: number;
-    sizeInBytes?: number;
-  };
-  thumbnail?: {
-    ext: string;
-    url: string;
-    hash: string;
-    mime: string;
-    name: string;
-    path: string | null;
-    size: number;
-    width: number;
-    height: number;
-    sizeInBytes?: number;
-  };
-}
-
-export interface HomepageContactLogo {
-  id: number;
-  documentId: string;
-  name: string;
-  alternativeText: string | null;
-  caption: string | null;
-  width: number;
-  height: number;
-  formats?: HomepageContactLogoFormats;
-  hash: string;
-  ext: string;
-  mime: string;
-  size: number;
-  url: string;
-  previewUrl: string | null;
-  provider: string;
-  provider_metadata: any;
-  createdAt: string;
-  updatedAt: string;
-  publishedAt: string;
-}
-
-export interface HomepageContactItem {
-  id: number;
-  documentId: string;
-  title: string;
-  state: string;
-  address: string; // HTML string
-  phone: string | null;
-  email: string | null;
-  is_active: boolean;
-  display_order: number;
-  createdAt: string;
-  updatedAt: string;
-  publishedAt: string;
-  slug: string;
-  category: HomepageContactCategory;
-  logo?: HomepageContactLogo | null;
-}
-
-export interface HomepageContactResponseMeta {
-  pagination: {
-    page: number;
-    pageSize: number;
-    pageCount: number;
-    total: number;
-  };
-  responseTime: number;
-  timestamp: string;
-  version: string;
-  requestId: string;
-}
-
-export interface HomepageContactResponse {
-  success: boolean;
-  data: HomepageContactItem[] | { data: HomepageContactItem[] };
-  meta: HomepageContactResponseMeta;
-}
-
-export const contactsApi = {
-  getHomepageContacts: async (): Promise<
-    ApiResponse<HomepageContactItem[]>
-  > => {
-    try {
-      const response = await fetch(
-        `${baseUrl}/mw-cms/api/v1/homepage/contact`,
-        {
-          method: "GET",
-          headers: { Accept: "application/json" },
-        }
-      );
-      if (!response.ok)
-        throw new Error(`HTTP error! status: ${response.status}`);
-      const raw: HomepageContactResponse | any = await response.json();
-      const items = Array.isArray(raw?.data)
-        ? raw.data
-        : Array.isArray(raw?.data?.data)
-        ? raw.data.data
-        : [];
-      if (raw?.success && Array.isArray(items)) {
-        return { success: true, data: items, status: response.status };
-      }
-      return {
-        success: false,
-        error: "Invalid contacts API response",
-        status: response.status,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error:
-          error instanceof Error ? error.message : "Failed to fetch contacts",
-        status: 0,
-      };
-    }
-  },
-};
+// (Footer contacts and social APIs moved to services/footer.ts)
 
 // Export default API object
 export default {
@@ -1525,5 +1366,4 @@ export default {
   partners: partnersApi,
   testimonials: testimonialsApi,
   stacks: stacksApi,
-  contacts: contactsApi,
 };

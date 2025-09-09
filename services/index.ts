@@ -54,3 +54,14 @@ export {
   type HomepageArticleItem,
   type HomepageArticleCategory,
 } from "./articles";
+
+// Footer API exports (moved here)
+export {
+  footerApi,
+  contactsApi as footerContactsApi,
+  socialApi as footerSocialApi,
+  menusApi as footerMenusApi,
+  type HomepageContactItem,
+  type FooterSocialItem,
+  type FooterMenuItem,
+} from "./footer";
