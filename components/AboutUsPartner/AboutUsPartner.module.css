@@ -1,6 +1,6 @@
 /* AboutUsPartner Component */
 .partner {
-  background-image: url('/images/aboutus/partner_with_us.png');
+  background-image: url("/images/aboutus/partner_with_us.png");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -9,20 +9,20 @@
 }
 
 .partner::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: #00000069; /* requested overlay */
   z-index: 1;
 }
 
 .partner__container {
-  max-width: auto;
+  max-width: 1600px; /* center like other sections */
   margin: 0 auto;
-  padding: 50px;
+  padding: 0 24px;
   position: relative;
   z-index: 2;
 }
@@ -31,22 +31,32 @@
   font-size: 2.5rem;
   font-weight: 700;
   color: white;
-  margin-bottom: 50px;
+  margin-bottom: 30px;
   position: relative;
 }
 
+.partner__title::before {
+  content: "";
+  display: block;
+  width: 280px;
+  height: 18px;
+  background-image: url("/images/Arrow.svg");
+  background-repeat: no-repeat;
+  background-size: contain;
+  margin-bottom: 6px;
+}
+
 .partner__cards {
-  display: flex;
-  gap: 40px;
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* equal columns */
+  gap: 32px;
   align-items: stretch;
   width: 100%;
 }
 
 .partner__card {
-  flex: 1;
-  flex-basis: 50%;
   min-height: fit-content;
-  background: #FFFFFFE5;
+  background: #ffffffe5;
   border-radius: 15px;
   padding: 30px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
@@ -75,8 +85,8 @@
 }
 
 .partner__list li::before {
-  content: '•';
-  color: #F39C12;
+  content: "•";
+  color: #f39c12;
   font-size: 1.2rem;
   position: absolute;
   left: 0;
@@ -113,17 +123,17 @@
   .partner {
     padding: 60px 0;
   }
-  
+
   .partner__title {
     font-size: 2rem;
-    margin-bottom: 40px;
+    margin-bottom: 24px;
   }
-  
+
   .partner__cards {
-    flex-direction: column;
+    grid-template-columns: 1fr;
     gap: 25px;
   }
-  
+
   .partner__card {
     padding: 25px;
   }
@@ -133,21 +143,20 @@
   .partner {
     padding: 40px 0;
   }
-  
+
   .partner__container {
     padding: 0 15px;
   }
-  
+
   .partner__title {
     font-size: 1.8rem;
   }
-  
+
   .partner__card {
     padding: 20px;
   }
-  
+
   .partner__list li {
     font-size: 0.95rem;
   }
-} 
-
+}
