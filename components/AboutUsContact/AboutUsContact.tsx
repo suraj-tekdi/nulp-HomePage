@@ -1,54 +1,147 @@
-import React from 'react';
-import styles from './AboutUsContact.module.css';
-import CallRoundedIcon from '@mui/icons-material/CallRounded';
-import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded';
+import React, { useEffect, useMemo, useState } from "react";
+import styles from "./AboutUsContact.module.css";
+import CallRoundedIcon from "@mui/icons-material/CallRounded";
+import LocationOnRoundedIcon from "@mui/icons-material/LocationOnRounded";
+import { footerContactsApi, type HomepageContactItem } from "../../services";
 
 interface AboutUsContactProps {
   className?: string;
 }
 
-const AboutUsContact: React.FC<AboutUsContactProps> = ({ className = '' }) => {
+const isPublished = (item: HomepageContactItem): boolean => {
+  const anyItem = item as unknown as { state?: string | null };
+  const st = (anyItem?.state || "").toString().toLowerCase();
+  return st === "" || st === "published";
+};
+
+const decodeHtmlEntities = (html: string): string => {
+  try {
+    if (typeof window === "undefined") return html;
+    const textarea = document.createElement("textarea");
+    textarea.innerHTML = html;
+    return textarea.value;
+  } catch {
+    return html;
+  }
+};
+
+const AboutUsContact: React.FC<AboutUsContactProps> = ({ className = "" }) => {
+  const [items, setItems] = useState<HomepageContactItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const res = await footerContactsApi.getHomepageContacts();
+      if (mounted && res.success && Array.isArray(res.data)) {
+        const filtered = (res.data as HomepageContactItem[])
+          .filter((i) => (i.category?.slug || "") === "about-page-contact-us")
+          .filter((i) => isPublished(i))
+          .filter((i) => i.is_active !== false)
+          .sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+        setItems(filtered);
+      }
+      setLoading(false);
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const title = useMemo(() => {
+    const titleItem = items.find((i) => (i.title || "").trim().length > 0);
+    return titleItem ? "Contact Us" : "";
+  }, [items]);
+
+  const emailItem = useMemo(
+    () =>
+      items.find(
+        (i) =>
+          (i.slug || "").toLowerCase() === "contact-us" ||
+          (i.address || "").toLowerCase().includes("mailto")
+      ),
+    [items]
+  );
+
+  const addressItem = useMemo(
+    () =>
+      items.find(
+        (i) =>
+          (i.slug || "").toLowerCase() === "national-institute-of-urban-affairs"
+      ),
+    [items]
+  );
+
+  const mapItem = useMemo(
+    () =>
+      items.find(
+        (i) =>
+          (i.slug || "").toLowerCase() === "address" ||
+          (i.address || "").toLowerCase().includes("iframe")
+      ),
+    [items]
+  );
+
+  if (loading) return null;
+  if (!Array.isArray(items) || items.length === 0) return null;
+
+  // Prepare map HTML, decoding CMS-escaped iframe if necessary
+  const mapHtml = mapItem?.address ? decodeHtmlEntities(mapItem.address) : "";
+
   return (
     <section id="contact-us" className={`${styles.contact} ${className}`}>
       <div className={styles.contact__container}>
-        <h2 className={styles.contact__title}>Contact Us</h2>
+        {title ? <h2 className={styles.contact__title}>{title}</h2> : null}
 
         <div className={styles.contact__infoGrid}>
-          <div className={styles.contact__infoItem}>
-            <span className={styles.contact__icon} aria-hidden="true">
-              <LocationOnRoundedIcon className={styles.contact__iconImg} fontSize="medium" />
-            </span>
-            <div>
-              <h3 className={styles.contact__infoTitle}>National Institute of Urban Affairs</h3>
-              <p className={styles.contact__infoText}>
-                1st Floor, Core 4B, India Habitat Centre, Lodhi Road, New Delhi - 110003, INDIA
-              </p>
+          {addressItem && (
+            <div className={styles.contact__infoItem}>
+              <span className={styles.contact__icon} aria-hidden="true">
+                <LocationOnRoundedIcon
+                  className={styles.contact__iconImg}
+                  fontSize="medium"
+                />
+              </span>
+              <div>
+                <h3 className={styles.contact__infoTitle}>
+                  {addressItem.title}
+                </h3>
+                <div
+                  className={styles.contact__infoText}
+                  dangerouslySetInnerHTML={{
+                    __html: addressItem.address || "",
+                  }}
+                />
+              </div>
             </div>
-          </div>
+          )}
 
-          <div className={styles.contact__infoItem}>
-            <span className={styles.contact__icon} aria-hidden="true">
-              <CallRoundedIcon className={styles.contact__iconImg} fontSize="medium" />
-            </span>
-            <div>
-              <h3 className={styles.contact__infoTitle}>Email ID:</h3>
-              <a href="mailto:nulp@niua.org" className={styles.contact__link}>nulp@niua.org</a>
+          {emailItem && (
+            <div className={styles.contact__infoItem}>
+              <span className={styles.contact__icon} aria-hidden="true">
+                <CallRoundedIcon
+                  className={styles.contact__iconImg}
+                  fontSize="medium"
+                />
+              </span>
+              <div>
+                <h3 className={styles.contact__infoTitle}>Email ID:</h3>
+                <div
+                  dangerouslySetInnerHTML={{ __html: emailItem.address || "" }}
+                />
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
-        <div className={styles.contact__mapWrapper}>
-          <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3503.3337971631213!2d77.22044749999999!3d28.5897614!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390d1d5ebfb73dcf%3A0xc3b5eadedcbcca50!2sNational%20Institute%20of%20Urban%20Affairs!5e0!3m2!1sen!2sin!4v1755681227195!5m2!1sen!2sin"
-            loading="lazy"
-            allowFullScreen
-            referrerPolicy="no-referrer-when-downgrade"
-            aria-label="National Institute of Urban Affairs location on Google Maps"
-          />
-        </div>
+        {mapHtml && (
+          <div className={styles.contact__mapWrapper}>
+            <div dangerouslySetInnerHTML={{ __html: mapHtml }} />
+          </div>
+        )}
       </div>
     </section>
   );
 };
 
-export default AboutUsContact; 
+export default AboutUsContact;
