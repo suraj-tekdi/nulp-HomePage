@@ -633,3 +633,8 @@
     font-size: 0.75rem;
   }
 }
+.mapSection__instructionText {
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: #333;
+}

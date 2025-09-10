@@ -6,6 +6,7 @@ import India from "@svg-maps/india";
 import "react-svg-map/lib/index.css";
 import styles from "./IndiaMapSection.module.css";
 import { stateMediaApi, type StateMediaImage } from "../../services";
+import { stacksApi } from "../../services";
 
 interface GalleryImage {
   src: string;
@@ -78,13 +79,19 @@ const IndiaMapSection: React.FC = () => {
     new Set()
   );
 
+  // ULB Count map keyed by state id (e.g., mh, ka)
+  const [ulbMap, setUlbMap] = useState<
+    Map<string, { title: string; count: number }>
+  >(new Map());
+
   // Fetch media from CMS and normalize into gallery items
   useEffect(() => {
     let isMounted = true;
-    async function fetchMedia() {
+    async function fetchMediaAndStacks() {
       setIsLoading(true);
       setError(null);
       try {
+        // Fetch images
         const res = await stateMediaApi.fetchStateEngagement();
         if (!res.success || !res.data) {
           if (isMounted) {
@@ -93,22 +100,46 @@ const IndiaMapSection: React.FC = () => {
             setAvailableStateNames(new Set());
             setError(res.error || "Failed to load images");
           }
-          return;
-        }
-        const { images, availability } = res.data;
-        if (isMounted) {
+        } else if (isMounted) {
+          const { images, availability } = res.data;
           setAllImages(images as StateMediaImage[]);
           setAvailableStateIds(availability.stateIds);
           setAvailableStateNames(availability.stateNames);
         }
+
+        // Fetch stacks for ULB count
+        const stacksRes = await stacksApi.getHomepageStacks();
+        if (isMounted && stacksRes.success && Array.isArray(stacksRes.data)) {
+          const map = new Map<string, { title: string; count: number }>();
+          (stacksRes.data as any[])
+            .filter((i) => (i.state || "").toLowerCase() === "published")
+            .filter(
+              (i) =>
+                (i?.menu?.title || i?.menu?.slug || "").toLowerCase() ===
+                  "state engagement" ||
+                (i?.menu?.slug || "").toLowerCase() === "state-engagement"
+            )
+            .filter((i) =>
+              (i.title || "").trim().toLowerCase().startsWith("ulb count")
+            )
+            .forEach((i) => {
+              const st = getStateFromCategory(i.category || null);
+              const id = (st.id || "").toLowerCase();
+              if (!id) return;
+              const title = ((i.title || "ULB Count") as string).trim();
+              const count = Number(i.enter_count || 0);
+              map.set(id, { title, count });
+            });
+          setUlbMap(map);
+        }
       } catch (e: any) {
-        if (isMounted) setError(e?.message || "Failed to load images");
+        if (isMounted) setError(e?.message || "Failed to load content");
       } finally {
         if (isMounted) setIsLoading(false);
       }
     }
 
-    fetchMedia();
+    fetchMediaAndStacks();
     return () => {
       isMounted = false;
     };
@@ -301,6 +332,9 @@ const IndiaMapSection: React.FC = () => {
     });
   }, [selectedState, selectedStateName]);
 
+  // Resolve ULB info for currently selected state
+  const ulbInfo = selectedState ? ulbMap.get(selectedState) : undefined;
+
   return (
     <section id="state-engagement" className={styles.mapSection}>
       <div className={styles.mapSection__container}>
@@ -314,6 +348,11 @@ const IndiaMapSection: React.FC = () => {
           <p className={styles.mapSection__selectedState}>
             {selectedStateName ? `${selectedStateName}'s Events` : ""}
           </p>
+          {ulbInfo && (
+            <p className={styles.mapSection__instructionText}>
+              {ulbInfo.title}: {ulbInfo.count}
+            </p>
+          )}
         </header>
 
         <div className={styles.mapSection__content}>
