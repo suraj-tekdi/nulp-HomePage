@@ -95,7 +95,6 @@ export const getStaticProps: GetStaticProps<AboutPageProps> = async () => {
 
   return {
     props: { orderedSectionSlugs },
-    revalidate: 300,
   };
 };
 
