@@ -5,6 +5,7 @@ import { SVGMap } from "react-svg-map";
 import India from "@svg-maps/india";
 import "react-svg-map/lib/index.css";
 import styles from "./IndiaMapSection.module.css";
+import { stateMediaApi, type StateMediaImage } from "../../services";
 
 interface GalleryImage {
   src: string;
@@ -52,8 +53,14 @@ function pickBestImageUrl(img: any): string | null {
   );
 }
 
-const CMS_MEDIA_URL =
-  "https://devnulp.niua.org/mw-cms/api/v1/homepage/media?state=Published";
+function slugifyName(value: string | null | undefined): string {
+  return (value || "")
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z-]/g, "");
+}
 
 const IndiaMapSection: React.FC = () => {
   const [selectedState, setSelectedState] = useState<string | null>(null);
@@ -64,6 +71,12 @@ const IndiaMapSection: React.FC = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [availableStateIds, setAvailableStateIds] = useState<Set<string>>(
+    new Set()
+  );
+  const [availableStateNames, setAvailableStateNames] = useState<Set<string>>(
+    new Set()
+  );
 
   // Fetch media from CMS and normalize into gallery items
   useEffect(() => {
@@ -72,31 +85,22 @@ const IndiaMapSection: React.FC = () => {
       setIsLoading(true);
       setError(null);
       try {
-        const res = await fetch(CMS_MEDIA_URL);
-        if (!res.ok) throw new Error(`Request failed: ${res.status}`);
-        const json = await res.json();
-        const items = Array.isArray(json?.data) ? json.data : [];
-        const normalized: GalleryImage[] = [];
-
-        items.forEach((entry: any) => {
-          const stateInfo = getStateFromCategory(entry?.category);
-          const title: string = entry?.title || "Untitled";
-          const images: any[] = Array.isArray(entry?.upload_image)
-            ? entry.upload_image
-            : [];
-          images.forEach((img: any) => {
-            const url = pickBestImageUrl(img);
-            if (!url) return;
-            normalized.push({
-              src: url,
-              caption: title,
-              stateId: stateInfo.id || null,
-              stateName: stateInfo.name || null,
-            });
-          });
-        });
-
-        if (isMounted) setAllImages(normalized);
+        const res = await stateMediaApi.fetchStateEngagement();
+        if (!res.success || !res.data) {
+          if (isMounted) {
+            setAllImages([]);
+            setAvailableStateIds(new Set());
+            setAvailableStateNames(new Set());
+            setError(res.error || "Failed to load images");
+          }
+          return;
+        }
+        const { images, availability } = res.data;
+        if (isMounted) {
+          setAllImages(images as StateMediaImage[]);
+          setAvailableStateIds(availability.stateIds);
+          setAvailableStateNames(availability.stateNames);
+        }
       } catch (e: any) {
         if (isMounted) setError(e?.message || "Failed to load images");
       } finally {
@@ -110,27 +114,87 @@ const IndiaMapSection: React.FC = () => {
     };
   }, []);
 
+  // Apply dynamic highlight classes to map based on available states and selection
+  useEffect(() => {
+    const paths = document.querySelectorAll(
+      `.${styles.mapSection__svgMap} path`
+    );
+    paths.forEach((path) => path.classList.remove("hasData"));
+
+    // Build robust lookup sets
+    const idKeys = new Set<string>();
+    availableStateIds.forEach((id) => {
+      const lc = (id || "").toLowerCase();
+      if (!lc) return;
+      idKeys.add(lc);
+      idKeys.add(`in-${lc}`); // support ids like IN-MH
+      idKeys.add(`in_${lc}`);
+    });
+    const nameKeys = new Set<string>();
+    availableStateNames.forEach((name) => {
+      const key = slugifyName(name);
+      if (key) nameKeys.add(key);
+    });
+
+    paths.forEach((pathEl) => {
+      const pid = (pathEl.getAttribute("id") || "").trim().toLowerCase();
+      const pname = (
+        pathEl.getAttribute("name") ||
+        pathEl.getAttribute("aria-label") ||
+        ""
+      )
+        .toString()
+        .trim();
+      const pnameKey = slugifyName(pname);
+      if (
+        idKeys.has(pid) ||
+        idKeys.has(pid.replace(/_/g, "-")) ||
+        nameKeys.has(pnameKey)
+      ) {
+        pathEl.classList.add("hasData");
+      }
+    });
+  }, [availableStateIds, availableStateNames]);
+
   const handleLocationClick = (event: any) => {
-    const stateId = event?.target?.id as string | undefined;
+    const stateId = (event?.target?.id as string | undefined) || null;
     const stateName =
       event?.target?.getAttribute("name") ||
       event?.target?.getAttribute("aria-label") ||
       null;
 
     // Toggle select/deselect when clicking same state
-    if (stateId && selectedState === stateId) {
+    if (stateId && selectedState === stateId.toLowerCase()) {
+      // Clear selection styling
+      const paths = document.querySelectorAll(
+        `.${styles.mapSection__svgMap} path`
+      );
+      paths.forEach((path) => path.classList.remove("selected"));
       setSelectedState(null);
       setSelectedStateName(null);
       return;
     }
 
-    setSelectedState(stateId || null);
+    setSelectedState((stateId || "").toLowerCase());
     setSelectedStateName(stateName);
+
+    // Immediately apply selection highlight to clicked path for consistent color
+    const paths = document.querySelectorAll(
+      `.${styles.mapSection__svgMap} path`
+    );
+    paths.forEach((path) => path.classList.remove("selected"));
+    if (event?.target && (event.target as Element).classList) {
+      (event.target as Element).classList.add("selected");
+    }
   };
 
   // Filter images by selection
   const currentImages: GalleryImage[] = selectedState
-    ? allImages.filter((img) => img.stateId === selectedState)
+    ? allImages.filter(
+        (img) =>
+          img.stateId === selectedState ||
+          slugifyName(img.stateName) === slugifyName(selectedStateName)
+      )
     : allImages;
 
   // Auto-rotation
@@ -146,7 +210,7 @@ const IndiaMapSection: React.FC = () => {
   // Reset index when dataset changes
   useEffect(() => {
     setCurrentImageIndex(0);
-  }, [selectedState, allImages.length]);
+  }, [selectedState, selectedStateName, allImages.length]);
 
   // Compute 3 visible cards (top/center/bottom)
   const getVisibleImages = () => {
@@ -207,35 +271,35 @@ const IndiaMapSection: React.FC = () => {
 
   const visibleImages = getVisibleImages();
 
-  // Visual highlight for selected state
+  // Visual highlight for selected state (kept to sync with state changes)
   useEffect(() => {
-    const allPaths = document.querySelectorAll(".mapSection__svgMap path");
-    allPaths.forEach((path) => path.classList.remove("selected"));
-    if (selectedState) {
-      const selectedPath = document.querySelector(
-        `.mapSection__svgMap path[id="${selectedState}"]`
-      );
-      if (selectedPath) selectedPath.classList.add("selected");
-    }
-  }, [selectedState]);
+    const paths = document.querySelectorAll(
+      `.${styles.mapSection__svgMap} path`
+    );
+    paths.forEach((path) => path.classList.remove("selected"));
 
-  // Optional: verify some states are present (dev aid)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const checkStates = ["mh", "ka", "up", "wb", "hp"];
-      checkStates.forEach((stateId) => {
-        const element = document.querySelector(
-          `.mapSection__svgMap path[id="${stateId}"]`
-        );
-        if (element) {
-          console.log(`✅ State ${stateId} is clickable`);
-        } else {
-          console.log(`❌ State ${stateId} not found`);
-        }
-      });
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
+    const targetNameKey = slugifyName(selectedStateName || "");
+    paths.forEach((el) => {
+      const pid = (el.getAttribute("id") || "").trim().toLowerCase();
+      const pnameKey = slugifyName(
+        (
+          el.getAttribute("name") ||
+          el.getAttribute("aria-label") ||
+          ""
+        ).toString()
+      );
+      if (!selectedState && !targetNameKey) return;
+      if (
+        (selectedState &&
+          (pid === selectedState ||
+            pid === `in-${selectedState}` ||
+            pid === `in_${selectedState}`)) ||
+        (targetNameKey && pnameKey === targetNameKey)
+      ) {
+        el.classList.add("selected");
+      }
+    });
+  }, [selectedState, selectedStateName]);
 
   return (
     <section id="state-engagement" className={styles.mapSection}>
@@ -246,6 +310,9 @@ const IndiaMapSection: React.FC = () => {
           </h2>
           <p className={styles.mapSection__subtitle}>
             On‑boarded States and Union Territories
+          </p>
+          <p className={styles.mapSection__selectedState}>
+            {selectedStateName ? `${selectedStateName}'s Events` : ""}
           </p>
         </header>
 
@@ -268,8 +335,8 @@ const IndiaMapSection: React.FC = () => {
             {/* Instruction Text - Below Map */}
             <div className={styles.mapSection__stateInfo}>
               <p className={styles.mapSection__instructionText}>
-                {selectedState
-                  ? `Showing images for ${selectedStateName || selectedState}`
+                {selectedStateName
+                  ? `Showing images for ${selectedStateName}`
                   : "Select a State to filter images, or view all by default"}
               </p>
             </div>
@@ -313,23 +380,6 @@ const IndiaMapSection: React.FC = () => {
                       {imageData.position === "center" && (
                         <div className={styles.gallery__caption}>
                           <div>{imageData.caption}</div>
-                          <div
-                            style={{
-                              fontSize: "0.9em",
-                              opacity: 0.8,
-                              marginTop: 4,
-                            }}
-                          >
-                            {selectedState
-                              ? `Selected state: ${
-                                  selectedStateName ||
-                                  imageData.stateName ||
-                                  selectedState
-                                }`
-                              : imageData.stateName
-                              ? `State: ${imageData.stateName}`
-                              : "State: Multiple"}
-                          </div>
                         </div>
                       )}
                     </div>

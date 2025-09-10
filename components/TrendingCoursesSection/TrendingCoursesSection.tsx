@@ -26,12 +26,16 @@ interface TrendingCoursesSectionProps {
   selectedDomain?: string | null;
 }
 
+const CARDS_PER_PAGE = 5;
+const SCROLL_SETTLE_MS = 140;
+
 const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
   className = "",
   selectedDomain = null,
 }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const scrollSettleTimerRef = useRef<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
@@ -42,9 +46,23 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [isVisible, setIsVisible] = useState<boolean>(true);
 
-  // Pagination state derived from container size
+  // Pagination state derived from cards-per-page
   const [totalSlides, setTotalSlides] = useState<number>(1);
   const [shouldShowControls, setShouldShowControls] = useState<boolean>(false);
+
+  // Measure card width + gap
+  const getCardWidthWithGap = useCallback((): number => {
+    const container = scrollContainerRef.current;
+    if (!container) return 340 + 24; // fallback (card width + gap)
+    const firstCard = container.querySelector(
+      `.${styles.trending__card}`
+    ) as HTMLElement | null;
+    const style = getComputedStyle(container);
+    // Try columnGap/gap; fall back to 0
+    const gapPx = parseFloat((style.columnGap || style.gap || "0").toString());
+    const cardWidth = firstCard?.offsetWidth || 340;
+    return cardWidth + (isNaN(gapPx) ? 0 : gapPx);
+  }, []);
 
   // Transform NULP API response to our Course interface
   const transformNulpCourse = useCallback((nulpCourse: NulpCourse): Course => {
@@ -70,28 +88,14 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
     };
   }, []);
 
-  // Helper: recalculate pagination based on container dimensions
+  // Helper: recalculate pagination based on number of cards
   const recalculatePagination = useCallback(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    const clientWidth = container.clientWidth || 1; // prevent divide by zero
-    const scrollWidth = container.scrollWidth || 0;
-
-    // Use a small tolerance to avoid false extra page from subpixel overflow
-    const EPSILON = 2; // px
-    const overflow = Math.max(0, scrollWidth - clientWidth);
-    const slides =
-      overflow <= EPSILON
-        ? 1
-        : 1 + Math.floor((overflow + EPSILON) / clientWidth);
-
+    const total = Array.isArray(courses) ? courses.length : 0;
+    const slides = Math.max(1, Math.ceil(total / CARDS_PER_PAGE));
     setTotalSlides(slides);
-    setShouldShowControls(scrollWidth - clientWidth > EPSILON && slides > 1);
-
-    // Clamp current slide if needed
+    setShouldShowControls(total > CARDS_PER_PAGE);
     setCurrentSlide((prev) => Math.min(prev, slides - 1));
-  }, []);
+  }, [courses]);
 
   // Fetch course IDs from sliders, then fetch courses from NULP
   useEffect(() => {
@@ -148,7 +152,7 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
     }, 100);
   }, [courses, recalculatePagination]);
 
-  // Observe container resize to keep pagination accurate
+  // Observe container resize to keep pagination accurate (based on card width)
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container || typeof ResizeObserver === "undefined") return;
@@ -163,6 +167,10 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
     return () => {
       observer.disconnect();
       window.removeEventListener("resize", recalculatePagination);
+      if (scrollSettleTimerRef.current) {
+        window.clearTimeout(scrollSettleTimerRef.current);
+        scrollSettleTimerRef.current = null;
+      }
     };
   }, [recalculatePagination]);
 
@@ -219,62 +227,65 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
   const updateCurrentSlide = useCallback(() => {
     if (!scrollContainerRef.current) return;
     const container = scrollContainerRef.current;
-
-    const pageWidth = container.clientWidth || 1;
-    const newSlideIndex = Math.round(container.scrollLeft / pageWidth);
-
+    const pageWidth = getCardWidthWithGap() * CARDS_PER_PAGE;
+    // Use half-page offset for stable index
+    const newSlideIndex = Math.floor(
+      (container.scrollLeft + pageWidth / 2) / pageWidth
+    );
     const clampedSlideIndex = Math.min(
       Math.max(0, newSlideIndex),
       totalSlides - 1
     );
-
     if (clampedSlideIndex !== currentSlide) {
       setCurrentSlide(clampedSlideIndex);
     }
-  }, [currentSlide, totalSlides]);
+  }, [currentSlide, totalSlides, getCardWidthWithGap]);
 
-  // Handle scroll events to update pagination with throttling
+  // Handle scroll events to update pagination with debouncing
   const handleScrollUpdate = useCallback(() => {
-    // Use setTimeout to ensure scroll position is stable
-    setTimeout(() => {
+    if (scrollSettleTimerRef.current) {
+      window.clearTimeout(scrollSettleTimerRef.current);
+    }
+    scrollSettleTimerRef.current = window.setTimeout(() => {
       updateCurrentSlide();
-    }, 100);
+    }, SCROLL_SETTLE_MS);
   }, [updateCurrentSlide]);
 
   const nextSlide = useCallback(() => {
     if (!scrollContainerRef.current || currentSlide >= totalSlides - 1) return;
 
     const container = scrollContainerRef.current;
-    const pageWidth = container.clientWidth;
+    const pageWidth = getCardWidthWithGap() * CARDS_PER_PAGE;
 
     const newSlideIndex = Math.min(currentSlide + 1, totalSlides - 1);
     setCurrentSlide(newSlideIndex);
-
     container.scrollBy({ left: pageWidth, behavior: "smooth" });
-  }, [currentSlide, totalSlides]);
+  }, [currentSlide, totalSlides, getCardWidthWithGap]);
 
   const prevSlide = useCallback(() => {
     if (!scrollContainerRef.current || currentSlide <= 0) return;
 
     const container = scrollContainerRef.current;
-    const pageWidth = container.clientWidth;
+    const pageWidth = getCardWidthWithGap() * CARDS_PER_PAGE;
 
     const newSlideIndex = Math.max(currentSlide - 1, 0);
     setCurrentSlide(newSlideIndex);
-
     container.scrollBy({ left: -pageWidth, behavior: "smooth" });
-  }, [currentSlide, totalSlides]);
+  }, [currentSlide, getCardWidthWithGap]);
 
-  const goToSlide = useCallback((slideIndex: number) => {
-    if (!scrollContainerRef.current) return;
+  const goToSlide = useCallback(
+    (slideIndex: number) => {
+      if (!scrollContainerRef.current) return;
 
-    const container = scrollContainerRef.current;
-    const pageWidth = container.clientWidth;
-    const scrollPosition = slideIndex * pageWidth;
+      const container = scrollContainerRef.current;
+      const pageWidth = getCardWidthWithGap() * CARDS_PER_PAGE;
+      const scrollPosition = slideIndex * pageWidth;
 
-    setCurrentSlide(slideIndex);
-    container.scrollTo({ left: scrollPosition, behavior: "smooth" });
-  }, []);
+      setCurrentSlide(slideIndex);
+      container.scrollTo({ left: scrollPosition, behavior: "smooth" });
+    },
+    [getCardWidthWithGap]
+  );
 
   // Handle course navigation
   const handleCourseClick = useCallback((courseId: string) => {
