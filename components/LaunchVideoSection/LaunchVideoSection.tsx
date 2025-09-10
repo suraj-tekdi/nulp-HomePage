@@ -191,7 +191,7 @@ const LaunchVideoSection: React.FC<LaunchVideoSectionProps> = ({
               src={launchMedia.url}
               className={styles.launchVideo__video}
               allowFullScreen
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               title={launchMedia.title || "Launch Video"}
             />
           </div>
