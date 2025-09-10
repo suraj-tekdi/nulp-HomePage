@@ -217,6 +217,22 @@ export const searchApi = {
     const urls = getDynamicNulpUrls();
     return urls.search(query);
   },
+
+  // Open search results in a new tab (non-blocking)
+  redirectToSearch: async (query: string): Promise<void> => {
+    const url = await searchApi.performSearch(query);
+    if (typeof window !== "undefined") {
+      window.open(url, "_blank", "noopener");
+    }
+  },
+
+  // Navigate to search results in the same tab
+  redirectToSearchSameTab: async (query: string): Promise<void> => {
+    const url = await searchApi.performSearch(query);
+    if (typeof window !== "undefined") {
+      window.location.href = url;
+    }
+  },
 };
 
 // Courses & Good Practices APIs
