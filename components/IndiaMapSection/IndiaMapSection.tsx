@@ -6,6 +6,7 @@ import India from "@svg-maps/india";
 import "react-svg-map/lib/index.css";
 import styles from "./IndiaMapSection.module.css";
 import { stateMediaApi, type StateMediaImage } from "../../services";
+import { stacksApi } from "../../services";
 
 interface GalleryImage {
   src: string;
@@ -25,6 +26,25 @@ const CATEGORY_TO_STATE_ID: Record<string, { id: string; name: string }> = {
   west_bengal: { id: "wb", name: "West Bengal" },
   "himachal-pradesh": { id: "hp", name: "Himachal Pradesh" },
   himachalpradesh: { id: "hp", name: "Himachal Pradesh" },
+  tamilnadu: { id: "tn", name: "Tamil Nadu" },
+  "tamil-nadu": { id: "tn", name: "Tamil Nadu" },
+  kerala: { id: "kl", name: "Kerala" },
+  rajasthan: { id: "rj", name: "Rajasthan" },
+  haryana: { id: "hr", name: "Haryana" },
+  punjab: { id: "pb", name: "Punjab" },
+  manipur: { id: "mn", name: "Manipur" },
+  assam: { id: "as", name: "Assam" },
+  chhattisgarh: { id: "cg", name: "Chhattisgarh" },
+  odisha: { id: "od", name: "Odisha" },
+  gujarat: { id: "gj", name: "Gujarat" },
+  uttarakhand: { id: "uk", name: "Uttarakhand" },
+  chandigarh: { id: "ch", name: "Chandigarh" },
+  delhi: { id: "dl", name: "Delhi" },
+  sikkim: { id: "sk", name: "Sikkim" },
+  "madhya-pradesh": { id: "mp", name: "Madhya Pradesh" },
+  madhyapradesh: { id: "mp", name: "Madhya Pradesh" },
+  jharkhand: { id: "jh", name: "Jharkhand" },
+  tripura: { id: "tr", name: "Tripura" },
 };
 
 function getStateFromCategory(
@@ -78,13 +98,42 @@ const IndiaMapSection: React.FC = () => {
     new Set()
   );
 
-  // Fetch media from CMS and normalize into gallery items
+  // Highlighted states from JSON (public)
+  const [highlightedStateIds, setHighlightedStateIds] = useState<Set<string>>(
+    new Set()
+  );
+
+  // ULB Count map keyed by state id (e.g., mh, ka)
+  const [ulbMap, setUlbMap] = useState<
+    Map<string, { title: string; count: number }>
+  >(new Map());
+
+  // Fetch media + stacks + highlighted states JSON
   useEffect(() => {
     let isMounted = true;
-    async function fetchMedia() {
+    async function fetchAll() {
       setIsLoading(true);
       setError(null);
       try {
+        // 1) Highlighted states JSON
+        try {
+          const resp = await fetch(`/data/highlighted-states.json`);
+          if (resp.ok) {
+            const json = await resp.json();
+            const fromJson = new Set<string>();
+            const arr: string[] = Array.isArray(json?.states)
+              ? json.states
+              : [];
+            arr.forEach((name) => {
+              const info = getStateFromCategory({ name });
+              const id = (info.id || "").toLowerCase();
+              if (id) fromJson.add(id);
+            });
+            if (isMounted) setHighlightedStateIds(fromJson);
+          }
+        } catch {}
+
+        // 2) Images for state engagement
         const res = await stateMediaApi.fetchStateEngagement();
         if (!res.success || !res.data) {
           if (isMounted) {
@@ -93,22 +142,46 @@ const IndiaMapSection: React.FC = () => {
             setAvailableStateNames(new Set());
             setError(res.error || "Failed to load images");
           }
-          return;
-        }
-        const { images, availability } = res.data;
-        if (isMounted) {
+        } else if (isMounted) {
+          const { images, availability } = res.data;
           setAllImages(images as StateMediaImage[]);
           setAvailableStateIds(availability.stateIds);
           setAvailableStateNames(availability.stateNames);
         }
+
+        // 3) Stacks for ULB count
+        const stacksRes = await stacksApi.getHomepageStacks();
+        if (isMounted && stacksRes.success && Array.isArray(stacksRes.data)) {
+          const map = new Map<string, { title: string; count: number }>();
+          (stacksRes.data as any[])
+            .filter((i) => (i.state || "").toLowerCase() === "published")
+            .filter(
+              (i) =>
+                (i?.menu?.title || i?.menu?.slug || "").toLowerCase() ===
+                  "state engagement" ||
+                (i?.menu?.slug || "").toLowerCase() === "state-engagement"
+            )
+            .filter((i) =>
+              (i.title || "").trim().toLowerCase().startsWith("ulb count")
+            )
+            .forEach((i) => {
+              const st = getStateFromCategory(i.category || null);
+              const id = (st.id || "").toLowerCase();
+              if (!id) return;
+              const title = ((i.title || "ULB Count") as string).trim();
+              const count = Number(i.enter_count || 0);
+              map.set(id, { title, count });
+            });
+          setUlbMap(map);
+        }
       } catch (e: any) {
-        if (isMounted) setError(e?.message || "Failed to load images");
+        if (isMounted) setError(e?.message || "Failed to load content");
       } finally {
         if (isMounted) setIsLoading(false);
       }
     }
 
-    fetchMedia();
+    fetchAll();
     return () => {
       isMounted = false;
     };
@@ -121,15 +194,23 @@ const IndiaMapSection: React.FC = () => {
     );
     paths.forEach((path) => path.classList.remove("hasData"));
 
-    // Build robust lookup sets
+    // Build robust lookup sets (availability + highlighted JSON)
     const idKeys = new Set<string>();
     availableStateIds.forEach((id) => {
       const lc = (id || "").toLowerCase();
       if (!lc) return;
       idKeys.add(lc);
-      idKeys.add(`in-${lc}`); // support ids like IN-MH
+      idKeys.add(`in-${lc}`);
       idKeys.add(`in_${lc}`);
     });
+    highlightedStateIds.forEach((id) => {
+      const lc = (id || "").toLowerCase();
+      if (!lc) return;
+      idKeys.add(lc);
+      idKeys.add(`in-${lc}`);
+      idKeys.add(`in_${lc}`);
+    });
+
     const nameKeys = new Set<string>();
     availableStateNames.forEach((name) => {
       const key = slugifyName(name);
@@ -154,7 +235,7 @@ const IndiaMapSection: React.FC = () => {
         pathEl.classList.add("hasData");
       }
     });
-  }, [availableStateIds, availableStateNames]);
+  }, [availableStateIds, availableStateNames, highlightedStateIds]);
 
   const handleLocationClick = (event: any) => {
     const stateId = (event?.target?.id as string | undefined) || null;
@@ -301,6 +382,9 @@ const IndiaMapSection: React.FC = () => {
     });
   }, [selectedState, selectedStateName]);
 
+  // Resolve ULB info for currently selected state
+  const ulbInfo = selectedState ? ulbMap.get(selectedState) : undefined;
+
   return (
     <section id="state-engagement" className={styles.mapSection}>
       <div className={styles.mapSection__container}>
@@ -312,8 +396,13 @@ const IndiaMapSection: React.FC = () => {
             On‑boarded States and Union Territories
           </p>
           <p className={styles.mapSection__selectedState}>
-            {selectedStateName ? `${selectedStateName}'s Events` : ""}
+            {selectedStateName ? `${selectedStateName}` : ""}
           </p>
+          {ulbInfo && (
+            <p className={styles.mapSection__instructionText}>
+              {ulbInfo.title}: {ulbInfo.count}
+            </p>
+          )}
         </header>
 
         <div className={styles.mapSection__content}>
@@ -334,11 +423,7 @@ const IndiaMapSection: React.FC = () => {
 
             {/* Instruction Text - Below Map */}
             <div className={styles.mapSection__stateInfo}>
-              <p className={styles.mapSection__instructionText}>
-                {selectedStateName
-                  ? `Showing images for ${selectedStateName}`
-                  : "Select a State to filter images, or view all by default"}
-              </p>
+              <p>Select a State to filter images, or view all by default.</p>
             </div>
           </div>
 
