@@ -110,7 +110,24 @@
 .mapSection__svgMap path[id="ka"],
 .mapSection__svgMap path[id="up"],
 .mapSection__svgMap path[id="wb"],
-.mapSection__svgMap path[id="hp"] {
+.mapSection__svgMap path[id="hp"],
+.mapSection__svgMap path[id="tn"],
+.mapSection__svgMap path[id="kl"],
+.mapSection__svgMap path[id="rj"],
+.mapSection__svgMap path[id="hr"],
+.mapSection__svgMap path[id="pb"],
+.mapSection__svgMap path[id="mn"],
+.mapSection__svgMap path[id="as"],
+.mapSection__svgMap path[id="cg"],
+.mapSection__svgMap path[id="od"],
+.mapSection__svgMap path[id="gj"],
+.mapSection__svgMap path[id="uk"],
+.mapSection__svgMap path[id="ch"],
+.mapSection__svgMap path[id="dl"],
+.mapSection__svgMap path[id="sk"],
+.mapSection__svgMap path[id="mp"],
+.mapSection__svgMap path[id="jh"],
+.mapSection__svgMap path[id="tr"] {
   fill: #054365;
   stroke: #90d8ff;
   stroke-width: 2;
@@ -120,8 +137,25 @@
 .mapSection__svgMap path[id="ka"]:hover,
 .mapSection__svgMap path[id="up"]:hover,
 .mapSection__svgMap path[id="wb"]:hover,
-.mapSection__svgMap path[id="hp"]:hover {
-  fill: rgba(5, 67, 101, 0.8) !important;
+.mapSection__svgMap path[id="hp"]:hover,
+.mapSection__svgMap path[id="tn"]:hover,
+.mapSection__svgMap path[id="kl"]:hover,
+.mapSection__svgMap path[id="rj"]:hover,
+.mapSection__svgMap path[id="hr"]:hover,
+.mapSection__svgMap path[id="pb"]:hover,
+.mapSection__svgMap path[id="mn"]:hover,
+.mapSection__svgMap path[id="as"]:hover,
+.mapSection__svgMap path[id="cg"]:hover,
+.mapSection__svgMap path[id="od"]:hover,
+.mapSection__svgMap path[id="gj"]:hover,
+.mapSection__svgMap path[id="uk"]:hover,
+.mapSection__svgMap path[id="ch"]:hover,
+.mapSection__svgMap path[id="dl"]:hover,
+.mapSection__svgMap path[id="sk"]:hover,
+.mapSection__svgMap path[id="mp"]:hover,
+.mapSection__svgMap path[id="jh"]:hover,
+.mapSection__svgMap path[id="tr"]:hover {
+  fill: #054365 !important;
 }
 
 /* Active state styling - will be applied via JavaScript */
