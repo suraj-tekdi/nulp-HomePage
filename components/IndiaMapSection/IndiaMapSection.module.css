@@ -95,13 +95,13 @@
   cursor: pointer;
   transition: all 0.3s ease;
   fill: rgba(179, 204, 222, 0.29);
-  stroke: #90d8ff;
+  stroke: #ffffff;
   stroke-width: 1;
 }
 
 .mapSection__svgMap path:hover {
   fill: rgba(179, 204, 222, 0.5) !important;
-  stroke: #90d8ff !important;
+  stroke: #ffffff !important;
   stroke-width: 2;
 }
 
@@ -129,7 +129,7 @@
 .mapSection__svgMap path[id="jh"],
 .mapSection__svgMap path[id="tr"] {
   fill: #054365;
-  stroke: #90d8ff;
+  stroke: #ffffff;
   stroke-width: 2;
 }
 
@@ -161,7 +161,7 @@
 /* Active state styling - will be applied via JavaScript */
 .mapSection__svgMap path.selected {
   fill: #054365 !important;
-  stroke: #90d8ff !important;
+  stroke: #ffffff !important;
   stroke-width: 3 !important;
 }
 

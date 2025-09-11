@@ -11,6 +11,7 @@ import AboutUsWhy from "../components/AboutUsWhy/AboutUsWhy";
 import AboutUsPartner from "../components/AboutUsPartner/AboutUsPartner";
 import AboutUsContact from "../components/AboutUsContact/AboutUsContact";
 import { articlesApi, type HomepageArticleItem } from "../services";
+import { useEffect, useMemo, useState } from "react";
 
 type AboutPageProps = {
   orderedSectionSlugs?: string[];
@@ -37,10 +38,41 @@ const DEFAULT_SECTION_ORDER: string[] = [
 const AboutPage: React.FC<AboutPageProps> = ({
   orderedSectionSlugs = DEFAULT_SECTION_ORDER,
 }) => {
-  const sections =
-    Array.isArray(orderedSectionSlugs) && orderedSectionSlugs.length > 0
-      ? orderedSectionSlugs
-      : DEFAULT_SECTION_ORDER;
+  const [liveOrder, setLiveOrder] = useState<string[] | null>(null);
+
+  // Client-side refresh to pick latest ordering from CMS even on static export
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const allowedSlugs = new Set(DEFAULT_SECTION_ORDER);
+        const res = await articlesApi.getAboutUsArticles();
+        if (!isMounted) return;
+        if (res.success && Array.isArray(res.data)) {
+          const items = (res.data as HomepageArticleItem[])
+            .filter((a) => allowedSlugs.has((a.slug || "").toLowerCase()))
+            .map((a) => ({
+              slug: (a.slug || "").toLowerCase(),
+              order: (a as any).display_order ?? 0,
+            }))
+            .sort((a, b) => a.order - b.order)
+            .map((a) => a.slug);
+          if (items.length > 0) setLiveOrder(items);
+        }
+      } catch {}
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const sections = useMemo(() => {
+    const base =
+      Array.isArray(orderedSectionSlugs) && orderedSectionSlugs.length > 0
+        ? orderedSectionSlugs
+        : DEFAULT_SECTION_ORDER;
+    return Array.isArray(liveOrder) && liveOrder.length > 0 ? liveOrder : base;
+  }, [orderedSectionSlugs, liveOrder]);
 
   return (
     <>
