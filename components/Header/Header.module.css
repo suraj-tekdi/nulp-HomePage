@@ -33,7 +33,7 @@
   padding: 0 var(--spacing-lg);
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   height: 70px;
 }
 
@@ -76,6 +76,24 @@
   font-weight: 700;
   font-size: 1.5rem;
   color: var(--color-primary-dark-blue);
+}
+/* Brand Logos - Desktop (left side) */
+.header__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-right: var(--spacing-lg);
+}
+
+.header__brandLink {
+  display: flex;
+  align-items: center;
+}
+
+.header__brandImage {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
 }
 
 .header__nav-list {
@@ -138,6 +156,7 @@ button.header__nav-link:focus {
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
+  margin-left: auto;
 }
 
 .header__search {
@@ -435,6 +454,11 @@ button.header__nav-link:focus {
     display: flex;
   }
 
+  /* Hide brand logos on mobile/tablet */
+  .header__brand {
+    display: none;
+  }
+
   /* Hide desktop navigation and search to avoid cropping */
   .header__nav-list {
     display: none;
@@ -463,6 +487,11 @@ button.header__nav-link:focus {
   /* Show mobile logos */
   .header__mobile-logos {
     display: flex;
+  }
+
+  /* Hide brand logos on mobile */
+  .header__brand {
+    display: none;
   }
 
   /* Hide desktop navigation and search */

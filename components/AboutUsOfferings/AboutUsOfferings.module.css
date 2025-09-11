@@ -59,15 +59,15 @@
 .offerings__cms {
   display: grid !important;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
-  gap: 40px !important;
-  max-width: 1000px;
+  gap: 48px !important;
+  max-width: 1200px;
   margin: 0 auto !important;
   align-items: start !important;
   justify-items: center !important;
 }
 
 .offerings__cms img {
-  width: 120px !important;
+  width: 170px !important;
   height: auto !important;
   object-fit: contain !important;
   display: block !important;
@@ -75,11 +75,17 @@
 }
 
 .offerings__cms p {
-  font-size: 1rem !important;
+  font-size: 1.15rem !important;
   font-weight: 600 !important;
   color: #0b2447 !important;
   margin: 0 !important;
-  line-height: 1.4 !important;
+  line-height: 1.5 !important;
+  text-align: center !important;
+}
+
+/* Ensure any direct CMS blocks are centered */
+.offerings__cms > * {
+  text-align: center !important;
 }
 
 /* Responsive Design */
@@ -104,5 +110,13 @@
   .offerings__cms {
     grid-template-columns: 1fr !important;
     gap: 30px !important;
+  }
+
+  .offerings__cms img {
+    width: 120px !important;
+  }
+
+  .offerings__cms p {
+    font-size: 1rem !important;
   }
 }

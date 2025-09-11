@@ -65,6 +65,7 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
     }
     return null;
   });
+  const [headerLogos, setHeaderLogos] = useState<HomepageMenuItem[]>([]);
   const router = useRouter();
 
   // Helpers for visibility
@@ -93,6 +94,25 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
     )
       return false;
     return true;
+  };
+
+  // Build absolute CMS image URL from relative path
+  const buildCmsImageUrl = (path?: string): string => {
+    if (!path) return "";
+    if (/^https?:\/\//i.test(path)) return path;
+    const { base } = getDynamicNulpUrls();
+    return `${base}${path.startsWith("/") ? path : `/${path}`}`;
+  };
+
+  const getLogoSrcFromItem = (m: HomepageMenuItem): string => {
+    const img: any = (m as any)?.link_image;
+    const src =
+      img?.formats?.small?.url ||
+      img?.formats?.thumbnail?.url ||
+      img?.formats?.medium?.url ||
+      img?.url ||
+      "";
+    return buildCmsImageUrl(src);
   };
 
   // Map Strapi menu to local NavItem
@@ -247,6 +267,18 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
             sessionStorage.removeItem(BUTTON_CACHE_KEY);
           } catch {}
         }
+
+        // Header Logos from category 'Header Logo'
+        const logos = res.data
+          .filter((m) => {
+            const slug = m?.category?.slug?.toLowerCase?.() || "";
+            const name = m?.category?.name?.toLowerCase?.() || "";
+            const isLogo = slug === "header-logo" || name === "header logo";
+            const hasImage = !!(m as any)?.link_image;
+            return isLogo && hasImage && isMenuVisible(m);
+          })
+          .sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+        setHeaderLogos(logos);
       }
       setIsMenusLoaded(true);
     };
@@ -584,27 +616,99 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
         <div className={styles.header__container}>
           {/* Mobile Logos - Only visible on mobile */}
           <div className={styles["header__mobile-logos"]}>
-            <Link href="/" className={styles["header__mobile-logo-link"]}>
-              <Image
-                src={`${getDynamicNulpUrls().base}/images/national_logo.png`}
-                alt="National Logo"
-                width={100}
-                height={100}
-                className={styles["header__mobile-logo"]}
-                priority
-              />
-            </Link>
-            <Link href="/" className={styles["header__mobile-logo-link"]}>
-              <Image
-                src={`${getDynamicNulpUrls().base}/images/MoHUA_.png`}
-                alt="MoHUA Logo"
-                width={50}
-                height={50}
-                className={styles["header__mobile-logo"]}
-                priority
-              />
-            </Link>
+            {headerLogos.length > 0 ? (
+              headerLogos.map((m, idx) => {
+                const src = getLogoSrcFromItem(m);
+                if (!src) return null;
+                const alt =
+                  (m as any)?.link_image?.alternativeText || m.title || "Logo";
+                const target =
+                  m.target_window === "New_Window" ? "_blank" : "_self";
+                const href = (m.link || "/").trim();
+                return (
+                  <a
+                    key={`mbl-logo-${m.id}-${idx}`}
+                    href={href || "/"}
+                    target={target}
+                    rel={
+                      target === "_blank" ? "noopener noreferrer" : undefined
+                    }
+                    className={styles["header__mobile-logo-link"]}
+                    aria-label={alt}
+                  >
+                    <Image
+                      src={src}
+                      alt={alt}
+                      width={80}
+                      height={32}
+                      className={styles["header__mobile-logo"]}
+                      priority
+                    />
+                  </a>
+                );
+              })
+            ) : (
+              <>
+                <Link href="/" className={styles["header__mobile-logo-link"]}>
+                  <Image
+                    src={`${
+                      getDynamicNulpUrls().base
+                    }/images/national_logo.png`}
+                    alt="National Logo"
+                    width={80}
+                    height={32}
+                    className={styles["header__mobile-logo"]}
+                    priority
+                  />
+                </Link>
+                <Link href="/" className={styles["header__mobile-logo-link"]}>
+                  <Image
+                    src={`${getDynamicNulpUrls().base}/images/MoHUA_.png`}
+                    alt="MoHUA Logo"
+                    width={40}
+                    height={40}
+                    className={styles["header__mobile-logo"]}
+                    priority
+                  />
+                </Link>
+              </>
+            )}
           </div>
+
+          {/* Brand Logos - Desktop */}
+          {isClient && headerLogos.length > 0 && (
+            <div className={styles.header__brand}>
+              {headerLogos.map((m, idx) => {
+                const src = getLogoSrcFromItem(m);
+                if (!src) return null;
+                const alt =
+                  (m as any)?.link_image?.alternativeText || m.title || "Logo";
+                const target =
+                  m.target_window === "New_Window" ? "_blank" : "_self";
+                const href = (m.link || "/").trim();
+                return (
+                  <a
+                    key={`${m.id}-${idx}`}
+                    href={href || "/"}
+                    target={target}
+                    rel={
+                      target === "_blank" ? "noopener noreferrer" : undefined
+                    }
+                    className={styles.header__brandLink}
+                    aria-label={alt}
+                  >
+                    <Image
+                      src={src}
+                      alt={alt}
+                      width={120}
+                      height={40}
+                      className={styles.header__brandImage}
+                    />
+                  </a>
+                );
+              })}
+            </div>
+          )}
 
           {/* Desktop Navigation Section */}
           <nav className={styles.header__nav}>

@@ -17,6 +17,7 @@ import {
   getDynamicNulpUrls,
 } from "../../services/api";
 import { slidersApi } from "../../services/sliders";
+import domainImages from "../../services/domain-images.json";
 import styles from "./TrendingDiscussionsSection.module.css";
 
 interface Discussion {
@@ -416,7 +417,11 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
               >
                 <div className={styles.discussions__card__image}>
                   <img
-                    src="/images/placeholder-img.png"
+                    src={
+                      (domainImages as Record<string, string>)[
+                        discussion.category
+                      ] || "/images/placeholder-img.png"
+                    }
                     alt={discussion.title}
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
