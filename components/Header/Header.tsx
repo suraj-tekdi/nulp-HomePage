@@ -35,8 +35,8 @@ const BUTTON_CACHE_KEY = "nulp_header_button_v1";
 const Header: React.FC<HeaderProps> = ({ className = "" }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeSection, setActiveSection] = useState<string>("home"); // Track active section (home page)
-  const [isContactInView, setIsContactInView] = useState<boolean>(false); // Track contact section (about page)
+  const [activeSection, setActiveSection] = useState<string>("home");
+  const [isContactInView, setIsContactInView] = useState<boolean>(false);
   const [clickedMenu, setClickedMenu] = useState<string>(""); // Track clicked menu for contact us
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Mobile menu state
   const [isMobile, setIsMobile] = useState(false); // Track if mobile view
@@ -301,10 +301,20 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
     // For About Us page, show only one active at a time
     if (router.pathname === "/about") {
       if (item.scrollTo === "contact-us") {
-        return isContactInView;
+        const hashActive =
+          typeof window !== "undefined" &&
+          window.location.hash === "#contact-us";
+        return isContactInView || hashActive;
       }
       // Highlight About Us when not in the contact section
-      return item.href === "/about" && !item.scrollTo && !isContactInView;
+      const hashIsContact =
+        typeof window !== "undefined" && window.location.hash === "#contact-us";
+      return (
+        item.href === "/about" &&
+        !item.scrollTo &&
+        !isContactInView &&
+        !hashIsContact
+      );
     }
 
     // For home page - use scroll-based detection
@@ -545,22 +555,34 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
       return;
     }
 
-    if (item.scrollTo === "contact-us") {
-      // Mark as clicked for UX, but rely on observer for highlighting
-      setClickedMenu("Contact Us");
+    // Generic in-page section navigation based on hash from CMS
+    if (item.scrollTo) {
+      const targetPage = item.href || "/";
+      const isSamePage = router.pathname === targetPage;
 
-      if (router.pathname === "/about") {
-        handleSmoothScroll("contact-us");
+      if (isSamePage) {
+        // Already on the target page → smooth scroll
+        handleSmoothScroll(item.scrollTo);
       } else {
-        const scroll = () => handleSmoothScroll("contact-us");
-        const handler = () => {
-          router.events.off("routeChangeComplete", handler);
-          scroll();
+        // Navigate to page first, then precise smooth scroll and set hash
+        const onComplete = () => {
+          router.events.off("routeChangeComplete", onComplete);
+          setTimeout(() => {
+            const el = document.getElementById(item.scrollTo!);
+            if (el) {
+              const rect = el.getBoundingClientRect();
+              const top = rect.top + window.pageYOffset - 80;
+              window.scrollTo({ top, behavior: "smooth" });
+              if (typeof window !== "undefined") {
+                // Update hash without scrolling again
+                history.replaceState(null, "", `#${item.scrollTo}`);
+              }
+            }
+          }, 100);
         };
-        router.events.on("routeChangeComplete", handler);
-        router.push("/about").finally(() => {
-          // Fallback in case event didn't fire (safety)
-          setTimeout(scroll, 200);
+        router.events.on("routeChangeComplete", onComplete);
+        router.push(targetPage).catch(() => {
+          window.location.href = `${targetPage}#${item.scrollTo}`;
         });
       }
       return;
