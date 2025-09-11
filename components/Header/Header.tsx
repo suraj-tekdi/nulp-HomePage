@@ -586,7 +586,7 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
           <div className={styles["header__mobile-logos"]}>
             <Link href="/" className={styles["header__mobile-logo-link"]}>
               <Image
-                src="https://nulp.niua.org/images/national_logo.png"
+                src={`${getDynamicNulpUrls().base}/images/national_logo.png`}
                 alt="National Logo"
                 width={100}
                 height={100}
@@ -596,7 +596,7 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
             </Link>
             <Link href="/" className={styles["header__mobile-logo-link"]}>
               <Image
-                src="https://nulp.niua.org/images/MoHUA_.png"
+                src={`${getDynamicNulpUrls().base}/images/MoHUA_.png`}
                 alt="MoHUA Logo"
                 width={50}
                 height={50}
@@ -668,7 +668,7 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
                 type="button"
                 className={styles["header__auth-button"]}
                 onClick={() => {
-                  if (ctaButton.external || ctaButton.target === "_blank") {
+                  if (ctaButton.target === "_blank") {
                     window.open(
                       ctaButton.href,
                       "_blank",
@@ -764,7 +764,7 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
                   type="button"
                   className={styles["header__mobile-auth-button"]}
                   onClick={() => {
-                    if (ctaButton.external || ctaButton.target === "_blank") {
+                    if (ctaButton.target === "_blank") {
                       window.open(
                         ctaButton.href,
                         "_blank",

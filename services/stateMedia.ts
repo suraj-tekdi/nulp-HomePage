@@ -1,4 +1,5 @@
 import { ApiResponse } from "./api";
+import { getDynamicNulpUrls } from "./api";
 
 export interface StateMediaImage {
   src: string;
@@ -49,8 +50,9 @@ function pickBestImageUrl(img: any): string | null {
   );
 }
 
-const CMS_MEDIA_URL =
-  "https://devnulp.niua.org/mw-cms/api/v1/homepage/media?state=Published";
+const CMS_MEDIA_URL = `${
+  getDynamicNulpUrls().base
+}/mw-cms/api/v1/homepage/media?state=Published`;
 
 export const stateMediaApi = {
   fetchStateEngagement: async (): Promise<

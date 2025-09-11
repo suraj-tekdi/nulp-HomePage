@@ -216,7 +216,7 @@ export const slidersApi = {
       }
 
       const response = await fetch(
-        `https://nulp.niua.org/api/content/v1/search?orgdetails=orgName,email&licenseDetails=name,description,url`,
+        `${baseUrl}/api/content/v1/search?orgdetails=orgName,email&licenseDetails=name,description,url`,
         {
           method: "POST",
           headers: {
@@ -376,7 +376,7 @@ export const slidersApi = {
       }
 
       const response = await fetch(
-        `https://nulp.niua.org/api/content/v1/search?orgdetails=orgName,email&licenseDetails=name,description,url`,
+        `${baseUrl}/api/content/v1/search?orgdetails=orgName,email&licenseDetails=name,description,url`,
         {
           method: "POST",
           headers: {
