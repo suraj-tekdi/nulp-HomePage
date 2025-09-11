@@ -2,30 +2,20 @@
 
 // Dynamic NULP URL function
 export const getNulpBaseUrl = (): string => {
-  // Always check environment variable first (works in both client and server)
-  if (process.env.NEXT_PUBLIC_API_URL) {
-    return process.env.NEXT_PUBLIC_API_URL;
+  // Prefer explicit env configuration (works in both client and server)
+  const envBase =
+    process.env.NEXT_PUBLIC_API_URL ||
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.NEXT_PUBLIC_BASE_URL;
+  if (envBase) return envBase;
+
+  // Fallback to current origin on client
+  if (typeof window !== "undefined" && window.location?.origin) {
+    return window.location.origin;
   }
 
-  // Check if we're in development environment
-  if (typeof window !== "undefined") {
-    const hostname = window.location.hostname;
-    if (
-      hostname === "localhost" ||
-      hostname === "127.0.0.1" ||
-      hostname.includes("dev")
-    ) {
-      return "https://devnulp.niua.org";
-    }
-    return "https://nulp.niua.org";
-  }
-
-  // Server-side fallback based on environment
-  if (process.env.NODE_ENV === "development") {
-    return "https://devnulp.niua.org";
-  }
-
-  return "https://nulp.niua.org";
+  // As a last resort, return empty string to allow relative URLs
+  return "";
 };
 const baseUrl = getNulpBaseUrl();
 
@@ -280,8 +270,9 @@ export const courseApi = {
         query,
       } as any;
 
+      const { base } = getDynamicNulpUrls();
       const response = await fetch(
-        `https://nulp.niua.org/api/content/v1/search?orgdetails=orgName,email&licenseDetails=name,description,url`,
+        `${base}/api/content/v1/search?orgdetails=orgName,email&licenseDetails=name,description,url`,
         {
           method: "POST",
           headers: {
