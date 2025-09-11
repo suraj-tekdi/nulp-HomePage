@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { GetStaticProps, GetStaticPaths } from "next";
+import { useRouter } from "next/router";
 import {
   DynamicPageLayout,
   DynamicPageBanner,
@@ -22,11 +23,209 @@ interface DynamicPageProps {
 
 const DynamicPage: React.FC<DynamicPageProps> = ({
   slug,
-  pageContent,
-  fullContent,
-  menuItem,
+  pageContent: initialPageContent,
+  fullContent: initialFullContent,
+  menuItem: initialMenuItem,
 }) => {
+  const router = useRouter();
+
+  // State for dynamic data that can be updated client-side
+  const [pageContent, setPageContent] = useState(initialPageContent);
+  const [fullContent, setFullContent] = useState(initialFullContent);
+  const [menuItem, setMenuItem] = useState(initialMenuItem);
   const [loading, setLoading] = useState(false);
+  const [clientSlug, setClientSlug] = useState(slug);
+  const [isClient, setIsClient] = useState(false);
+
+  // Enable client-side rendering
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Listen for route changes to handle client-side navigation
+  useEffect(() => {
+    const handleRouteChange = (url: string) => {
+      console.log("🚀 [DEBUG] Route change detected:", url);
+      const newSlug = url.startsWith("/") ? url.slice(1) : url;
+      if (newSlug && newSlug !== clientSlug) {
+        console.log(
+          "🔄 [DEBUG] Route change: updating slug from",
+          clientSlug,
+          "to",
+          newSlug
+        );
+        setClientSlug(newSlug);
+        // Clear existing content to show loading state
+        setFullContent(null);
+        setMenuItem(null);
+        setPageContent(null);
+        setLoading(true);
+      }
+    };
+
+    router.events.on("routeChangeStart", handleRouteChange);
+
+    return () => {
+      router.events.off("routeChangeStart", handleRouteChange);
+    };
+  }, [router, clientSlug]);
+
+  // Extract slug from URL and detect navigation changes
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const currentPath = window.location.pathname;
+      const urlSlug = currentPath.startsWith("/")
+        ? currentPath.slice(1)
+        : currentPath;
+      console.log("🌐 [DEBUG] URL-based slug extraction:", {
+        currentPath,
+        urlSlug,
+        originalSlug: slug,
+        currentClientSlug: clientSlug,
+        hostname: window.location.hostname,
+      });
+
+      // Always use URL slug and detect changes for client-side navigation
+      if (urlSlug && urlSlug !== clientSlug) {
+        console.log(
+          "🔄 [DEBUG] URL changed, updating client slug from",
+          clientSlug,
+          "to",
+          urlSlug
+        );
+        setClientSlug(urlSlug);
+        // Clear existing content to show loading state for new page
+        setFullContent(null);
+        setMenuItem(null);
+        setPageContent(null);
+      }
+    }
+  }, [slug, clientSlug]); // Add clientSlug to dependencies to detect changes
+
+  // Fetch data client-side when slug changes or initial load
+  useEffect(() => {
+    if (!isClient || !clientSlug) {
+      console.log(
+        "❌ [DEBUG] Early return: isClient =",
+        isClient,
+        "clientSlug =",
+        clientSlug
+      );
+      return;
+    }
+
+    // Always fetch data when clientSlug changes (for navigation) or when we don't have content
+    const shouldFetch = !fullContent || fullContent.menu_slug !== clientSlug;
+
+    if (!shouldFetch) {
+      console.log(
+        "✅ [DEBUG] Already have matching content for slug:",
+        clientSlug
+      );
+      return;
+    }
+
+    console.log(
+      "🚀 [DEBUG] Starting client-side data fetch for slug:",
+      clientSlug,
+      "(reason: slug change or missing content)"
+    );
+
+    const fetchData = async () => {
+      setLoading(true);
+
+      try {
+        console.log("📡 [DEBUG] Fetching menu data...");
+
+        // Fetch menu data
+        const menusResponse = await menusApi.getHomepageMenus();
+        console.log("📡 [DEBUG] Menus response:", {
+          success: menusResponse.success,
+          dataLength: menusResponse.data?.length,
+        });
+
+        let currentMenuItem = null;
+        if (menusResponse.success && menusResponse.data) {
+          currentMenuItem = menusResponse.data.find((item) => {
+            const link = item.link || "";
+            const menuSlug = link.startsWith("/") ? link.slice(1) : link;
+            console.log("🔍 [DEBUG] Checking menu item:", {
+              title: item.title,
+              link,
+              menuSlug,
+              matches: menuSlug === clientSlug,
+            });
+            return menuSlug === clientSlug;
+          });
+
+          console.log(
+            "✅ [DEBUG] Found menu item:",
+            currentMenuItem ? currentMenuItem.title : "NOT FOUND"
+          );
+          setMenuItem(currentMenuItem || null);
+        }
+
+        console.log("📡 [DEBUG] Fetching content data for slug:", clientSlug);
+        // Try full content first
+        const fullContentResponse = await contentApi.getFullPageContent(
+          clientSlug
+        );
+        console.log("📡 [DEBUG] Full content response:", {
+          success: fullContentResponse.success,
+          hasData: !!fullContentResponse.data,
+        });
+
+        if (fullContentResponse.success && fullContentResponse.data) {
+          console.log("✅ [DEBUG] Setting full content data");
+          setFullContent(fullContentResponse.data);
+        } else {
+          console.log("📡 [DEBUG] Trying individual API calls...");
+          // Fallback to individual calls
+          const [bannersResponse, articlesResponse] = await Promise.all([
+            contentApi.getBannersByMenu(clientSlug),
+            contentApi.getArticlesByMenu(clientSlug),
+          ]);
+
+          console.log("📡 [DEBUG] Individual responses:", {
+            bannersSuccess: bannersResponse.success,
+            bannersCount: bannersResponse.data?.length || 0,
+            articlesSuccess: articlesResponse.success,
+            articlesCount: articlesResponse.data?.length || 0,
+          });
+
+          if (bannersResponse.success || articlesResponse.success) {
+            const combinedContent = {
+              page_title: currentMenuItem?.title || clientSlug,
+              menu_slug: clientSlug,
+              banners: bannersResponse.success
+                ? bannersResponse.data || []
+                : [],
+              articles: articlesResponse.success
+                ? articlesResponse.data || []
+                : [],
+            };
+
+            console.log("✅ [DEBUG] Setting combined content:", {
+              page_title: combinedContent.page_title,
+              bannersCount: combinedContent.banners.length,
+              articlesCount: combinedContent.articles.length,
+            });
+            setFullContent(combinedContent);
+          } else {
+            console.log("❌ [DEBUG] No content found from any API");
+          }
+        }
+      } catch (error) {
+        console.error("❌ [DEBUG] Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Small delay to ensure DOM is ready
+    const timer = setTimeout(fetchData, 100);
+    return () => clearTimeout(timer);
+  }, [isClient, clientSlug, fullContent]);
 
   // Determine page title and meta information
   const pageTitle =
@@ -34,13 +233,47 @@ const DynamicPage: React.FC<DynamicPageProps> = ({
     fullContent?.articles[0]?.title ||
     fullContent?.banners[0]?.title ||
     menuItem?.title ||
-    slug;
+    slug ||
+    "Page";
 
   const pageDescription =
     fullContent?.articles[0]?.meta?.description ||
     fullContent?.banners[0]?.description ||
     pageContent?.meta?.description ||
     `Learn more about ${pageTitle} on NULP - National Urban Learning Platform`;
+
+  console.log("🎨 [DEBUG] Render state:", {
+    slug,
+    loading,
+    isClient,
+    hasFullContent: !!fullContent,
+    hasPageContent: !!pageContent,
+    hasMenuItem: !!menuItem,
+    pageTitle,
+    fullContentType: fullContent ? "has-content" : "null",
+    bannersCount: fullContent?.banners?.length || 0,
+    articlesCount: fullContent?.articles?.length || 0,
+  });
+
+  // Show loading state when fetching fresh data
+  if (loading && !fullContent && !pageContent) {
+    return (
+      <DynamicPageLayout
+        title="Loading..."
+        content={`<div style="text-align: center; padding: 3rem 0;">
+          <div style="display: inline-block; width: 40px; height: 40px; border: 3px solid #f3f3f3; border-top: 3px solid #007bff; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+          <p style="color: #666; margin-top: 1rem;">Loading page content...</p>
+          <style>
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          </style>
+        </div>`}
+        meta={{ description: `Loading ${slug} page` }}
+      />
+    );
+  }
 
   // If we have full content (banners + articles), use the new layout
   if (fullContent) {
@@ -59,6 +292,25 @@ const DynamicPage: React.FC<DynamicPageProps> = ({
         hideTitle={true} // Hide the main title since we have banner/article titles
         fullWidthSections={
           <>
+            {loading && (
+              <div
+                style={{
+                  position: "fixed",
+                  top: "70px",
+                  right: "20px",
+                  background: "#007bff",
+                  color: "white",
+                  padding: "8px 16px",
+                  borderRadius: "20px",
+                  fontSize: "14px",
+                  zIndex: 1000,
+                  opacity: 0.9,
+                }}
+              >
+                🔄 Checking for updates...
+              </div>
+            )}
+
             {/* Show banners at top if they exist - full width */}
             {banners && banners.length > 0 && (
               <DynamicPageBanner banners={banners} />
@@ -82,8 +334,30 @@ const DynamicPage: React.FC<DynamicPageProps> = ({
       Content for this page is being prepared. Please check back later.
     </p>
     <p style="color: #888; font-size: 0.9rem;">
-      Page: ${pageTitle}
+      Page: ${pageTitle}${slug ? ` (${slug})` : ""}
     </p>
+    <div style="margin-top: 2rem; padding: 1rem; background: #f0f8ff; border-radius: 8px; border-left: 4px solid #007bff;">
+      <p style="color: #0066cc; font-size: 0.9rem; margin: 0;">
+        🔍 <strong>Debug Info:</strong><br>
+        • Client-side: ${isClient ? "Active" : "Loading..."}<br>
+        • Loading: ${loading ? "Yes" : "No"}<br>
+        • Full Content: ${
+          fullContent
+            ? `${(fullContent as any).articles?.length || 0} articles, ${
+                (fullContent as any).banners?.length || 0
+              } banners`
+            : "None"
+        }<br>
+        • Menu Item: ${menuItem ? menuItem.title : "None"}<br>
+        • Props Slug: ${slug}<br>
+        • Client Slug: ${clientSlug}<br>
+        • URL: ${
+          typeof window !== "undefined"
+            ? window.location.pathname
+            : "Server-side"
+        }
+      </p>
+    </div>
   </div>`;
 
   return (
@@ -118,22 +392,25 @@ export const getStaticPaths: GetStaticPaths = async () => {
 
     return {
       paths,
-      fallback: false, // Show 404 for non-existent pages
+      fallback: "blocking", // Allow new pages to be generated dynamically
     };
   } catch (error) {
     console.error("Error generating static paths:", error);
     return {
       paths: [],
-      fallback: false,
+      fallback: "blocking",
     };
   }
 };
 
 // Generate static props for each page at build time
+// Generate static props with real data for static hosting
 export const getStaticProps: GetStaticProps = async (context) => {
   const { slug } = context.params!;
+  console.log("🏗️ [DEBUG] getStaticProps called for slug:", slug);
 
   if (!slug || typeof slug !== "string") {
+    console.log("❌ [DEBUG] Invalid slug, returning 404");
     return {
       notFound: true,
     };
@@ -149,90 +426,65 @@ export const getStaticProps: GetStaticProps = async (context) => {
       menuItem =
         menusResponse.data.find((item) => {
           const link = item.link || "";
-          // Check if link matches the slug (handle both /privacy and privacy)
-          const normalizedLink = link.startsWith("/") ? link.slice(1) : link;
-          return normalizedLink === slug || link === `/${slug}`;
+          const menuSlug = link.startsWith("/") ? link.slice(1) : link;
+          return menuSlug === slug;
         }) || null;
     }
 
+    console.log(
+      "🔍 [DEBUG] Found menu item:",
+      menuItem ? menuItem.title : "NOT FOUND"
+    );
+
     // If no matching menu item found, return 404
     if (!menuItem) {
+      console.log("❌ [DEBUG] No menu item found, returning 404");
       return {
         notFound: true,
       };
     }
 
-    // Try to fetch content from middleware API using new format
-    let pageContent: DynamicPageContent | null = null;
-    let fullContent: DynamicPageFullContent | null = null;
+    // Fetch content data
+    let fullContent = null;
 
     try {
-      // First, try to get full content (banners + articles) using menu slug
-      const fullContentResponse = await contentApi.getFullPageContent(slug);
+      // Try individual API calls
+      const [bannersResponse, articlesResponse] = await Promise.all([
+        contentApi.getBannersByMenu(slug),
+        contentApi.getArticlesByMenu(slug),
+      ]);
 
-      if (fullContentResponse.success && fullContentResponse.data) {
-        fullContent = fullContentResponse.data;
-      } else {
-        // If no full content, try legacy approach for backward compatibility
-        const contentResponse = await contentApi.getDynamicPageContent(slug);
+      console.log("📡 [DEBUG] API responses:", {
+        bannersSuccess: bannersResponse.success,
+        bannersCount: bannersResponse.data?.length || 0,
+        articlesSuccess: articlesResponse.success,
+        articlesCount: articlesResponse.data?.length || 0,
+      });
 
-        if (contentResponse.success && contentResponse.data) {
-          pageContent = contentResponse.data;
-        } else {
-          // Create fallback content if no API content is available
-          pageContent = {
-            title: menuItem.title,
-            content: `<div style="text-align: center; padding: 3rem 0;">
-              <h2 style="color: #333; margin-bottom: 1rem;">Welcome to ${menuItem.title}</h2>
-              <p style="color: #666; font-size: 1.1rem; line-height: 1.6;">
-                This page content will be loaded from the CMS API. 
-                The content management system will provide the detailed information for this section.
-              </p>
-              <p style="color: #888; margin-top: 2rem; font-size: 0.9rem;">
-                Route: /${slug} | API Status: Content not found
-              </p>
-            </div>`,
-            slug: slug,
-            meta: {
-              description: `Learn more about ${menuItem.title} on NULP - National Urban Learning Platform`,
-            },
-          };
-        }
+      if (bannersResponse.success || articlesResponse.success) {
+        fullContent = {
+          page_title: menuItem.title || slug,
+          menu_slug: slug,
+          banners: bannersResponse.success ? bannersResponse.data || [] : [],
+          articles: articlesResponse.success ? articlesResponse.data || [] : [],
+        };
+        console.log("✅ [DEBUG] Created full content with data");
       }
     } catch (contentError) {
-      console.warn(`Failed to fetch content for ${slug}:`, contentError);
-
-      // Create error fallback content
-      pageContent = {
-        title: menuItem.title,
-        content: `<div style="text-align: center; padding: 3rem 0;">
-          <h2 style="color: #333; margin-bottom: 1rem;">${menuItem.title}</h2>
-          <p style="color: #666; font-size: 1.1rem; line-height: 1.6;">
-            Content is temporarily unavailable. Please try again later.
-          </p>
-          <p style="color: #888; margin-top: 2rem; font-size: 0.9rem;">
-            Route: /${slug} | Error: ${
-          contentError instanceof Error ? contentError.message : "Unknown error"
-        }
-          </p>
-        </div>`,
-        slug: slug,
-        meta: {
-          description: `Learn more about ${menuItem.title} on NULP`,
-        },
-      };
+      console.warn("⚠️ [DEBUG] Failed to fetch content:", contentError);
     }
 
+    console.log("✅ [DEBUG] Returning props for slug:", slug);
     return {
       props: {
         slug,
-        pageContent,
+        pageContent: null,
         fullContent,
         menuItem,
       },
     };
   } catch (error) {
-    console.error("Error in getStaticProps for dynamic page:", error);
+    console.error("❌ [DEBUG] Error in getStaticProps:", error);
 
     return {
       notFound: true,
