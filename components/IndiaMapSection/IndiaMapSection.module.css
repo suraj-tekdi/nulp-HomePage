@@ -128,7 +128,7 @@
 .mapSection__svgMap path[id="mp"],
 .mapSection__svgMap path[id="jh"],
 .mapSection__svgMap path[id="tr"] {
-  fill: #054365;
+  fill: #03174999;
   stroke: #ffffff;
   stroke-width: 2;
 }
@@ -155,12 +155,12 @@
 .mapSection__svgMap path[id="mp"]:hover,
 .mapSection__svgMap path[id="jh"]:hover,
 .mapSection__svgMap path[id="tr"]:hover {
-  fill: #054365 !important;
+  fill: #03174999 !important;
 }
 
 /* Active state styling - will be applied via JavaScript */
 .mapSection__svgMap path.selected {
-  fill: #054365 !important;
+  fill: #03174999 !important;
   stroke: #ffffff !important;
   stroke-width: 3 !important;
 }

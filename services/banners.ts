@@ -101,7 +101,7 @@ export const bannersApi = {
         ? raw.data.data
         : [];
       if (raw?.success && Array.isArray(items)) {
-        // Filter visibility: published, active, within window
+        // Filter visibility: published banner, active, publish window, category and menu
         const visible = (items as HomepageBannerItem[])
           .filter((b) =>
             typeof (b as any).is_active === "boolean"
@@ -112,6 +112,15 @@ export const bannersApi = {
           .filter((b) =>
             isWithinPublishWindow(b.start_publish_date, b.end_publish_date)
           )
+          .filter((b) => (b.category?.slug || "") === "landing-page-banners")
+          .filter((b) => {
+            const title = (b.menu?.title || "").toLowerCase();
+            const slug = (b.menu?.slug || "").toLowerCase();
+            // Accept explicit Home title or slug variants like "home" / "home-1"
+            return (
+              title === "home" || slug === "home" || slug.startsWith("home-")
+            );
+          })
           .sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
         return { success: true, data: visible, status: response.status };
       }
