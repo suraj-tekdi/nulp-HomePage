@@ -40,7 +40,7 @@
 }
 
 .vision__text {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   line-height: 1.8;
   color: #333;
 }
@@ -69,6 +69,7 @@
   width: 100%;
   max-width: 600px;
   aspect-ratio: 3 / 2; /* maintain consistent height */
+  min-height: 240px; /* ensure visibility on mobile */
 }
 
 .vision__image {
@@ -89,15 +90,16 @@
   .vision__content {
     flex-direction: column;
     gap: 40px;
-    text-align: center;
   }
 
   .vision__title {
-    font-size: 2.5rem;
+    font-size: 2.4rem;
+    font-weight: 800;
+    letter-spacing: 0.2px;
   }
 
   .vision__text {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
   }
 }
 
@@ -112,13 +114,33 @@
 
   .vision__title {
     font-size: 2rem;
+    font-weight: 800;
   }
 
   .vision__text {
-    font-size: 1rem;
+    font-size: 1.1rem;
   }
 
   .vision__accent {
-    font-size: 1rem;
+    font-size: inherit;
+  }
+
+  .vision__imageWrapper {
+    min-height: 220px;
+  }
+
+  /* Force CMS heading sizing on mobile */
+  .vision__cms h1,
+  .vision__cms h2 {
+    font-size: 2rem !important;
+    line-height: 1.2 !important;
+    letter-spacing: 0.2px !important;
+  }
+  .vision__cms h1 span,
+  .vision__cms h1 strong,
+  .vision__cms h2 span,
+  .vision__cms h2 strong {
+    font-size: inherit !important;
+    line-height: inherit !important;
   }
 }

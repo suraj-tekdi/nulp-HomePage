@@ -8,7 +8,7 @@
 .why__divider {
   width: 350px;
   height: 2px;
-  background: #FFC700;
+  background: #ffc700;
   margin: 0 auto 24px;
 }
 
@@ -91,10 +91,11 @@
 }
 
 .why__expanded.show {
-  max-height: 700px;
+  max-height: 900px;
   opacity: 1;
   transform: translateY(0);
   padding: 20px 30px 30px;
+  overflow: visible; /* ensure content is not clipped */
 }
 .why__expanded p {
   margin: 0 0 1rem;
