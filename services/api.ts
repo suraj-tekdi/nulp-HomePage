@@ -782,8 +782,8 @@ export interface HomepageTestimonialItem {
     createdAt: string;
     updatedAt: string;
     publishedAt: string;
-  };
-  thumbnail?: HomepageTestimonialThumbnail;
+  } | null;
+  thumbnail?: HomepageTestimonialThumbnail | null;
 }
 
 export interface HomepageTestimonialsResponseMeta {
@@ -811,7 +811,7 @@ export const testimonialsApi = {
   > => {
     try {
       const response = await fetch(
-        `${baseUrl}/mw-cms/api/v1/homepage/testimonials`,
+        `${baseUrl}/mw-cms/api/v1/homepage/testimonials?state=Published`,
         {
           method: "GET",
           headers: { Accept: "application/json" },
@@ -820,15 +820,42 @@ export const testimonialsApi = {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const data: HomepageTestimonialsResponse = await response.json();
-      if (data.success && Array.isArray(data.data)) {
-        return { success: true, data: data.data, status: response.status };
-      }
-      return {
-        success: false,
-        error: "Invalid testimonials API response",
-        status: response.status,
+      const data: HomepageTestimonialsResponse | any = await response.json();
+
+      // Normalize response to an array
+      const rawItems: any[] = Array.isArray((data as any)?.data)
+        ? (data as any)?.data
+        : Array.isArray(data)
+        ? (data as any)
+        : [];
+
+      // Helpers for date window filtering
+      const parseDateMs = (v?: any): number | null => {
+        if (!v) return null;
+        const ms = Date.parse(v);
+        return Number.isNaN(ms) ? null : ms;
       };
+      const isWithinWindow = (
+        start?: any,
+        end?: any,
+        nowMs: number = Date.now()
+      ) => {
+        const s = parseDateMs(start);
+        const e = parseDateMs(end);
+        if (s !== null && nowMs < s) return false;
+        if (e !== null && nowMs > e) return false;
+        return true;
+      };
+
+      const nowMs = Date.now();
+      const filtered: HomepageTestimonialItem[] = rawItems
+        .filter((t: any) => (t?.state || "").toLowerCase() === "published")
+        .filter((t: any) =>
+          isWithinWindow(t?.start_publish_date, t?.end_publish_date, nowMs)
+        )
+        .map((t: any) => t as HomepageTestimonialItem);
+
+      return { success: true, data: filtered, status: response.status };
     } catch (error) {
       return {
         success: false,

@@ -298,15 +298,6 @@
   min-height: 600px;
   overflow: hidden;
   position: relative;
-  cursor: grab; /* hand cursor */
-  user-select: none; /* avoid text selection on drag */
-  -webkit-user-drag: none;
-  touch-action: none; /* allow custom pointer-based vertical swipe */
-}
-
-/* visual feedback when dragging */
-.gallery__autoScroll.isDragging {
-  cursor: grabbing;
 }
 
 .gallery__scrollItem {
@@ -571,7 +562,7 @@
   }
 
   .mapSection__container {
-    padding: 0 15px;
+    padding: 0 12px;
   }
 
   .mapSection__title {
@@ -616,7 +607,7 @@
 
   .gallery__item:nth-child(1) .gallery__image,
   .gallery__item:nth-child(3) .gallery__image {
-    width: 85%;
+    width: 92%;
     margin: 0 auto;
     border-radius: 10px;
   }
@@ -653,8 +644,8 @@
   }
 
   .gallery__scrollItem--center .gallery__scrollImage {
-    width: 340px; /* fixed center width small mobile */
-    max-width: 90vw;
+    width: 400px; /* fixed center width small mobile */
+    max-width: 92vw;
   }
 
   .gallery__scrollItem--center .gallery__scrollImage img {
@@ -664,7 +655,7 @@
   .gallery__scrollItem--top .gallery__scrollImage,
   .gallery__scrollItem--bottom .gallery__scrollImage {
     width: 100%;
-    max-width: 320px;
+    max-width: 360px;
   }
 
   .gallery__scrollItem--top .gallery__scrollImage img,
