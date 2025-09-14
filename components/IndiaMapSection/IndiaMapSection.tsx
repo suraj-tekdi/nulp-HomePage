@@ -97,6 +97,10 @@ const IndiaMapSection: React.FC = () => {
   const [availableStateNames, setAvailableStateNames] = useState<Set<string>>(
     new Set()
   );
+  const [isInteracting, setIsInteracting] = useState<boolean>(false);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const dragStartYRef = useRef<number | null>(null);
+  const galleryRef = useRef<HTMLDivElement | null>(null);
 
   // Highlighted states from JSON (public)
   const [highlightedStateIds, setHighlightedStateIds] = useState<Set<string>>(
@@ -280,18 +284,67 @@ const IndiaMapSection: React.FC = () => {
 
   // Auto-rotation
   useEffect(() => {
-    if (currentImages.length > 1) {
+    if (currentImages.length > 1 && !isInteracting) {
       const interval = setInterval(() => {
         setCurrentImageIndex((prev) => (prev + 1) % currentImages.length);
       }, 3500);
       return () => clearInterval(interval);
     }
-  }, [currentImages.length]);
+  }, [currentImages.length, isInteracting]);
 
   // Reset index when dataset changes
   useEffect(() => {
     setCurrentImageIndex(0);
   }, [selectedState, selectedStateName, allImages.length]);
+
+  // Drag/swipe handlers for manual vertical navigation
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    setIsInteracting(true);
+    setIsDragging(true);
+    dragStartYRef.current = e.clientY;
+    try {
+      (e.target as Element).setPointerCapture?.(e.pointerId);
+    } catch {}
+  };
+
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging || dragStartYRef.current === null) return;
+    const deltaY = e.clientY - dragStartYRef.current;
+    const threshold = 40; // px to change slide
+    if (Math.abs(deltaY) > threshold) {
+      setCurrentImageIndex((prev) => {
+        if (deltaY > 0) {
+          // drag down -> previous
+          return (prev - 1 + currentImages.length) % currentImages.length;
+        }
+        // drag up -> next
+        return (prev + 1) % currentImages.length;
+      });
+      dragStartYRef.current = e.clientY; // allow continued scrolling by chunks
+    }
+  };
+
+  const endInteraction = () => {
+    setIsDragging(false);
+    dragStartYRef.current = null;
+    // brief delay to avoid instant resume while ending touch
+    setTimeout(() => setIsInteracting(false), 200);
+  };
+
+  const onWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    if (!currentImages.length) return;
+    setIsInteracting(true);
+    if (e.deltaY > 0) {
+      setCurrentImageIndex((prev) => (prev + 1) % currentImages.length);
+    } else if (e.deltaY < 0) {
+      setCurrentImageIndex(
+        (prev) => (prev - 1 + currentImages.length) % currentImages.length
+      );
+    }
+    // allow auto-rotation to resume shortly
+    clearTimeout((onWheel as any)._t);
+    (onWheel as any)._t = setTimeout(() => setIsInteracting(false), 400);
+  };
 
   // Compute 3 visible cards (top/center/bottom)
   const getVisibleImages = () => {
@@ -439,7 +492,18 @@ const IndiaMapSection: React.FC = () => {
                   <p>{error}</p>
                 </div>
               ) : visibleImages.length > 0 ? (
-                <div className={styles.gallery__autoScroll}>
+                <div
+                  ref={galleryRef}
+                  className={`${styles.gallery__autoScroll} ${
+                    isDragging ? "isDragging" : ""
+                  }`}
+                  onPointerDown={onPointerDown}
+                  onPointerMove={onPointerMove}
+                  onPointerUp={endInteraction}
+                  onPointerCancel={endInteraction}
+                  onPointerLeave={endInteraction}
+                  onWheel={onWheel}
+                >
                   {visibleImages.map((imageData, i) => (
                     <div
                       key={`${imageData.index}-${i}`}

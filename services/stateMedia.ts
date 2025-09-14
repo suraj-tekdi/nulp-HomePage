@@ -50,6 +50,25 @@ function pickBestImageUrl(img: any): string | null {
   );
 }
 
+// Date helpers for visibility window
+function parseDateMs(value?: any): number | null {
+  if (!value) return null;
+  const ms = Date.parse(value);
+  return Number.isNaN(ms) ? null : ms;
+}
+
+function isWithinWindow(
+  start?: any,
+  end?: any,
+  nowMs: number = Date.now()
+): boolean {
+  const s = parseDateMs(start);
+  const e = parseDateMs(end);
+  if (s !== null && nowMs < s) return false; // Not started yet
+  if (e !== null && nowMs > e) return false; // Already ended
+  return true;
+}
+
 const CMS_MEDIA_URL = `${
   getDynamicNulpUrls().base
 }/mw-cms/api/v1/homepage/media?state=Published`;
@@ -74,21 +93,41 @@ export const stateMediaApi = {
       const stateIds: Set<string> = new Set();
       const stateNames: Set<string> = new Set();
 
+      const nowMs = Date.now();
+
       items.forEach((entry: any) => {
         const isPublished = (entry?.state || "").toLowerCase() === "published";
         const menuTitle = (entry?.menu?.title || "").trim().toLowerCase();
         const isStateEngagement = menuTitle === "state engagement";
         const hasImages =
           Array.isArray(entry?.upload_image) && entry.upload_image.length > 0;
-        if (!isPublished || !isStateEngagement || !hasImages) return;
+
+        // Visibility window checks
+        const entryVisible = isWithinWindow(
+          entry?.display_start_date,
+          entry?.display_end_date,
+          nowMs
+        );
+        const menuVisible = isWithinWindow(
+          entry?.menu?.start_publish_date,
+          entry?.menu?.end_publish_date,
+          nowMs
+        );
+
+        if (
+          !isPublished ||
+          !isStateEngagement ||
+          !hasImages ||
+          !entryVisible ||
+          !menuVisible
+        )
+          return;
 
         const stateInfo = normalizeStateFromCategory(entry?.category);
         const title: string = entry?.title || "Untitled";
         const uploadImages: any[] = entry.upload_image;
 
-        if (stateInfo?.id) stateIds.add(stateInfo.id.toLowerCase());
-        if (stateInfo?.name) stateNames.add(stateInfo.name);
-
+        let pushedForThisEntry = false;
         uploadImages.forEach((img: any) => {
           const url = pickBestImageUrl(img);
           if (!url) return;
@@ -98,7 +137,13 @@ export const stateMediaApi = {
             stateId: (stateInfo.id || "").toLowerCase(),
             stateName: stateInfo.name || null,
           });
+          pushedForThisEntry = true;
         });
+
+        if (pushedForThisEntry) {
+          if (stateInfo?.id) stateIds.add(stateInfo.id.toLowerCase());
+          if (stateInfo?.name) stateNames.add(stateInfo.name);
+        }
       });
 
       return {
