@@ -45,6 +45,7 @@ const TrendingGoodPracticesSection: React.FC<
   const [goodPractices, setGoodPractices] = useState<GoodPractice[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isVisible, setIsVisible] = useState<boolean>(true);
 
   // Pagination state derived from items count
   const [totalSlides, setTotalSlides] = useState<number>(1);
@@ -113,13 +114,14 @@ const TrendingGoodPracticesSection: React.FC<
         // 1) Read good-practice IDs from sliders API
         const idsRes = await slidersApi.getTrendingGoodPracticeIds();
         if (!idsRes.success) {
-          setError(idsRes.error || "No trending good practices configured");
+          setIsVisible(false);
           setGoodPractices([]);
+          setError(idsRes.error || "No trending good practices configured");
           return;
         }
         const ids = (idsRes.data || []).filter(Boolean);
-        if (!ids.length) {
-          setError("No trending good practice IDs configured");
+        setIsVisible(ids.length > 0);
+        if (ids.length === 0) {
           setGoodPractices([]);
           return;
         }
@@ -313,7 +315,7 @@ const TrendingGoodPracticesSection: React.FC<
     [handlePracticeClick]
   );
 
-  return (
+  return isVisible ? (
     <section className={`${styles.practices} ${className}`}>
       <div className={styles.practices__container}>
         <div className={styles.practices__header}>
@@ -472,7 +474,7 @@ const TrendingGoodPracticesSection: React.FC<
         </div>
       </div>
     </section>
-  );
+  ) : null;
 };
 
 export default TrendingGoodPracticesSection;

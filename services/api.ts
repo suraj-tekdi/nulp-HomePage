@@ -422,18 +422,26 @@ export function transformDiscussionTopic(topic: DiscussionTopic): {
   location?: string;
   slug: string;
 } {
+  const categoryName = (topic as any)?.category?.name || "General";
+  const user = (topic as any)?.user || ({} as Partial<DiscussionUser>);
+  const authorName =
+    (user as any)?.fullname ||
+    (user as any)?.displayname ||
+    (user as any)?.username ||
+    "";
+
   return {
     id: topic.tid,
-    title: topic.titleRaw || topic.title,
+    title: (topic.titleRaw || topic.title) as string,
     description:
       topic.content || topic.contentRaw || "No description available",
-    category: topic.category.name,
-    replies: topic.postcount - 1, // Subtract 1 as postcount includes the original post
-    views: topic.viewcount,
+    category: categoryName,
+    replies: Math.max(0, (topic.postcount || 1) - 1),
+    views: topic.viewcount || 0,
     isSolved: topic.isSolved === 1,
-    author: topic.user.fullname || topic.user.displayname,
-    designation: topic.user.designation,
-    location: topic.user.location,
+    author: authorName,
+    designation: (user as any)?.designation,
+    location: (user as any)?.location,
     slug: topic.slug,
   };
 }
@@ -464,18 +472,30 @@ export function transformDomainDiscussionPost(post: DomainDiscussionPost): {
     );
   };
 
+  const categoryName = (post as any)?.category?.name || "General";
+  const user = (post as any)?.user || ({} as Partial<DiscussionUser>);
+  const authorName =
+    (user as any)?.fullname ||
+    (user as any)?.displayname ||
+    (user as any)?.username ||
+    "";
+
   return {
-    id: post.topic.tid,
-    title: post.topic.titleRaw || post.topic.title,
+    id: (post as any)?.topic?.tid || post.tid,
+    title: ((post as any)?.topic?.titleRaw ||
+      (post as any)?.topic?.title) as string,
     description: cleanDescription(post.content),
-    category: post.category.name,
-    replies: Math.max(0, (post.topic.postcount || 1) - 1), // Subtract 1 as postcount includes the original post
+    category: categoryName,
+    replies: Math.max(
+      0,
+      (((post as any)?.topic?.postcount as number) || 1) - 1
+    ), // Subtract 1 as postcount includes the original post
     views: 0, // View count not available in domain API response
-    isSolved: post.topic.isSolved === 1,
-    author: post.user.fullname || post.user.displayname || post.user.username,
-    designation: post.user.designation,
-    location: post.user.location,
-    slug: post.topic.slug,
+    isSolved: (((post as any)?.topic?.isSolved as number) || 0) === 1,
+    author: authorName,
+    designation: (user as any)?.designation,
+    location: (user as any)?.location,
+    slug: ((post as any)?.topic?.slug as string) || "",
   };
 }
 
