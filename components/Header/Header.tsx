@@ -582,8 +582,8 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
         };
         router.events.on("routeChangeComplete", onComplete);
         router.push(targetPage).catch(() => {
-            window.location.href = `${targetPage}#${item.scrollTo}`;
-          });
+          window.location.href = `${targetPage}#${item.scrollTo}`;
+        });
       }
       return;
     }

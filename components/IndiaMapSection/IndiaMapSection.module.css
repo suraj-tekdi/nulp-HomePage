@@ -161,7 +161,7 @@
 
 /* Active state styling - will be applied via JavaScript */
 .mapSection__svgMap path.selected {
-  fill: #03174999 !important;
+  fill: #054365 !important;
   stroke: #ffffff !important;
   stroke-width: 3 !important;
 }
