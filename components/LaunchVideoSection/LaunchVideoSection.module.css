@@ -56,6 +56,11 @@
   align-items: center;
 }
 
+/* Modifier: when there is no media, collapse to single column and center */
+.launchVideo__content__noMedia {
+  grid-template-columns: 1fr;
+}
+
 /* Left Side - Video */
 .launchVideo__videoWrapper {
   position: relative;
@@ -92,10 +97,22 @@
   position: relative;
 }
 
+/* Center stats wrapper when no media */
+.launchVideo__statsWrapper__center {
+  display: flex;
+  justify-content: center;
+}
+
 .launchVideo__statsGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--spacing-lg);
+}
+
+/* Center grid and constrain width when no media */
+.launchVideo__statsGrid__center {
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .launchVideo__statCard {
