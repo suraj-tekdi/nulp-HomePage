@@ -28,6 +28,7 @@ export interface HomepageSliderItem {
   start_publish_date?: string | null;
   end_publish_date?: string | null;
   is_active?: boolean;
+  description?: string | null;
 }
 
 export interface HomepageSlidersResponseMeta {

@@ -46,6 +46,7 @@ const TrendingGoodPracticesSection: React.FC<
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isVisible, setIsVisible] = useState<boolean>(true);
+  const [sliderDescription, setSliderDescription] = useState<string>("");
 
   // Pagination state derived from items count
   const [totalSlides, setTotalSlides] = useState<number>(1);
@@ -112,14 +113,21 @@ const TrendingGoodPracticesSection: React.FC<
         setError(null);
 
         // 1) Read good-practice IDs from sliders API
-        const idsRes = await slidersApi.getTrendingGoodPracticeIds();
-        if (!idsRes.success) {
+        const allRes = await slidersApi.getHomepageSliders();
+        if (!allRes.success || !Array.isArray(allRes.data)) {
           setIsVisible(false);
           setGoodPractices([]);
-          setError(idsRes.error || "No trending good practices configured");
+          setError(allRes.error || "No trending good practices configured");
           return;
         }
-        const ids = (idsRes.data || []).filter(Boolean);
+        const all = allRes.data || [];
+        const slider = (all as any[]).find(
+          (i) => (i.mode || "").toLowerCase() === "select_good_practices"
+        );
+        setSliderDescription((slider?.description as string) || "");
+        const ids = (
+          (slider?.trending_good_practices as string[]) || []
+        ).filter(Boolean);
         setIsVisible(ids.length > 0);
         if (ids.length === 0) {
           setGoodPractices([]);
@@ -470,6 +478,16 @@ const TrendingGoodPracticesSection: React.FC<
                 </button>
               </div>
             </div>
+          )}
+
+          {/* Slider description */}
+          {sliderDescription && (
+            <p
+              className={styles.practices__subtitle}
+              style={{ textAlign: "center", marginTop: "12px" }}
+            >
+              {sliderDescription}
+            </p>
           )}
         </div>
       </div>
