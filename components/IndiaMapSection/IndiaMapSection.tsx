@@ -154,23 +154,29 @@ const IndiaMapSection: React.FC = () => {
         if (isMounted && stacksRes.success && Array.isArray(stacksRes.data)) {
           const map = new Map<string, { title: string; count: number }>();
           (stacksRes.data as any[])
+            // published only
             .filter((i) => (i.state || "").toLowerCase() === "published")
-            .filter(
-              (i) =>
-                (i?.menu?.title || i?.menu?.slug || "").toLowerCase() ===
-                  "state engagement" ||
-                (i?.menu?.slug || "").toLowerCase() === "state-engagement"
-            )
-            .filter((i) =>
-              (i.title || "").trim().toLowerCase().startsWith("ulb count")
-            )
-            .forEach((i) => {
-              const st = getStateFromCategory(i.category || null);
+            // menu visibility: State Engagement
+            .filter((i) => {
+              const t = (i?.menu?.title || i?.menu?.slug || "").toLowerCase();
+              return t === "state engagement" || t === "state-engagement";
+            })
+            // a valid category must resolve to a state id
+            .map((i) => ({
+              item: i,
+              st: getStateFromCategory(i.category || null),
+            }))
+            .filter(({ st }) => !!st.id)
+            .forEach(({ item, st }) => {
               const id = (st.id || "").toLowerCase();
               if (!id) return;
-              const title = ((i.title || "ULB Count") as string).trim();
-              const count = Number(i.enter_count || 0);
-              map.set(id, { title, count });
+              const title: string = (item.title || "ULB Count").toString();
+              const count = Number(item.enter_count || 0);
+              // If multiple entries exist, keep the max count
+              const existing = map.get(id);
+              if (!existing || count > existing.count) {
+                map.set(id, { title, count });
+              }
             });
           setUlbMap(map);
         }
