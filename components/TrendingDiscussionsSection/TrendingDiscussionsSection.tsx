@@ -52,6 +52,7 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isNavigationNeeded, setIsNavigationNeeded] = useState(false);
+  const [isVisible, setIsVisible] = useState<boolean>(true);
 
   // Fetch discussions from API
   useEffect(() => {
@@ -70,37 +71,42 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
             transformedDiscussions = (
               response.data as DomainDiscussionPost[]
             ).map(transformDomainDiscussionPost) as unknown as Discussion[];
+          } else if (!response.success) {
+            setError(response.error || "Failed to fetch domain discussions");
           }
         } else {
           // No domain selected -> use sliders to get curated trending discussions
           const slugsRes = await slidersApi.getTrendingDiscussionSlugs();
           if (!slugsRes.success) {
-            throw new Error(slugsRes.error || "Failed to get slider slugs");
+            setIsVisible(false);
+            setDiscussions([]);
+            setError(slugsRes.error || "Failed to get slider slugs");
+            return;
           }
-          const slugs = (slugsRes.data || []).slice(0, 12); // limit for safety
+          const slugs = (slugsRes.data || []).filter(Boolean).slice(0, 12); // limit for safety
 
+          setIsVisible(slugs.length > 0);
           if (slugs.length === 0) {
-            transformedDiscussions = [];
-          } else {
-            // Fetch each topic by slug path in parallel
-            const topicPromises = slugs.map((slugPath) =>
-              discussionApi.getTopicBySlugPath(slugPath as string)
-            );
-            const topicsResults = await Promise.all(topicPromises);
-            const topics: DiscussionTopic[] = topicsResults
-              .filter((r) => r.success && r.data)
-              .map((r) => r.data as DiscussionTopic);
-
-            transformedDiscussions = topics.map((t) =>
-              transformDiscussionTopic(t)
-            ) as unknown as Discussion[];
+            setDiscussions([]);
+            return;
           }
+
+          // Fetch each topic by slug path in parallel
+          const topicPromises = slugs.map((slugPath) =>
+            discussionApi.getTopicBySlugPath(slugPath as string)
+          );
+          const topicsResults = await Promise.all(topicPromises);
+          const topics: DiscussionTopic[] = topicsResults
+            .filter((r) => r.success && r.data)
+            .map((r) => r.data as DiscussionTopic);
+
+          transformedDiscussions = topics.map((t) =>
+            transformDiscussionTopic(t)
+          ) as unknown as Discussion[];
         }
 
         if (transformedDiscussions) {
           setDiscussions(transformedDiscussions || []);
-        } else if (response && response.success === false) {
-          setError(response.error || "Failed to fetch discussions");
         }
       } catch (err) {
         setError(
@@ -260,6 +266,8 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
     div.innerHTML = html;
     return div.textContent || div.innerText || "";
   };
+
+  if (!isVisible) return null;
 
   if (loading) {
     return (

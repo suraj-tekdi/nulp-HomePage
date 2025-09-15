@@ -101,7 +101,7 @@ export const bannersApi = {
         ? raw.data.data
         : [];
       if (raw?.success && Array.isArray(items)) {
-        // Filter visibility: published, active, within window
+        // Filter visibility: published banner, active, publish window, category and menu
         const visible = (items as HomepageBannerItem[])
           .filter((b) =>
             typeof (b as any).is_active === "boolean"
@@ -112,8 +112,76 @@ export const bannersApi = {
           .filter((b) =>
             isWithinPublishWindow(b.start_publish_date, b.end_publish_date)
           )
+          .filter((b) => (b.category?.slug || "") === "landing-page-banners")
+          .filter((b) => {
+            const title = (b.menu?.title || "").toLowerCase();
+            const slug = (b.menu?.slug || "").toLowerCase();
+            // Accept explicit Home title or slug variants like "home" / "home-1"
+            return (
+              title === "home" || slug === "home" || slug.startsWith("home-")
+            );
+          })
           .sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
         return { success: true, data: visible, status: response.status };
+      }
+      return {
+        success: false,
+        error: "Invalid banners API response",
+        status: response.status,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to fetch banners",
+        status: 0,
+      };
+    }
+  },
+
+  // New: About Us page hero banner
+  getAboutUsBanner: async (): Promise<
+    ApiResponse<HomepageBannerItem | null>
+  > => {
+    try {
+      const { base } = getDynamicNulpUrls();
+      const response = await fetch(`${base}/mw-cms/api/v1/homepage/banners`, {
+        method: "GET",
+        headers: { Accept: "application/json" },
+      });
+      if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status}`);
+      const raw: HomepageBannersResponse | any = await response.json();
+      const items = Array.isArray(raw?.data)
+        ? raw.data
+        : Array.isArray(raw?.data?.data)
+        ? raw.data.data
+        : [];
+      if (raw?.success && Array.isArray(items)) {
+        const visible = (items as HomepageBannerItem[])
+          .filter((b) =>
+            typeof (b as any).is_active === "boolean"
+              ? (b as any).is_active
+              : true
+          )
+          .filter((b) => (b.state || "").toLowerCase() === "published")
+          .filter((b) =>
+            isWithinPublishWindow(b.start_publish_date, b.end_publish_date)
+          )
+          .filter(
+            (b) => (b.category?.slug || "").toLowerCase() === "about-us-banner"
+          )
+          .filter((b) => {
+            const title = (b.menu?.title || "").toLowerCase();
+            const slug = (b.menu?.slug || "").toLowerCase();
+            return title === "about us" || slug === "about-us";
+          })
+          .sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+        return {
+          success: true,
+          data: visible.length > 0 ? visible[0] : null,
+          status: response.status,
+        };
       }
       return {
         success: false,

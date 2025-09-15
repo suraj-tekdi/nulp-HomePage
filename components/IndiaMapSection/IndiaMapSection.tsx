@@ -476,7 +476,7 @@ const IndiaMapSection: React.FC = () => {
                     <div className={styles.mapSection__noGallery}>
                       <h4>No Gallery Available</h4>
                       <p>
-                        We don't have event images for{" "}
+                        We don't have event images for {""}
                         <strong>{selectedStateName}</strong> at the moment.
                       </p>
                       <p>

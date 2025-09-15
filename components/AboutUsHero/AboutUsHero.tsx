@@ -1,8 +1,8 @@
 // AboutUsHero.tsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./AboutUsHero.module.css";
+import { bannersApi, type HomepageBannerItem } from "../../services";
 import { stacksApi, type HomepageStackItem } from "../../services";
-import { articlesApi, type HomepageArticleItem } from "../../services";
 
 interface BannerProps {
   className?: string;
@@ -74,42 +74,42 @@ const sanitizeCmsHtml = (html: string): string => {
 };
 
 const AboutUsHero: React.FC<BannerProps> = ({ className = "" }) => {
-  // Banner content from CMS "About Us Banner" article
+  // Banner content from CMS "About Us" banner API
+  const [banner, setBanner] = useState<HomepageBannerItem | null>(null);
   const [bannerHtml, setBannerHtml] = useState<string>("");
   const [backgroundImage, setBackgroundImage] = useState<string | undefined>(
     "/images/banner/banner1.png"
   );
 
-  // Stats from stacks API (same flow as Banner component)
+  // Stats panel content sourced from stacks (banner-stack)
   const [stats, setStats] = useState<
     { number: number; label: string; duration: number }[]
   >([]);
-  const [isLoadingStacks, setIsLoadingStacks] = useState(true);
   const [shouldAnimateStats, setShouldAnimateStats] = useState(false);
 
   const sectionRef = useRef<HTMLElement>(null);
 
-  // Fetch About Us articles once and extract the banner item
+  // Fetch About Us banner from CMS
   useEffect(() => {
     let isMounted = true;
     (async () => {
-      const res = await articlesApi.getAboutUsArticles();
+      const res = await bannersApi.getAboutUsBanner();
       if (!isMounted) return;
-      if (res.success && Array.isArray(res.data)) {
-        const items = res.data as HomepageArticleItem[];
-        const bannerItem =
-          items.find(
-            (a) => (a.slug || "").toLowerCase() === "about-us-banner"
-          ) ||
-          items.find(
-            (a) => (a.category?.slug || "").toLowerCase() === "about-us-banner"
-          );
-        const cleaned = sanitizeCmsHtml(bannerItem?.content || "");
+      if (res.success) {
+        const b = res.data || null;
+        setBanner(b);
+        const cleaned = sanitizeCmsHtml(b?.content || "");
         setBannerHtml(cleaned);
-        // In future, if background is provided via thumbnail, use it
-        if (bannerItem?.thumbnail?.url)
-          setBackgroundImage(bannerItem.thumbnail.url);
+        // Prefer large/medium/small format; fallback to url
+        const bg =
+          (b as any)?.background_image?.formats?.large?.url ||
+          (b as any)?.background_image?.formats?.medium?.url ||
+          (b as any)?.background_image?.formats?.small?.url ||
+          (b as any)?.background_image?.url ||
+          undefined;
+        if (bg) setBackgroundImage(bg);
       } else {
+        setBanner(null);
         setBannerHtml("");
       }
     })();
@@ -118,7 +118,7 @@ const AboutUsHero: React.FC<BannerProps> = ({ className = "" }) => {
     };
   }, []);
 
-  // Fetch stacks and map to stats like Banner
+  // Fetch stacks and map to stats to display on banner
   useEffect(() => {
     let isMounted = true;
     (async () => {
@@ -127,7 +127,7 @@ const AboutUsHero: React.FC<BannerProps> = ({ className = "" }) => {
         if (isMounted && res.success && Array.isArray(res.data)) {
           const filtered = (res.data as HomepageStackItem[]).filter(
             (item) =>
-              item.category?.slug === "banner-stack" &&
+              (item.category?.slug || "").toLowerCase() === "banner-stack" &&
               typeof item.enter_count === "number" &&
               item.title
           );
@@ -145,13 +145,13 @@ const AboutUsHero: React.FC<BannerProps> = ({ className = "" }) => {
             duration: 1800 + (idx % 4) * 300,
           }));
           setStats(mapped);
+          // Ensure numbers appear even if IntersectionObserver doesn't fire immediately
+          setShouldAnimateStats(true);
         } else if (isMounted) {
           setStats([]);
         }
       } catch (e) {
         if (isMounted) setStats([]);
-      } finally {
-        if (isMounted) setIsLoadingStacks(false);
       }
     })();
     return () => {
@@ -159,7 +159,7 @@ const AboutUsHero: React.FC<BannerProps> = ({ className = "" }) => {
     };
   }, []);
 
-  // Observe section to trigger animation once in view
+  // Observe section to trigger any future animations once in view
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -175,11 +175,24 @@ const AboutUsHero: React.FC<BannerProps> = ({ className = "" }) => {
     return () => observer.disconnect();
   }, [shouldAnimateStats]);
 
-  // Fallback title if CMS empty
   const hasBannerHtml = useMemo(
     () => !!bannerHtml && bannerHtml.trim().length > 0,
     [bannerHtml]
   );
+
+  const handleCtaClick = () => {
+    const href = banner?.target_url || "";
+    if (!href) return;
+    if ((banner?.target_window || "Parent") === "New_Window") {
+      if (typeof window !== "undefined")
+        window.open(href, "_blank", "noopener");
+    } else {
+      if (typeof window !== "undefined") window.location.href = href;
+    }
+  };
+
+  // If no published banner available (or during initial load), hide entire section
+  if (!banner) return null;
 
   return (
     <section ref={sectionRef} className={`${styles.banner} ${className}`}>
@@ -201,15 +214,23 @@ const AboutUsHero: React.FC<BannerProps> = ({ className = "" }) => {
               ) : (
                 <h1 className={styles["banner__content-title"]}>About Us</h1>
               )}
+              {banner?.button_text && (
+                <button
+                  className={styles["banner__content-button"]}
+                  onClick={handleCtaClick}
+                >
+                  {banner.button_text}
+                </button>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Stats Sidebar */}
-        <div className={styles["banner__sidebar"]}>
-          <div className={styles["banner__stats"]}>
-            {!isLoadingStacks &&
-              stats.map((stat, index) => (
+        {/* Stats Sidebar (stacks) */}
+        {stats.length > 0 && (
+          <div className={styles["banner__sidebar"]}>
+            <div className={styles["banner__stats"]}>
+              {stats.map((stat, index) => (
                 <div
                   key={`${stat.label}-${index}`}
                   className={styles["banner__stats-item"]}
@@ -226,8 +247,9 @@ const AboutUsHero: React.FC<BannerProps> = ({ className = "" }) => {
                   </div>
                 </div>
               ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </section>
   );

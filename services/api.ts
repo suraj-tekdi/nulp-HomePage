@@ -422,18 +422,26 @@ export function transformDiscussionTopic(topic: DiscussionTopic): {
   location?: string;
   slug: string;
 } {
+  const categoryName = (topic as any)?.category?.name || "General";
+  const user = (topic as any)?.user || ({} as Partial<DiscussionUser>);
+  const authorName =
+    (user as any)?.fullname ||
+    (user as any)?.displayname ||
+    (user as any)?.username ||
+    "";
+
   return {
     id: topic.tid,
-    title: topic.titleRaw || topic.title,
+    title: (topic.titleRaw || topic.title) as string,
     description:
       topic.content || topic.contentRaw || "No description available",
-    category: topic.category.name,
-    replies: topic.postcount - 1, // Subtract 1 as postcount includes the original post
-    views: topic.viewcount,
+    category: categoryName,
+    replies: Math.max(0, (topic.postcount || 1) - 1),
+    views: topic.viewcount || 0,
     isSolved: topic.isSolved === 1,
-    author: topic.user.fullname || topic.user.displayname,
-    designation: topic.user.designation,
-    location: topic.user.location,
+    author: authorName,
+    designation: (user as any)?.designation,
+    location: (user as any)?.location,
     slug: topic.slug,
   };
 }
@@ -464,18 +472,30 @@ export function transformDomainDiscussionPost(post: DomainDiscussionPost): {
     );
   };
 
+  const categoryName = (post as any)?.category?.name || "General";
+  const user = (post as any)?.user || ({} as Partial<DiscussionUser>);
+  const authorName =
+    (user as any)?.fullname ||
+    (user as any)?.displayname ||
+    (user as any)?.username ||
+    "";
+
   return {
-    id: post.topic.tid,
-    title: post.topic.titleRaw || post.topic.title,
+    id: (post as any)?.topic?.tid || post.tid,
+    title: ((post as any)?.topic?.titleRaw ||
+      (post as any)?.topic?.title) as string,
     description: cleanDescription(post.content),
-    category: post.category.name,
-    replies: Math.max(0, (post.topic.postcount || 1) - 1), // Subtract 1 as postcount includes the original post
+    category: categoryName,
+    replies: Math.max(
+      0,
+      (((post as any)?.topic?.postcount as number) || 1) - 1
+    ), // Subtract 1 as postcount includes the original post
     views: 0, // View count not available in domain API response
-    isSolved: post.topic.isSolved === 1,
-    author: post.user.fullname || post.user.displayname || post.user.username,
-    designation: post.user.designation,
-    location: post.user.location,
-    slug: post.topic.slug,
+    isSolved: (((post as any)?.topic?.isSolved as number) || 0) === 1,
+    author: authorName,
+    designation: (user as any)?.designation,
+    location: (user as any)?.location,
+    slug: ((post as any)?.topic?.slug as string) || "",
   };
 }
 
@@ -762,8 +782,8 @@ export interface HomepageTestimonialItem {
     createdAt: string;
     updatedAt: string;
     publishedAt: string;
-  };
-  thumbnail?: HomepageTestimonialThumbnail;
+  } | null;
+  thumbnail?: HomepageTestimonialThumbnail | null;
 }
 
 export interface HomepageTestimonialsResponseMeta {
@@ -791,7 +811,7 @@ export const testimonialsApi = {
   > => {
     try {
       const response = await fetch(
-        `${baseUrl}/mw-cms/api/v1/homepage/testimonials`,
+        `${baseUrl}/mw-cms/api/v1/homepage/testimonials?state=Published`,
         {
           method: "GET",
           headers: { Accept: "application/json" },
@@ -800,15 +820,42 @@ export const testimonialsApi = {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const data: HomepageTestimonialsResponse = await response.json();
-      if (data.success && Array.isArray(data.data)) {
-        return { success: true, data: data.data, status: response.status };
-      }
-      return {
-        success: false,
-        error: "Invalid testimonials API response",
-        status: response.status,
+      const data: HomepageTestimonialsResponse | any = await response.json();
+
+      // Normalize response to an array
+      const rawItems: any[] = Array.isArray((data as any)?.data)
+        ? (data as any)?.data
+        : Array.isArray(data)
+        ? (data as any)
+        : [];
+
+      // Helpers for date window filtering
+      const parseDateMs = (v?: any): number | null => {
+        if (!v) return null;
+        const ms = Date.parse(v);
+        return Number.isNaN(ms) ? null : ms;
       };
+      const isWithinWindow = (
+        start?: any,
+        end?: any,
+        nowMs: number = Date.now()
+      ) => {
+        const s = parseDateMs(start);
+        const e = parseDateMs(end);
+        if (s !== null && nowMs < s) return false;
+        if (e !== null && nowMs > e) return false;
+        return true;
+      };
+
+      const nowMs = Date.now();
+      const filtered: HomepageTestimonialItem[] = rawItems
+        .filter((t: any) => (t?.state || "").toLowerCase() === "published")
+        .filter((t: any) =>
+          isWithinWindow(t?.start_publish_date, t?.end_publish_date, nowMs)
+        )
+        .map((t: any) => t as HomepageTestimonialItem);
+
+      return { success: true, data: filtered, status: response.status };
     } catch (error) {
       return {
         success: false,

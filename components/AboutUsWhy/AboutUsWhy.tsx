@@ -1,5 +1,5 @@
 // AboutUsWhy.tsx
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import styles from "./AboutUsWhy.module.css";
 import { articlesApi, type HomepageArticleItem } from "../../services";
 
@@ -36,8 +36,6 @@ const AboutUsWhy: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(true); // default open
   const [html, setHtml] = useState<string>("");
   const [title, setTitle] = useState<string>("");
-  const [contentHeight, setContentHeight] = useState<number>(0);
-  const innerContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -68,18 +66,6 @@ const AboutUsWhy: React.FC = () => {
 
   const hasHtml = useMemo(() => !!html && html.trim().length > 0, [html]);
 
-  // Measure content height to prevent cropping on any viewport
-  useEffect(() => {
-    const measure = () => {
-      if (innerContentRef.current) {
-        setContentHeight(innerContentRef.current.scrollHeight);
-      }
-    };
-    measure();
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
-  }, [html, isExpanded]);
-
   if (!hasHtml || !title) return null; // strictly CMS-driven
 
   return (
@@ -109,9 +95,9 @@ const AboutUsWhy: React.FC = () => {
       <div
         id="why-expanded"
         className={`${styles.why__expanded} ${isExpanded ? styles.show : ""}`}
-        style={{ maxHeight: isExpanded ? contentHeight : 0 }}
+        style={isExpanded ? undefined : { maxHeight: 0 }}
       >
-        <div className={styles.why__expanded__content} ref={innerContentRef}>
+        <div className={styles.why__expanded__content}>
           <div dangerouslySetInnerHTML={{ __html: html }} />
         </div>
       </div>

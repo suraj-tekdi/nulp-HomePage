@@ -62,8 +62,8 @@ const AnimatedNumber: React.FC<{
   start: boolean;
 }> = ({ value, duration, start }) => {
   const animated = useAnimatedCounter(value, duration, start);
-  if (!start) return <></>;
-  return <>{animated.toLocaleString()}</>;
+  // Always show a value; animate when start=true
+  return <>{(start ? animated : value).toLocaleString()}</>;
 };
 
 const Banner: React.FC<BannerProps> = ({ className = "" }) => {
@@ -141,10 +141,19 @@ const Banner: React.FC<BannerProps> = ({ className = "" }) => {
       ? [realSlides[0]]
       : [];
 
-  const [currentIndex, setCurrentIndex] = useState(1); // Start at first real slide
+  const [currentIndex, setCurrentIndex] = useState(0); // dynamic init based on slides
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [shouldAnimateStats, setShouldAnimateStats] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+
+  // Ensure currentIndex aligns with slide count
+  useEffect(() => {
+    if (realSlides.length >= 2) {
+      setCurrentIndex(1);
+    } else {
+      setCurrentIndex(0);
+    }
+  }, [realSlides.length]);
 
   const sliderRef = useRef<HTMLDivElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
@@ -217,6 +226,7 @@ const Banner: React.FC<BannerProps> = ({ className = "" }) => {
   // Start auto scroll
   const startAutoScroll = () => {
     if (isPaused) return;
+    if (realSlides.length <= 1) return;
 
     clearAutoScroll();
     autoScrollTimer.current = setTimeout(() => {
@@ -227,6 +237,7 @@ const Banner: React.FC<BannerProps> = ({ className = "" }) => {
   // Go to next slide
   const goToNext = () => {
     if (isTransitioning) return;
+    if (realSlides.length <= 1) return;
 
     setIsTransitioning(true);
     setCurrentIndex((prev) => prev + 1);
@@ -235,6 +246,7 @@ const Banner: React.FC<BannerProps> = ({ className = "" }) => {
   // Go to previous slide
   const goToPrev = () => {
     if (isTransitioning) return;
+    if (realSlides.length <= 1) return;
 
     setIsTransitioning(true);
     setCurrentIndex((prev) => prev - 1);
@@ -243,6 +255,7 @@ const Banner: React.FC<BannerProps> = ({ className = "" }) => {
   // Go to specific slide
   const goToSlide = (slideIndex: number) => {
     if (isTransitioning) return;
+    if (realSlides.length <= 1) return;
 
     setIsTransitioning(true);
     setCurrentIndex(slideIndex + 1); // +1 because real slides start at index 1
@@ -252,24 +265,26 @@ const Banner: React.FC<BannerProps> = ({ className = "" }) => {
   const handleTransitionEnd = () => {
     setIsTransitioning(false);
 
-    // Handle infinite loop
-    if (currentIndex === 0) {
-      // Went to clone of last slide, jump to real last slide
-      setTimeout(() => {
-        setCurrentIndex(realSlides.length);
-      }, 10);
-    } else if (currentIndex === allSlides.length - 1) {
-      // Went to clone of first slide, jump to real first slide
-      setTimeout(() => {
-        setCurrentIndex(1);
-      }, 10);
+    if (realSlides.length >= 2) {
+      // Handle infinite loop only when multiple slides
+      if (currentIndex === 0) {
+        // Went to clone of last slide, jump to real last slide
+        setTimeout(() => {
+          setCurrentIndex(realSlides.length);
+        }, 10);
+      } else if (currentIndex === allSlides.length - 1) {
+        // Went to clone of first slide, jump to real first slide
+        setTimeout(() => {
+          setCurrentIndex(1);
+        }, 10);
+      }
     }
 
     // Restart auto scroll
     startAutoScroll();
   };
 
-  // Intersection Observer for stats animation (observe the whole section so it works on first load)
+  // Intersection Observer for stats animation
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -279,20 +294,29 @@ const Banner: React.FC<BannerProps> = ({ className = "" }) => {
           }
         });
       },
-      { threshold: 0.2, root: null, rootMargin: "0px 0px -10% 0px" }
+      { threshold: 0.01, root: null, rootMargin: "0px 0px -15% 0px" }
     );
 
-    const target = sectionRef.current;
-    if (target) observer.observe(target);
+    const targets: Element[] = [];
+    if (sectionRef.current) targets.push(sectionRef.current);
+    if (statsRef.current) targets.push(statsRef.current);
+    targets.forEach((t) => observer.observe(t));
 
     return () => observer.disconnect();
   }, [shouldAnimateStats]);
+
+  // Fallback: if stacks are loaded and we still haven't started, start animation
+  useEffect(() => {
+    if (!isLoadingStacks && stats.length > 0 && !shouldAnimateStats) {
+      setShouldAnimateStats(true);
+    }
+  }, [isLoadingStacks, stats.length, shouldAnimateStats]);
 
   // Auto scroll effect
   useEffect(() => {
     startAutoScroll();
     return () => clearAutoScroll();
-  }, [isPaused]);
+  }, [isPaused, realSlides.length]);
 
   // Mouse event handlers
   const handleMouseEnter = () => {
@@ -311,6 +335,11 @@ const Banner: React.FC<BannerProps> = ({ className = "" }) => {
     if (currentIndex === allSlides.length - 1) return 0; // Clone of first
     return currentIndex - 1; // Real slides are offset by 1
   };
+
+  // Hide entire banner if no slides available
+  if (allSlides.length === 0) {
+    return null;
+  }
 
   return (
     <section
@@ -399,24 +428,26 @@ const Banner: React.FC<BannerProps> = ({ className = "" }) => {
       </div>
 
       {/* Navigation Arrows */}
-      <div className={styles["banner__navigation"]}>
-        <button
-          className={styles["banner__navigation-arrow"]}
-          onClick={goToPrev}
-          disabled={isTransitioning}
-          aria-label="Previous slide"
-        >
-          <ArrowBackIcon />
-        </button>
-        <button
-          className={styles["banner__navigation-arrow"]}
-          onClick={goToNext}
-          disabled={isTransitioning}
-          aria-label="Next slide"
-        >
-          <ArrowForwardIcon />
-        </button>
-      </div>
+      {realSlides.length > 1 && (
+        <div className={styles["banner__navigation"]}>
+          <button
+            className={styles["banner__navigation-arrow"]}
+            onClick={goToPrev}
+            disabled={isTransitioning}
+            aria-label="Previous slide"
+          >
+            <ArrowBackIcon />
+          </button>
+          <button
+            className={styles["banner__navigation-arrow"]}
+            onClick={goToNext}
+            disabled={isTransitioning}
+            aria-label="Next slide"
+          >
+            <ArrowForwardIcon />
+          </button>
+        </div>
+      )}
     </section>
   );
 };

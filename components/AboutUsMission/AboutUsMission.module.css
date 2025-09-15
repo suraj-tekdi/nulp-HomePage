@@ -34,6 +34,7 @@
   border-radius: 20px; /* ensure wrapper radius matches image */
   /* Maintain a soft aspect ratio for the image area */
   aspect-ratio: 3 / 2; /* ~560x373 */
+  min-height: 240px; /* ensure visibility on mobile */
 }
 
 .mission__image {
@@ -83,7 +84,7 @@
 }
 
 .mission__text {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   line-height: 1.8;
   color: #333;
 }
@@ -102,7 +103,6 @@
   .mission__content {
     flex-direction: column;
     gap: 40px;
-    text-align: center;
   }
 
   .mission__left,
@@ -111,11 +111,13 @@
   }
 
   .mission__title {
-    font-size: 2.5rem;
+    font-size: 2.4rem;
+    font-weight: 800;
+    letter-spacing: 0.2px;
   }
 
   .mission__text {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
   }
 }
 
@@ -130,13 +132,33 @@
 
   .mission__title {
     font-size: 2rem;
+    font-weight: 800;
   }
 
   .mission__text {
-    font-size: 1rem;
+    font-size: 1.1rem;
   }
 
   .mission__accent {
-    font-size: 1rem;
+    font-size: inherit;
+  }
+
+  .mission__imageWrapper {
+    min-height: 220px;
+  }
+
+  /* Force CMS heading sizing on mobile */
+  .mission__cms h1,
+  .mission__cms h2 {
+    font-size: 2rem !important;
+    line-height: 1.2 !important;
+    letter-spacing: 0.2px !important;
+  }
+  .mission__cms h1 span,
+  .mission__cms h1 strong,
+  .mission__cms h2 span,
+  .mission__cms h2 strong {
+    font-size: inherit !important;
+    line-height: inherit !important;
   }
 }

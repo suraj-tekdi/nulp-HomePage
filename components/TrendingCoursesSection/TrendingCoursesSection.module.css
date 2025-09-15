@@ -431,10 +431,6 @@
 
 /* Responsive Design */
 @media (max-width: 1200px) {
-  /* .trending__container {
-    padding: 0 var(--spacing-md);
-  } */
-
   .trending__title {
     font-size: 2.2rem;
   }
@@ -531,14 +527,6 @@
   .trending__card__image {
     height: 140px;
   }
-
-  .trending__card__image img {
-    padding: var(--spacing-sm) var(--spacing-md);
-    margin: calc(var(--spacing-sm) / 2);
-    max-width: calc(100% - var(--spacing-sm));
-    max-height: calc(100% - var(--spacing-sm));
-  }
-
   .trending__card__content {
     height: 160px;
   }
@@ -576,6 +564,9 @@
   .trending__arrow {
     width: 35px;
     height: 35px;
+  }
+  .trending__card__content {
+    padding: var(--spacing-sm);
   }
 }
 
