@@ -45,6 +45,7 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isVisible, setIsVisible] = useState<boolean>(true);
+  const [sliderDescription, setSliderDescription] = useState<string>("");
 
   // Pagination state derived from cards-per-page
   const [totalSlides, setTotalSlides] = useState<number>(1);
@@ -104,15 +105,23 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
         setLoading(true);
         setError(null);
 
-        // 1) Read course IDs from sliders API
-        const sliderRes = await slidersApi.getTrendingCourseIds();
-        if (!sliderRes.success) {
+        // 1) Read course IDs from sliders API and pick description
+        const sliderRes = await slidersApi.getHomepageSliders();
+        if (!sliderRes.success || !Array.isArray(sliderRes.data)) {
           setIsVisible(false);
           setCourses([]);
           setError(sliderRes.error || "No trending courses configured");
           return;
         }
-        const ids = (sliderRes.data || []).filter(Boolean);
+        const all = sliderRes.data || [];
+        const slider = (all as any[]).find(
+          (i) => (i.mode || "").toLowerCase() === "select_course"
+        );
+        setSliderDescription((slider?.description as string) || "");
+
+        const ids = ((slider?.trending_courses as string[]) || []).filter(
+          Boolean
+        );
         setIsVisible(ids.length > 0);
 
         // 2) Fetch courses using NULP search constrained to IDs via sliders API
@@ -464,6 +473,16 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
                 </button>
               </div>
             </div>
+          )}
+
+          {/* Slider description */}
+          {sliderDescription && (
+            <p
+              className={styles.trending__subtitle}
+              style={{ textAlign: "center", marginTop: "12px" }}
+            >
+              {sliderDescription}
+            </p>
           )}
         </div>
       </div>

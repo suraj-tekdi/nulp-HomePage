@@ -239,7 +239,8 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
         const buttonsRaw = res.data.filter((m) => {
           const slug = m?.category?.slug?.toLowerCase?.() || "";
           const name = m?.category?.name?.toLowerCase?.() || "";
-          const isButton = slug === "button" || name === "button";
+          // Support both old and new category names
+          const isButton = slug === "header-login" || name === "header login";
           return isButton && isMenuVisible(m);
         });
         buttonsRaw.sort(

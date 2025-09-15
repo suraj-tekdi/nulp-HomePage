@@ -53,6 +53,7 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [isNavigationNeeded, setIsNavigationNeeded] = useState(false);
   const [isVisible, setIsVisible] = useState<boolean>(true);
+  const [sliderDescription, setSliderDescription] = useState<string>("");
 
   // Fetch discussions from API
   useEffect(() => {
@@ -76,14 +77,22 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
           }
         } else {
           // No domain selected -> use sliders to get curated trending discussions
-          const slugsRes = await slidersApi.getTrendingDiscussionSlugs();
-          if (!slugsRes.success) {
+          const allRes = await slidersApi.getHomepageSliders();
+          if (!allRes.success || !Array.isArray(allRes.data)) {
             setIsVisible(false);
             setDiscussions([]);
-            setError(slugsRes.error || "Failed to get slider slugs");
+            setError(allRes.error || "Failed to get slider slugs");
             return;
           }
-          const slugs = (slugsRes.data || []).filter(Boolean).slice(0, 12); // limit for safety
+          const all = allRes.data || [];
+          const slider = (all as any[]).find(
+            (i) => (i.mode || "").toLowerCase() === "select_discussion"
+          );
+          setSliderDescription((slider?.description as string) || "");
+
+          const slugs = ((slider?.trending_discussions as string[]) || [])
+            .filter(Boolean)
+            .slice(0, 12); // limit for safety
 
           setIsVisible(slugs.length > 0);
           if (slugs.length === 0) {
@@ -292,6 +301,14 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
             <div className={styles.discussions__loading}>
               Loading discussions...
             </div>
+            {sliderDescription && (
+              <p
+                className={styles.discussions__subtitle}
+                style={{ textAlign: "center", marginTop: "12px" }}
+              >
+                {sliderDescription}
+              </p>
+            )}
           </div>
         </div>
       </section>
@@ -327,6 +344,14 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
             <div className={styles.discussions__error}>
               Error loading discussions: {error}
             </div>
+            {sliderDescription && (
+              <p
+                className={styles.discussions__subtitle}
+                style={{ textAlign: "center", marginTop: "12px" }}
+              >
+                {sliderDescription}
+              </p>
+            )}
           </div>
         </div>
       </section>
@@ -372,6 +397,14 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
                 Try selecting a different domain or check back later.
               </div>
             </div>
+            {sliderDescription && (
+              <p
+                className={styles.discussions__subtitle}
+                style={{ textAlign: "center", marginTop: "12px" }}
+              >
+                {sliderDescription}
+              </p>
+            )}
           </div>
         </div>
       </section>
@@ -506,6 +539,16 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
                 </button>
               </div>
             </div>
+          )}
+
+          {/* Slider description */}
+          {sliderDescription && (
+            <p
+              className={styles.discussions__subtitle}
+              style={{ textAlign: "center", marginTop: "12px" }}
+            >
+              {sliderDescription}
+            </p>
           )}
         </div>
       </div>
