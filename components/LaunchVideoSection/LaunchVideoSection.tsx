@@ -167,20 +167,9 @@ const LaunchVideoSection: React.FC<LaunchVideoSectionProps> = ({
   }, [shouldAnimateStats]);
 
   const renderLaunchMedia = () => {
-    if (isLoadingMedia) {
-      return (
-        <div className={styles.launchVideo__videoContainer}>Loading...</div>
-      );
-    }
-    if (!launchMedia) {
-      return (
-        <div className={styles.launchVideo__videoContainer}>
-          <div className={styles.launchVideo__videoFallback}>
-            No launch media available
-          </div>
-        </div>
-      );
-    }
+    // If loading or not available/unpublished, render nothing
+    if (isLoadingMedia) return null;
+    if (!launchMedia) return null;
 
     if (launchMedia.kind === "video") {
       if (launchMedia.source === "url") {
@@ -227,18 +216,34 @@ const LaunchVideoSection: React.FC<LaunchVideoSectionProps> = ({
     );
   };
 
+  const hasMedia = !isLoadingMedia && !!launchMedia;
+
   return (
     <section className={`${styles.launchVideo} ${className}`} ref={statsRef}>
       <div className={styles.launchVideo__container}>
-        <div className={styles.launchVideo__content}>
-          {/* Left Side - Video */}
-          <div className={styles.launchVideo__videoWrapper}>
-            {renderLaunchMedia()}
-          </div>
+        <div
+          className={`${styles.launchVideo__content} ${
+            !hasMedia ? styles.launchVideo__content__noMedia : ""
+          }`}
+        >
+          {/* Left Side - Video (hidden when no media) */}
+          {hasMedia ? (
+            <div className={styles.launchVideo__videoWrapper}>
+              {renderLaunchMedia()}
+            </div>
+          ) : null}
 
           {/* Right Side - Stats */}
-          <div className={styles.launchVideo__statsWrapper}>
-            <div className={styles.launchVideo__statsGrid}>
+          <div
+            className={`${styles.launchVideo__statsWrapper} ${
+              !hasMedia ? styles.launchVideo__statsWrapper__center : ""
+            }`}
+          >
+            <div
+              className={`${styles.launchVideo__statsGrid} ${
+                !hasMedia ? styles.launchVideo__statsGrid__center : ""
+              }`}
+            >
               {!isLoadingStacks &&
                 stats.length > 0 &&
                 stats.map((stat, index) => (

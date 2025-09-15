@@ -35,6 +35,7 @@ const AboutUsContact: React.FC<AboutUsContactProps> = ({ className = "" }) => {
       const res = await footerContactsApi.getHomepageContacts();
       if (mounted && res.success && Array.isArray(res.data)) {
         const filtered = (res.data as HomepageContactItem[])
+          // Only About page contact-us entries
           .filter((i) => (i.category?.slug || "") === "about-page-contact-us")
           .filter((i) => isPublished(i))
           .filter((i) => i.is_active !== false)
@@ -48,45 +49,28 @@ const AboutUsContact: React.FC<AboutUsContactProps> = ({ className = "" }) => {
     };
   }, []);
 
-  const title = useMemo(() => {
-    const titleItem = items.find((i) => (i.title || "").trim().length > 0);
-    return titleItem ? "Contact Us" : "";
+  // Find the primary object which contains address, phone, email, map (any one that has any of these)
+  const primary = useMemo(() => {
+    return items.find(
+      (i) => (i.address || i.phone || i.email || i.map_address || "").length > 0
+    );
   }, [items]);
 
-  const emailItem = useMemo(
-    () =>
-      items.find(
-        (i) =>
-          (i.slug || "").toLowerCase() === "contact-us" ||
-          (i.address || "").toLowerCase().includes("mailto")
-      ),
-    [items]
-  );
+  const title = useMemo(() => {
+    // If any item exists we show "Contact Us"
+    return items.length > 0 ? "Contact Us" : "";
+  }, [items]);
 
-  const addressItem = useMemo(
-    () =>
-      items.find(
-        (i) =>
-          (i.slug || "").toLowerCase() === "national-institute-of-urban-affairs"
-      ),
-    [items]
-  );
-
-  const mapItem = useMemo(
-    () =>
-      items.find(
-        (i) =>
-          (i.slug || "").toLowerCase() === "address" ||
-          (i.address || "").toLowerCase().includes("iframe")
-      ),
-    [items]
+  const addressHtml = useMemo(() => primary?.address || "", [primary]);
+  const phoneHtml = useMemo(() => primary?.phone || "", [primary]);
+  const emailHtml = useMemo(() => primary?.email || "", [primary]);
+  const mapHtml = useMemo(
+    () => (primary?.map_address ? decodeHtmlEntities(primary.map_address) : ""),
+    [primary]
   );
 
   if (loading) return null;
   if (!Array.isArray(items) || items.length === 0) return null;
-
-  // Prepare map HTML, decoding CMS-escaped iframe if necessary
-  const mapHtml = mapItem?.address ? decodeHtmlEntities(mapItem.address) : "";
 
   return (
     <section id="contact-us" className={`${styles.contact} ${className}`}>
@@ -94,7 +78,7 @@ const AboutUsContact: React.FC<AboutUsContactProps> = ({ className = "" }) => {
         {title ? <h2 className={styles.contact__title}>{title}</h2> : null}
 
         <div className={styles.contact__infoGrid}>
-          {addressItem && (
+          {addressHtml && (
             <div className={styles.contact__infoItem}>
               <span className={styles.contact__icon} aria-hidden="true">
                 <LocationOnRoundedIcon
@@ -103,31 +87,48 @@ const AboutUsContact: React.FC<AboutUsContactProps> = ({ className = "" }) => {
                 />
               </span>
               <div>
-                <h3 className={styles.contact__infoTitle}>
-                  {addressItem.title}
-                </h3>
+                <h3 className={styles.contact__infoTitle}>Address</h3>
                 <div
                   className={styles.contact__infoText}
-                  dangerouslySetInnerHTML={{
-                    __html: addressItem.address || "",
-                  }}
+                  dangerouslySetInnerHTML={{ __html: addressHtml }}
                 />
               </div>
             </div>
           )}
 
-          {emailItem && (
+          {phoneHtml && (
             <div className={styles.contact__infoItem}>
               <span className={styles.contact__icon} aria-hidden="true">
+                {/* Use the same phone icon per requirement */}
                 <CallRoundedIcon
                   className={styles.contact__iconImg}
                   fontSize="medium"
                 />
               </span>
               <div>
-                <h3 className={styles.contact__infoTitle}>Email ID:</h3>
+                <h3 className={styles.contact__infoTitle}>Phone</h3>
                 <div
-                  dangerouslySetInnerHTML={{ __html: emailItem.address || "" }}
+                  className={styles.contact__infoText}
+                  dangerouslySetInnerHTML={{ __html: phoneHtml }}
+                />
+              </div>
+            </div>
+          )}
+
+          {emailHtml && (
+            <div className={styles.contact__infoItem}>
+              <span className={styles.contact__icon} aria-hidden="true">
+                {/* Same phone icon requested for email as well */}
+                <CallRoundedIcon
+                  className={styles.contact__iconImg}
+                  fontSize="medium"
+                />
+              </span>
+              <div>
+                <h3 className={styles.contact__infoTitle}>Email</h3>
+                <div
+                  className={styles.contact__infoText}
+                  dangerouslySetInnerHTML={{ __html: emailHtml }}
                 />
               </div>
             </div>

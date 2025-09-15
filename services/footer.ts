@@ -48,6 +48,23 @@ export interface HomepageContactLogo {
   publishedAt: string;
 }
 
+export interface HomepageContactMenuItem {
+  id: number;
+  documentId: string;
+  title: string;
+  slug: string;
+  menu_type: string;
+  link: string;
+  target_window: string;
+  state: string;
+  start_publish_date?: string | null;
+  end_publish_date?: string | null;
+  display_order: number;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
+}
+
 export interface HomepageContactItem {
   id: number;
   documentId: string;
@@ -56,13 +73,15 @@ export interface HomepageContactItem {
   phone?: string | null;
   email?: string | null;
   is_active: boolean;
-  display_order: number;
+  display_order: number | null;
   createdAt: string;
   updatedAt: string;
   publishedAt: string;
   slug: string;
   category: HomepageContactCategory;
   logo?: HomepageContactLogo | null;
+  map_address?: string | null;
+  menu?: HomepageContactMenuItem | null;
 }
 
 export interface HomepageContactResponseMeta {
