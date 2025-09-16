@@ -103,9 +103,9 @@ const IndiaMapSection: React.FC = () => {
     new Set()
   );
 
-  // ULB Count map keyed by state id (e.g., mh, ka)
-  const [ulbMap, setUlbMap] = useState<
-    Map<string, { title: string; count: number }>
+  // State metric map keyed by state id (e.g., mh, ka)
+  const [stateMetricsMap, setStateMetricsMap] = useState<
+    Map<string, Array<{ title: string; count: number; order: number | null }>>
   >(new Map());
 
   // Fetch media + stacks + highlighted states JSON
@@ -152,7 +152,10 @@ const IndiaMapSection: React.FC = () => {
         // 3) Stacks for ULB count
         const stacksRes = await stacksApi.getHomepageStacks();
         if (isMounted && stacksRes.success && Array.isArray(stacksRes.data)) {
-          const map = new Map<string, { title: string; count: number }>();
+          const byState = new Map<
+            string,
+            Array<{ title: string; count: number; order: number | null }>
+          >();
           (stacksRes.data as any[])
             // published only
             .filter((i) => (i.state || "").toLowerCase() === "published")
@@ -170,15 +173,15 @@ const IndiaMapSection: React.FC = () => {
             .forEach(({ item, st }) => {
               const id = (st.id || "").toLowerCase();
               if (!id) return;
-              const title: string = (item.title || "ULB Count").toString();
+              const title: string = (item.title || "Metric").toString();
               const count = Number(item.enter_count || 0);
-              // If multiple entries exist, keep the max count
-              const existing = map.get(id);
-              if (!existing || count > existing.count) {
-                map.set(id, { title, count });
-              }
+              const orderVal =
+                typeof item.order === "number" ? item.order : null;
+              const arr = byState.get(id) || [];
+              arr.push({ title, count, order: orderVal });
+              byState.set(id, arr);
             });
-          setUlbMap(map);
+          setStateMetricsMap(byState);
         }
       } catch (e: any) {
         if (isMounted) setError(e?.message || "Failed to load content");
@@ -388,8 +391,10 @@ const IndiaMapSection: React.FC = () => {
     });
   }, [selectedState, selectedStateName]);
 
-  // Resolve ULB info for currently selected state
-  const ulbInfo = selectedState ? ulbMap.get(selectedState) : undefined;
+  // Resolve metrics for currently selected state
+  const stateMetrics = selectedState
+    ? stateMetricsMap.get(selectedState)
+    : undefined;
 
   return (
     <section id="state-engagement" className={styles.mapSection}>
@@ -404,10 +409,21 @@ const IndiaMapSection: React.FC = () => {
           <p className={styles.mapSection__selectedState}>
             {selectedStateName ? `${selectedStateName}` : ""}
           </p>
-          {ulbInfo && (
-            <p className={styles.mapSection__instructionText}>
-              {ulbInfo.title}: {ulbInfo.count}
-            </p>
+          {stateMetrics && stateMetrics.length > 0 && (
+            <div className={styles.mapSection__instructionText}>
+              {[...stateMetrics]
+                .sort((a, b) => {
+                  const ao = a.order ?? Number.POSITIVE_INFINITY;
+                  const bo = b.order ?? Number.POSITIVE_INFINITY;
+                  if (ao !== bo) return ao - bo;
+                  return (a.title || "").localeCompare(b.title || "");
+                })
+                .map((m, idx) => (
+                  <div key={`${m.title}-${idx}`}>
+                    {m.title}: {m.count}
+                  </div>
+                ))}
+            </div>
           )}
         </header>
 

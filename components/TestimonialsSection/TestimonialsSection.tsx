@@ -176,6 +176,27 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
 
   const showControls = hasOverflow && totalSlides > 1;
 
+  // Extract embeddable URL for YouTube if needed
+  const toEmbeddableUrl = (url?: string | null): string | null => {
+    if (!url) return null;
+    try {
+      const u = new URL(url);
+      if (
+        u.hostname.includes("youtube.com") ||
+        u.hostname.includes("youtu.be")
+      ) {
+        // Handle youtu.be short links or watch?v=
+        const videoId = u.hostname.includes("youtu.be")
+          ? u.pathname.replace("/", "")
+          : u.searchParams.get("v");
+        if (videoId) return `https://www.youtube.com/embed/${videoId}`;
+      }
+      return url;
+    } catch {
+      return url;
+    }
+  };
+
   return (
     <section className={`${styles.testimonials} ${className}`}>
       <div className={styles.testimonials__container}>
@@ -213,9 +234,19 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
               const imgSrc = cmsThumb
                 ? testimonialsApi.buildImageUrl(cmsThumb)
                 : "/images/testimonials/person.jpeg";
+
+              // Determine content rendering
+              const isVideoMode = (t.mode || "").toLowerCase() === "video";
+              const sourceType = (t.video_source || "").toLowerCase();
+              const urlSource = toEmbeddableUrl(t.video_source_url);
+              const hasUrlVideo =
+                isVideoMode && sourceType.includes("url") && !!urlSource;
+              const hasUploadVideo =
+                isVideoMode && !!(t.video_upload && t.video_upload.url);
+
               return (
                 <div key={t.id} className={styles.testimonials__card}>
-                  {/* Profile Image */}
+                  {/* Profile Image or Video */}
                   <div className={styles.testimonials__card__imageContainer}>
                     <img
                       src={imgSrc}
@@ -237,7 +268,17 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
 
                   {/* Content */}
                   <div className={styles.testimonials__card__content}>
-                    {t.mode === "Video" && t.video_upload?.url ? (
+                    {hasUrlVideo ? (
+                      <div className={styles.testimonials__videoWrapper}>
+                        <iframe
+                          className={styles.testimonials__video}
+                          src={urlSource as string}
+                          allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          title={t.user_name}
+                        />
+                      </div>
+                    ) : hasUploadVideo ? (
                       <div className={styles.testimonials__videoWrapper}>
                         <video
                           className={styles.testimonials__video}
@@ -245,8 +286,8 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
                           preload="metadata"
                         >
                           <source
-                            src={t.video_upload.url}
-                            type={t.video_upload.mime || "video/mp4"}
+                            src={t.video_upload!.url}
+                            type={t.video_upload!.mime || "video/mp4"}
                           />
                           Your browser does not support the video tag.
                         </video>
