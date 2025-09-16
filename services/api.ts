@@ -772,6 +772,8 @@ export interface HomepageTestimonialItem {
   publishedAt: string;
   mode?: string; // "Text" | "Video"
   video_upload?: HomepageTestimonialVideo | null;
+  video_source?: string | null; // "Upload Video" | "Video Source URL"
+  video_source_url?: string | null;
   category: {
     id: number;
     documentId: string;
@@ -926,10 +928,13 @@ export interface HomepageStacksResponse {
 export const stacksApi = {
   getHomepageStacks: async (): Promise<ApiResponse<HomepageStackItem[]>> => {
     try {
-      const response = await fetch(`${baseUrl}/mw-cms/api/v1/homepage/stacks`, {
-        method: "GET",
-        headers: { Accept: "application/json" },
-      });
+      const response = await fetch(
+        `${baseUrl}/mw-cms/api/v1/homepage/stacks?state=Published`,
+        {
+          method: "GET",
+          headers: { Accept: "application/json" },
+        }
+      );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
