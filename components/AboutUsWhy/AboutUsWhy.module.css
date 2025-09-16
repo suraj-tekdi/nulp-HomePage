@@ -44,7 +44,6 @@
   gap: 15px;
 }
 
-
 .why__title {
   font-size: 1.5rem;
   color: #000000;
@@ -55,7 +54,7 @@
 .why__arrow {
   width: 60px;
   height: 60px;
-  background: #F1F5FF;
+  background: #f1f5ff;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -73,7 +72,7 @@
   left: 20px;
   right: 20px;
   margin-top: -0.4rem;
-  background-image: url('/images/aboutus/why-bg.svg');
+  background-image: url("/images/aboutus/why-bg.svg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -83,10 +82,7 @@
   opacity: 0;
   overflow: hidden;
   transform: translateY(-10px);
-  transition: 
-    max-height 0.4s ease,
-    opacity 0.3s ease,
-    transform 0.3s ease,
+  transition: max-height 0.4s ease, opacity 0.3s ease, transform 0.3s ease,
     padding 0.4s ease;
 }
 

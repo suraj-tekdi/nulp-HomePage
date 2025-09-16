@@ -36,6 +36,7 @@ const AboutUsWhy: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(true); // default open
   const [html, setHtml] = useState<string>("");
   const [title, setTitle] = useState<string>("");
+  const [contentHeight, setContentHeight] = useState<number>(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -63,6 +64,15 @@ const AboutUsWhy: React.FC = () => {
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    // Compute content height after DOM updates
+    const el = document.getElementById("why-expanded-content");
+    if (el) {
+      // Add padding allowance
+      setContentHeight(el.scrollHeight + 60);
+    }
+  }, [html, isExpanded]);
 
   const hasHtml = useMemo(() => !!html && html.trim().length > 0, [html]);
 
@@ -95,9 +105,21 @@ const AboutUsWhy: React.FC = () => {
       <div
         id="why-expanded"
         className={`${styles.why__expanded} ${isExpanded ? styles.show : ""}`}
-        style={isExpanded ? undefined : { maxHeight: 0 }}
+        style={
+          isExpanded
+            ? {
+                maxHeight: contentHeight || 900,
+                backgroundImage: "url(/images/aboutus/why-bg.svg)",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }
+            : { maxHeight: 0 }
+        }
       >
-        <div className={styles.why__expanded__content}>
+        <div
+          className={styles.why__expanded__content}
+          id="why-expanded-content"
+        >
           <div dangerouslySetInnerHTML={{ __html: html }} />
         </div>
       </div>
