@@ -105,7 +105,7 @@ const IndiaMapSection: React.FC = () => {
 
   // State metric map keyed by state id (e.g., mh, ka)
   const [stateMetricsMap, setStateMetricsMap] = useState<
-    Map<string, Array<{ title: string; count: number }>>
+    Map<string, Array<{ title: string; count: number; order: number | null }>>
   >(new Map());
 
   // Fetch media + stacks + highlighted states JSON
@@ -154,7 +154,7 @@ const IndiaMapSection: React.FC = () => {
         if (isMounted && stacksRes.success && Array.isArray(stacksRes.data)) {
           const byState = new Map<
             string,
-            Array<{ title: string; count: number }>
+            Array<{ title: string; count: number; order: number | null }>
           >();
           (stacksRes.data as any[])
             // published only
@@ -175,8 +175,10 @@ const IndiaMapSection: React.FC = () => {
               if (!id) return;
               const title: string = (item.title || "Metric").toString();
               const count = Number(item.enter_count || 0);
+              const orderVal =
+                typeof item.order === "number" ? item.order : null;
               const arr = byState.get(id) || [];
-              arr.push({ title, count });
+              arr.push({ title, count, order: orderVal });
               byState.set(id, arr);
             });
           setStateMetricsMap(byState);
@@ -409,20 +411,18 @@ const IndiaMapSection: React.FC = () => {
           </p>
           {stateMetrics && stateMetrics.length > 0 && (
             <div className={styles.mapSection__instructionText}>
-              {[
-                ...stateMetrics.filter((m) =>
-                  (m.title || "").toLowerCase().startsWith("ulb")
-                ),
-                ...stateMetrics
-                  .filter(
-                    (m) => !(m.title || "").toLowerCase().startsWith("ulb")
-                  )
-                  .sort((a, b) => (a.title || "").localeCompare(b.title || "")),
-              ].map((m, idx) => (
-                <div key={`${m.title}-${idx}`}>
-                  {m.title}: {m.count}
-                </div>
-              ))}
+              {[...stateMetrics]
+                .sort((a, b) => {
+                  const ao = a.order ?? Number.POSITIVE_INFINITY;
+                  const bo = b.order ?? Number.POSITIVE_INFINITY;
+                  if (ao !== bo) return ao - bo;
+                  return (a.title || "").localeCompare(b.title || "");
+                })
+                .map((m, idx) => (
+                  <div key={`${m.title}-${idx}`}>
+                    {m.title}: {m.count}
+                  </div>
+                ))}
             </div>
           )}
         </header>
