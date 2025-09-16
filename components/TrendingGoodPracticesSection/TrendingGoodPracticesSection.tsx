@@ -40,6 +40,7 @@ const TrendingGoodPracticesSection: React.FC<
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
 
   // API-related state
   const [goodPractices, setGoodPractices] = useState<GoodPractice[]>([]);
@@ -177,16 +178,21 @@ const TrendingGoodPracticesSection: React.FC<
     const container = scrollContainerRef.current;
     if (!container || typeof ResizeObserver === "undefined") return;
 
+    const updateIsMobile = () => setIsMobile(window.innerWidth <= 640);
+    updateIsMobile();
+
     const observer = new ResizeObserver(() => {
       recalculatePagination();
     });
 
     observer.observe(container);
     window.addEventListener("resize", recalculatePagination);
+    window.addEventListener("resize", updateIsMobile);
 
     return () => {
       observer.disconnect();
       window.removeEventListener("resize", recalculatePagination);
+      window.removeEventListener("resize", updateIsMobile);
       if (scrollSettleTimerRef.current) {
         window.clearTimeout(scrollSettleTimerRef.current);
         scrollSettleTimerRef.current = null;
@@ -275,24 +281,26 @@ const TrendingGoodPracticesSection: React.FC<
   }, [updateCurrentSlide]);
 
   const nextSlide = useCallback(() => {
-    if (!scrollContainerRef.current || currentSlide >= totalSlides - 1) return;
-
+    if (!scrollContainerRef.current) return;
     const container = scrollContainerRef.current;
-    const pageWidth = getCardWidthWithGap() * CARDS_PER_PAGE;
-
-    const newSlideIndex = Math.min(currentSlide + 1, totalSlides - 1);
-    setCurrentSlide(newSlideIndex);
-    container.scrollBy({ left: pageWidth, behavior: "smooth" });
-  }, [currentSlide, totalSlides, getCardWidthWithGap]);
+    const step = isMobile
+      ? getCardWidthWithGap()
+      : getCardWidthWithGap() * CARDS_PER_PAGE;
+    if (!isMobile && currentSlide >= totalSlides - 1) return;
+    if (!isMobile) setCurrentSlide(Math.min(currentSlide + 1, totalSlides - 1));
+    container.scrollBy({ left: step, behavior: "smooth" });
+  }, [currentSlide, totalSlides, getCardWidthWithGap, isMobile]);
 
   const prevSlide = useCallback(() => {
-    if (!scrollContainerRef.current || currentSlide <= 0) return;
+    if (!scrollContainerRef.current) return;
     const container = scrollContainerRef.current;
-    const pageWidth = getCardWidthWithGap() * CARDS_PER_PAGE;
-    const newSlideIndex = Math.max(currentSlide - 1, 0);
-    setCurrentSlide(newSlideIndex);
-    container.scrollBy({ left: -pageWidth, behavior: "smooth" });
-  }, [currentSlide, getCardWidthWithGap]);
+    const step = isMobile
+      ? getCardWidthWithGap()
+      : getCardWidthWithGap() * CARDS_PER_PAGE;
+    if (!isMobile && currentSlide <= 0) return;
+    if (!isMobile) setCurrentSlide(Math.max(currentSlide - 1, 0));
+    container.scrollBy({ left: -step, behavior: "smooth" });
+  }, [currentSlide, getCardWidthWithGap, isMobile]);
 
   const goToSlide = useCallback(
     (slideIndex: number) => {
@@ -443,7 +451,7 @@ const TrendingGoodPracticesSection: React.FC<
           </div>
 
           {/* Conditionally render controls only when needed */}
-          {shouldShowControls && (
+          {shouldShowControls && !isMobile && (
             <div className={styles.practices__controls}>
               <div className={styles.practices__pagination}>
                 {Array.from({ length: totalSlides }).map((_, index) => (
@@ -473,6 +481,26 @@ const TrendingGoodPracticesSection: React.FC<
                   onClick={nextSlide}
                   disabled={currentSlide >= totalSlides - 1}
                   aria-label="Next practices"
+                >
+                  <ArrowForwardIcon />
+                </button>
+              </div>
+            </div>
+          )}
+          {isMobile && (
+            <div className={styles.practices__controls}>
+              <div className={styles.practices__navigation}>
+                <button
+                  className={styles.practices__arrow}
+                  onClick={prevSlide}
+                  aria-label="Previous"
+                >
+                  <ArrowBackIcon />
+                </button>
+                <button
+                  className={styles.practices__arrow}
+                  onClick={nextSlide}
+                  aria-label="Next"
                 >
                   <ArrowForwardIcon />
                 </button>
