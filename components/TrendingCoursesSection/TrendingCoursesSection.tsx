@@ -50,6 +50,7 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
   // Pagination state derived from cards-per-page
   const [totalSlides, setTotalSlides] = useState<number>(1);
   const [shouldShowControls, setShouldShowControls] = useState<boolean>(false);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
 
   // Measure card width + gap
   const getCardWidthWithGap = useCallback((): number => {
@@ -163,6 +164,8 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
 
   // Observe container resize to keep pagination accurate (based on card width)
   useEffect(() => {
+    const updateIsMobile = () => setIsMobile(window.innerWidth <= 640);
+    updateIsMobile();
     const container = scrollContainerRef.current;
     if (!container || typeof ResizeObserver === "undefined") return;
 
@@ -172,10 +175,12 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
 
     observer.observe(container);
     window.addEventListener("resize", recalculatePagination);
+    window.addEventListener("resize", updateIsMobile);
 
     return () => {
       observer.disconnect();
       window.removeEventListener("resize", recalculatePagination);
+      window.removeEventListener("resize", updateIsMobile);
       if (scrollSettleTimerRef.current) {
         window.clearTimeout(scrollSettleTimerRef.current);
         scrollSettleTimerRef.current = null;
@@ -261,26 +266,26 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
   }, [updateCurrentSlide]);
 
   const nextSlide = useCallback(() => {
-    if (!scrollContainerRef.current || currentSlide >= totalSlides - 1) return;
-
+    if (!scrollContainerRef.current) return;
     const container = scrollContainerRef.current;
-    const pageWidth = getCardWidthWithGap() * CARDS_PER_PAGE;
-
-    const newSlideIndex = Math.min(currentSlide + 1, totalSlides - 1);
-    setCurrentSlide(newSlideIndex);
-    container.scrollBy({ left: pageWidth, behavior: "smooth" });
-  }, [currentSlide, totalSlides, getCardWidthWithGap]);
+    const step = isMobile
+      ? getCardWidthWithGap()
+      : getCardWidthWithGap() * CARDS_PER_PAGE;
+    if (!isMobile && currentSlide >= totalSlides - 1) return;
+    if (!isMobile) setCurrentSlide(Math.min(currentSlide + 1, totalSlides - 1));
+    container.scrollBy({ left: step, behavior: "smooth" });
+  }, [currentSlide, totalSlides, getCardWidthWithGap, isMobile]);
 
   const prevSlide = useCallback(() => {
-    if (!scrollContainerRef.current || currentSlide <= 0) return;
-
+    if (!scrollContainerRef.current) return;
     const container = scrollContainerRef.current;
-    const pageWidth = getCardWidthWithGap() * CARDS_PER_PAGE;
-
-    const newSlideIndex = Math.max(currentSlide - 1, 0);
-    setCurrentSlide(newSlideIndex);
-    container.scrollBy({ left: -pageWidth, behavior: "smooth" });
-  }, [currentSlide, getCardWidthWithGap]);
+    const step = isMobile
+      ? getCardWidthWithGap()
+      : getCardWidthWithGap() * CARDS_PER_PAGE;
+    if (!isMobile && currentSlide <= 0) return;
+    if (!isMobile) setCurrentSlide(Math.max(currentSlide - 1, 0));
+    container.scrollBy({ left: -step, behavior: "smooth" });
+  }, [currentSlide, getCardWidthWithGap, isMobile]);
 
   const goToSlide = useCallback(
     (slideIndex: number) => {
@@ -435,7 +440,7 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
           </div>
 
           {/* Conditionally render controls only when needed */}
-          {shouldShowControls && (
+          {shouldShowControls && !isMobile && (
             <div className={styles.trending__controls}>
               {/* Pagination Dots */}
               <div className={styles.trending__pagination}>
@@ -468,6 +473,26 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
                   onClick={nextSlide}
                   disabled={currentSlide >= totalSlides - 1}
                   aria-label="Next courses"
+                >
+                  <ArrowForwardIcon />
+                </button>
+              </div>
+            </div>
+          )}
+          {isMobile && (
+            <div className={styles.trending__controls}>
+              <div className={styles.trending__navigation}>
+                <button
+                  className={styles.trending__arrow}
+                  onClick={prevSlide}
+                  aria-label="Previous"
+                >
+                  <ArrowBackIcon />
+                </button>
+                <button
+                  className={styles.trending__arrow}
+                  onClick={nextSlide}
+                  aria-label="Next"
                 >
                   <ArrowForwardIcon />
                 </button>

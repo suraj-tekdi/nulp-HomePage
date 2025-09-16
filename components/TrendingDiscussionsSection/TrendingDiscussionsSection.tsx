@@ -54,6 +54,7 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
   const [isNavigationNeeded, setIsNavigationNeeded] = useState(false);
   const [isVisible, setIsVisible] = useState<boolean>(true);
   const [sliderDescription, setSliderDescription] = useState<string>("");
+  const [isMobile, setIsMobile] = useState<boolean>(false);
 
   // Fetch discussions from API
   useEffect(() => {
@@ -162,9 +163,11 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
   useEffect(() => {
     const handleResize = () => {
       checkNavigationNeeded();
+      setIsMobile(window.innerWidth <= 640);
     };
 
     window.addEventListener("resize", handleResize);
+    handleResize();
     return () => window.removeEventListener("resize", handleResize);
   }, [checkNavigationNeeded]);
 
@@ -220,20 +223,16 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
   const nextSlide = useCallback(() => {
     if (!scrollContainerRef.current) return;
     const cardWidth = 340 + 24; // card width + gap (matching other sections)
-    scrollContainerRef.current.scrollBy({
-      left: cardWidth * 2,
-      behavior: "smooth",
-    });
-  }, []);
+    const step = isMobile ? cardWidth : cardWidth * 2;
+    scrollContainerRef.current.scrollBy({ left: step, behavior: "smooth" });
+  }, [isMobile]);
 
   const prevSlide = useCallback(() => {
     if (!scrollContainerRef.current) return;
     const cardWidth = 340 + 24; // card width + gap (matching other sections)
-    scrollContainerRef.current.scrollBy({
-      left: -cardWidth * 2,
-      behavior: "smooth",
-    });
-  }, []);
+    const step = isMobile ? cardWidth : cardWidth * 2;
+    scrollContainerRef.current.scrollBy({ left: -step, behavior: "smooth" });
+  }, [isMobile]);
 
   const goToSlide = useCallback((slideIndex: number) => {
     setCurrentSlide(slideIndex);
@@ -504,7 +503,7 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
             ))}
           </div>
           {/* Only show controls when navigation is needed */}
-          {isNavigationNeeded && (
+          {isNavigationNeeded && !isMobile && (
             <div className={styles.discussions__controls}>
               <div className={styles.discussions__pagination}>
                 {Array.from({ length: totalSlides }).map((_, index) => (
@@ -534,6 +533,26 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
                   onClick={nextSlide}
                   disabled={currentSlide >= totalSlides - 1}
                   aria-label="Next discussions"
+                >
+                  <ArrowForwardIcon />
+                </button>
+              </div>
+            </div>
+          )}
+          {isMobile && (
+            <div className={styles.discussions__controls}>
+              <div className={styles.discussions__navigation}>
+                <button
+                  className={styles.discussions__arrow}
+                  onClick={prevSlide}
+                  aria-label="Previous"
+                >
+                  <ArrowBackIcon />
+                </button>
+                <button
+                  className={styles.discussions__arrow}
+                  onClick={nextSlide}
+                  aria-label="Next"
                 >
                   <ArrowForwardIcon />
                 </button>
