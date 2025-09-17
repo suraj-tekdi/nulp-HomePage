@@ -135,6 +135,18 @@ const TrendingGoodPracticesSection: React.FC<
           return;
         }
 
+        // Fetch slider description (optional)
+        try {
+          const allRes = await slidersApi.getHomepageSliders();
+          if (allRes.success && Array.isArray(allRes.data)) {
+            const all = allRes.data || [];
+            const slider = (all as any[]).find(
+              (i) => (i.mode || "").toLowerCase() === "select_good_practices"
+            );
+            setSliderDescription((slider?.description as string) || "");
+          }
+        } catch {}
+
         // 2) Fetch good practices constrained to those IDs with optional domain filter
         const response = await slidersApi.getGoodPracticesByIds(
           ids,

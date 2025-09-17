@@ -1,0 +1,1442 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: http://ogp.me/ns#">
+
+<head>
+    <title>NULP</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="National Urban Lerning Platform">
+    <meta name="author" content="NULP">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="icon" href="/images/icons/favicon.ico" />
+    <!-- <link rel="stylesheet" href="CSS/custom.css"> -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link href="css/splide.min.css" rel="stylesheet">
+
+
+    <!-- Font Awesome CSS -->
+    <link href="vendor/font-awesome.min.css" rel="stylesheet">
+
+    <link href="css/components/card.min.css" rel="stylesheet">
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick-theme.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css" />
+
+    <!-- Custom CSS -->
+    <!-- <link
+        href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,300;0,400;0,700;0,900;1,600&display=swap"
+        rel="stylesheet"> -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Owl Stylesheets -->
+    <link rel="stylesheet" href="css/owl.theme.default.min.css" />
+    <link rel="stylesheet" href="css/owl.carousel.min.css" />
+    <link rel="stylesheet" href="css/jquery.fancybox.min.css" />
+    <!-- Google tag (gtag.js) -->
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QH3SHT9MTG"></script>
+
+    <script>
+
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag() { dataLayer.push(arguments); }
+
+        gtag('js', new Date());
+
+
+
+        gtag('config', 'G-QH3SHT9MTG');
+
+    </script>
+    <script type="text/javascript">
+        (function (c, l, a, r, i, t, y) {
+            c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments) };
+            t = l.createElement(r); t.async = 1; t.src = "https://www.clarity.ms/tag/" + i;
+            y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
+        })(window, document, "clarity", "script", "k93cjr3l3d");
+    </script>
+    <script
+      src="https://cdn.ux4g.gov.in/accessibility-beta-v1.15/accessibility-widget.js"
+      integrity="2njLSFPFDDjG93KnarCt/1LGP7ysC1BoDBKAlktXJyXvDiu+BUUn4itNJ2OFzclY"
+      crossorigin="anonymous"
+      defer
+    ></script>
+
+    <!-- Security: Added Subresource Integrity (SRI) to prevent tampering of the external script. Fixes SonarQube Security Hotspot S5725.-->
+<!-- <script
+  src="https://cdn.ux4g.gov.in/accessibility-beta-v1.15/accessibility-widget.js"
+  integrity="2njLSFPFDDjG93KnarCt/1LGP7ysC1BoDBKAlktXJyXvDiu+BUUn4itNJ2OFzclY"
+  crossorigin="anonymous"
+  defer>
+</script> -->
+
+</head>
+
+<body>
+    <script>
+        // Define the API endpoint and headers
+        const apiUrl = '/get/users';
+        const headers = {
+            'Accept': '*/*',
+            'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8',
+            'Connection': 'keep-alive',
+            'Content-Type': 'application/json',
+            'Origin': 'https://devnulp.niua.org',
+            'Referer': 'https://devnulp.niua.org/webapp/createform',
+            'Sec-Fetch-Dest': 'empty',
+            'Sec-Fetch-Mode': 'cors',
+            'Sec-Fetch-Site': 'same-origin',
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+            'sec-ch-ua': '"Google Chrome";v="125", "Chromium";v="125", "Not.A/Brand";v="24"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"Linux"',
+        };
+
+        // Define the request body
+        const requestBody = {
+            request: {
+                filters: {
+                    status: "1"
+                },
+                sort_by: {
+                    lastUpdatedOn: "desc"
+                }
+            }
+        };
+
+        // Make the API call
+        fetch(apiUrl, {
+            method: 'POST', // curl uses POST for this API
+            headers: headers,
+            body: JSON.stringify(requestBody) // Convert the request body to JSON string
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log(data); // Log the API response
+                // Display the API response in the HTML
+                document.getElementById('totalMembers').textContent = JSON.stringify(data.result.count, null, 2);
+            })
+            .catch(error => {
+                console.error('There was a problem with the fetch operation:', error);
+            });
+    </script>
+    <!-- <div class="maintainence-msg">
+        <marquee behavior="" direction="">
+            You are currently viewing the version of NULP 4.0. Since the deployments have been recently completed you
+            might face some difficulties.
+        </marquee>
+    </div> -->
+    <section>
+        <!-- Header with Navbar -->
+        <nav class="navbar navbar-expand-xxl  navbar-light bg-white">
+            <div class="container-fluid">
+                    <div class="nav_img">
+                        <a href="#" aria-label="National Logo">
+                            <img src="images/national_logo.png" alt="Logo" class="imgLogo" />
+                        </a>
+                    </div>
+                    <div class="nav_img">
+                        <a href="https://mohua.gov.in" target="_blank" aria-label="Mohua logo">
+                            <img class="imgLogo" src="images/MoHUA_.png" alt="Logo Center" />
+                        </a>
+                    </div>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto navItems">
+                        <div class="sb-search-btn">
+                            <button id="site-search-btn" class="searchIcon" role="button" aria-pressed="true"><i
+                                    class="fa fa-search" aria-hidden="true"></i></button>
+                            <input class="IconSearch" type="search" id="site-search" name="q" autocomplete="off"
+                                aria-label="Search through site content" placeholder="Explore Content">
+
+                        </div>
+                        <a href="/learnathon.html" target="_blank">
+                            <button type="button" role="button" aria-pressed="true" class="btn btn-warning fs-5"
+                                style="padding: 6px 10px; background: #FFCE6D; border-radius: 50px; font-size: 18px !important;">
+                                Learnathon 2.0
+                            </button>
+                        </a>
+
+
+                        <a class="text-dark pt-2" href="#" aria-label="Home menu">Home</a>
+                        <a class="text-dark pt-2" href="aboutus.html" target="_blank" aria-label="About us menu">About
+                            Us</a>
+                        <a class="text-dark pt-2" href="#galleryBx" aria-label="Gallery menu">Gallery</a>
+                        <a class="text-dark pt-2" href="mailto:nulp@niua.org" aria-label="Contact us menu">Contact
+                            Us</a>
+
+
+                        <a href="/webapp/domainList" id="loginLink" class="text-white navBtn rounded-pill"
+                            aria-label="Log sign in menu">Log/Sign In</a>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </section>
+
+    <section>
+        <section>
+            <div id="owl-demo" class="owl-carousel owl-theme sm-d-none">
+
+                <!-- <div class="item">
+                <div class="main-wrapper w-100 h-580">
+                    <div class="row">
+                        <div class="sb-baner sb-baner-img col-12 col-xl-9">
+                            <div class="container sm-pl-65">
+                                <h2 class="main-head fw-bold col-xl-9 text-white pt-5 mt-4">NATIONAL URBAN LEARNING PLATFORM</h2>
+                                <h4 class="col-xl-9 s-head text-white pt-2">
+                                    <b><span class="fs-30"> Launching on 8th March 2024 </span></b><br>
+                                        <span class="fw-bold"> E-learning module on the 'Toolkit for Enabling Gender <br> Responsive Urban Mobility and Public Spaces'</span>
+                                </h4>
+                                <div class="d-flex align-items-center gap-3 pt-2">
+                                    <div class="mt-3 text-white">
+                                        <a href="https://nulp.niua.org/explore-course/course/do_1140067897586974721570"
+                                            class="clickHere-BannerButton text-decoration-none" target="_blank">
+                                            Click here
+                                        </a>
+                                    </div>
+                                    </div>
+
+                            </div>
+                        </div>
+                        <div class="bg-photo bggender-photo d-none d-xl-block">
+                            <img src="images/gender-banner.png" alt="banner" class="w-562">
+                        </div>
+                        <div class="behind-photo d-none d-xl-block"></div>
+                    </div>
+
+                </div>
+            </div> -->
+                <div class="item">
+                    <div class="main-wrapper w-100 h-580">
+                        <div class="row">
+                            <div class="sky-blue-bg col-12 col-xl-9"
+                                style="height: 472px;border-radius:0px 50px 0px 0px;">
+                                <div class="container sm-pl-65">
+                                    <h2 class="main-head fw-bold col-xl-9 text-white">NATIONAL URBAN LEARNING PLATFORM
+                                    </h2>
+                                    <h4 class="col-xl-9 text-white bannerDesc">
+                                        Launched on 8th January 2025, the second cycle of the अrban Learnathon
+                                        seeks entries from state/city officials, academic institutions and industry
+                                        partners.
+                                    </h4>
+                                    <h5 class="bannerDesc" style="background: #EDCD88;
+                                           max-width: fit-content;
+                                           padding: 5px;
+                                   ">The voting for अrban Learnathon 2.0 has concluded. Results will be declared shortly.
+                                    </h5>
+                                    
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="mt-3 text-white">
+                                            <a class="needHelp_Btn text-decoration-none" target="_blank"
+                                                href="/webapp/domainList">Sign in</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-photo bgFirst-photo d-none d-xl-block">
+                                <img src="images/slides/slider1.png" alt="banner" class="w-562">
+                            </div>
+                            <div class="behind-photo d-none d-xl-block"></div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- <div class="item">
+                <div class="main-wrapper w-100 h-580">
+                    <div class="row">
+                        <div class="orange-bg col-12 col-xl-9" style="height: 472px;border-radius:0px 50px 0px 0px;">
+                            <div class="container sm-pl-65">
+                                <h2 class="main-head fw-bold col-xl-9 text-white">NATIONAL URBAN LEARNING PLATFORM</h2>
+                                <h4 class="col-xl-9 s-head text-white">
+                                    NIUA in Collaboration with the MoHUA is organising the event <strong>'capacity for
+                                        change:</strong> Forging Sustainable Futures' on <strong>8th January
+                                        2025</strong> at the <strong>India Habitat Center, New Delhi</strong>
+                                    NIUA in Collaboration with the MoHUA is organising the event <strong>'capacity for
+                                        change:</strong> Forging Sustainable Futures' on <strong>8th January
+                                        2025</strong> at the <strong>India Habitat Center, New Delhi</strong>
+                                </h4>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="mt-3 text-white">
+                                        <a class="needHelp_Btn text-decoration-none" target="_blank"
+                                            href="https://niua.in/capacity-for-change">Register here</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-photo bgThird-photo d-none d-xl-block">
+                            <img src="images/Banner_C4C Event.png" alt="banner" class="w-562">
+                            <img src="images/Banner_C4C Event.png" alt="banner" class="w-562">
+                        </div>
+                        <div class="behind-photo d-none d-xl-block"></div>
+                    </div>
+
+                </div>
+            </div> -->
+                <!-- <div class="item">
+                <div class="main-wrapper w-100 h-580">
+                    <div class="row">
+                        <div class="green-bg1 col-12 col-xl-9">
+                            <div class="container sm-pl-65">
+                                <h2 class="main-head fw-bold col-xl-9 text-white">NATIONAL URBAN LEARNING PLATFORM</h2>
+                                <h4 class="col-xl-9 s-head text-white">
+                                    <span class="fw-bold">Climate Centre for Cities, NIUA </span><span> has launched
+                                        <span class="fw-bold"> 26 MOOC Modules</span>
+                                        aligned with the National Mission for Sustainable Habitat</span>
+                                </h4>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="mt-3 text-white">
+                                        <a class="clickHere-BannerButton text-decoration-none" style="cursor: pointer;"
+                                            target="_blank" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                            Click here for launch video
+                                        </a>
+                                    </div>
+                                    <div class="mt-3 text-white">
+                                        <a class="needHelp_Btn text-decoration-none" target="_blank"
+                                            href="https://helpdesknulp.niua.org/public">Need Help</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-photo bgThird-photo d-none d-xl-block">
+                            <img src="images/NULP-C-Cube-Banner.png" alt="banner" class="w-562">
+                        </div>
+                        <div class="behind-photo d-none d-xl-block"></div>
+                    </div>
+
+                </div>
+            </div> -->
+                <!-- <div class="item">
+                <div class="main-wrapper w-100 h-580">
+                    <div class="row">
+                        <div class="red-bg col-12 col-xl-9">
+                            <div class="container sm-pl-65">
+                                <h2 class="main-head fw-bold col-xl-9 text-white">NATIONAL URBAN LEARNING PLATFORM</h2>
+                                <h4 class="col-xl-9 s-head text-white">
+                                    To <span class="fw-bold">capture the upskilling needs</span> of city/ state
+                                    officials, and to
+                                    better tailor training programs and resources to meet their
+                                    requirements, <span class="fw-bold">NULP is conducting a comprehensive needs
+                                        assessment</span>
+                                </h4>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="mt-3 text-white">
+                                        <a href="https://lnanulp.niua.org/phase-2/"
+                                            class="clickHere-BannerButton text-decoration-none" target="_blank">
+                                            Click here to fill response
+                                        </a>
+                                    </div>
+                                    <div class="mt-3 text-white">
+                                        <a class="needHelp_Btn text-decoration-none" target="_blank"
+                                            href="https://helpdesknulp.niua.org/public">Need Help</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-photo bgThird-photo d-none d-xl-block">
+                            <img src="images/nulpBanner-thirdImg.jpg" alt="banner" class="w-562">
+                        </div>
+                        <div class="behind-photo d-none d-xl-block"></div>
+                    </div>
+
+                </div>
+            </div> -->
+
+                <div class="item">
+                    <div class="main-wrapper w-100 h-580">
+                        <div class="row">
+                            <div class="green-bg col-12 col-xl-9">
+                                <div class="container sm-pl-65">
+                                    <h2 class="main-head fw-bold col-xl-9">NATIONAL URBAN LEARNING PLATFORM</h2>
+                                    <h4 class="col-xl-9 s-head">
+                                        A network of <span class="fw-bold">1.5 Lakh + Urban Practitioners</span> of India <br>
+                                        Dedicated to enhance the capacities of the cities.
+                                    </h4>
+                                    <div class="mt-3 text-white">
+                                        <a class="needHelp_Btn text-decoration-none" target="_blank"
+                                            href="https://helpdesknulp.niua.org/public">Need Help</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-photo d-none d-xl-block">
+                                <img src="images/newNULPBannerImage.jpeg" alt="banner" class="w-562">
+                            </div>
+                            <div class="behind-photo d-none d-xl-block"></div>
+                        </div>
+                    </div>
+                </div>
+                <!--
+            <div class="item">
+                <div class="main-wrapper w-100" style="height: 580px;">
+                    <div class="row">
+                        <div class="blue-bg col-12 col-xl-9">
+                            <div class="container sm-pl-65 text-white">
+                                <h2 class="main-head  fw-bold col-xl-9">NATIONAL URBAN LEARNING PLATFORM</h2>
+                                <h4 class="col-xl-11 s-head">
+                                    The <span class="fw-bold">'National Urban Conclave'</span> is being organised by
+                                    NIUA on<span>
+                                        <b>31st October 2023 in New Delhi</b></span> to celebrate the advancing of data
+                                    and capacity-building
+                                    ecosystem within the urban domain
+                                </h4>
+                                <div class="mt-3 text-white">
+                                    <a class="needHelp_Btn text-decoration-none" target="_blank"
+                                        href="https://helpdesknulp.niua.org/public">Need Help</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-photo d-none d-xl-block">
+                            <img src="images/nulpbanner2.png" alt="banner home page" class="w-562">
+                        </div>
+                        <div class="behind-photo d-none d-xl-block"></div>
+                    </div>
+                </div>
+            </div>  -->
+            </div>
+        </section>
+        <section class=" bg-white">
+            <div class="container pt-5 pb-5 bg-white">
+                <div class="total-numbers row row-cols-md-3">
+                    <div class="single-info text-center font-600">
+                        <span id="count1" class="display-4">12</span>
+                        <p>Participating States</p>
+                    </div>
+                    <div class="single-info text-center font-600">
+                        <span id="count2" class="display-4">449</span>
+                        <p>Urban Local Bodies</p>
+                    </div>
+                    <div class="single-info text-center font-600">
+                        <span id="totalMembers" class="display-4"></span>
+                        <p>NULP Community Members</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section>
+            <div class="learing">
+                <div class="me-3 ms-3 ms-lg-5 me-lg-5 ">
+                    <div class="row">
+                        <div class="mx-auto col-12 col-md-7 col-lg-6 mb-5">
+                            <div class="nulp-wrapper">
+                                <div class="nulp-works">
+                                    <img src="images/right1.webp" alt="Nulp work section">
+                                </div>
+
+                                <div class="nulp-works nulp-works-2">
+                                    <img src="images/right2.webp" alt="ulp work section">
+                                </div>
+
+                                <div class="input-group my-3 search nulp-search rounded-pill">
+                                    <span class="input-group-text border-0  bg-transparent" id="basic-addon2">
+                                        <button id="site-search-btn-1" class="searchIcon fs-2" role="button"
+                                            aria-pressed="true"><i class="fa fa-search" aria-hidden="true"></i></button>
+                                    </span>
+                                    <input id="site-search-1" name="q" autocomplete="off" type="search"
+                                        class="form-control nulp-search-Content bg-transparent border-0 border-bottom  border-dark"
+                                        placeholder="NULP's Approach" aria-label="Username"
+                                        aria-describedby="basic-addon2">
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="col-12 col-md-5 col-lg-6">
+                            <div class="text-center">
+                                <div class="note-img ">
+                                    <img src="images/finalNote.png" alt="Note" class="img-fluid hidden">
+                                    <p>Learn from well curated
+                                        courses and content</p>
+                                </div>
+                                <div>
+                                    <div class="upper-arrow">
+                                        <p class="mb-0">Learning</p>
+                                        <img src="images/nULPworksUpper.png" alt="" class="img-fluid">
+                                    </div>
+
+                                    <div class="text-center ">
+                                        <img src="images/finalLaptop.png" alt="" width="170px" height="auto"
+                                            class="hidden hidden2">
+                                    </div>
+
+                                    <div class="lower-arrow">
+                                        <img src="images/nULPworksLower.png" width="250px" height="28px" alt="">
+                                        <p class="">Collaboration</p>
+                                    </div>
+                                </div>
+                                <div class="chat-img">
+                                    <img src="images/finalChat.png" alt="" class="img-fluid hidden">
+                                    <p>Co-learn with peers from other
+                                        cities and domain experts</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section>
+            <div class="Domian_BG">
+                <div class="ps-3 pe-2 ps-lg-5 pe-lg-5">
+                    <div class="offer-title">
+                        <h4 class="sb-se-title">Snapshot of NULP</h4>
+                    </div>
+                    <div class="row row-cols-lg-2 align-items-center justify-content-between">
+                        <div class="offer-items pt-4 pt-lg-0 row row-cols-2 row-cols-md-2 row-cols-lg-3 font-600">
+                            <div class="single-item text-center">
+                                <div class="display-4">10</div>
+                                <p>Domains</p>
+                            </div>
+                            <div class="single-item text-center">
+                                <div class="display-4">114</div>
+                                <p>Courses</p>
+                            </div>
+                            <div class="single-item text-center">
+                                <div class="display-4">200 </div>
+                                    <p class="font-600">Urban Local Solutions
+
+                            </div>
+                            <div class="single-item text-center">
+                                <div class="display-4">4</div>
+                                    <p class="font-600">National Certification Programs
+
+                            </div>
+                            <div class="single-item text-center">
+                                <div class="display-4">2</div>
+                                    <p class="font-600">Learning Journey
+
+                            </div>
+                            <div class="single-item text-center">
+                                <div class="display-4">70</div>
+                                    <p class="font-600">Knowledge Partners
+
+                            </div>
+                        </div>
+                        <div
+                            class="offer_Video p-0 ms-2 ms-lg-0 d-flex d-lg-none justify-content-center align-items-center pt-lg-0">
+                            <iframe class="w-100 h-100 br-3" src="https://www.youtube.com/embed/_BwzEMkicHE"
+                                title="YouTube video player"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                allowfullscreen>
+                            </iframe>
+                        </div>
+                        <div class="d-none d-lg-block work-img pt-4 pt-lg-0">
+                            <div
+                                class=" work_img_wrapper work_img_wrapper_1 d-flex justify-content-center align-items-center">
+                                <iframe class="w-100 h-100 br-15"
+                                    src="https://www.youtube.com/embed/e8ZqwW1jKJM?si=xWRGCTf86qSixT7K"
+                                    title="YouTube video player"
+                                    allow="accelerometer;  clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                    allowfullscreen></iframe>
+                            </div>
+                            <div class=" work_img_wrapper work_img_wrapper_2"></div>
+                            <div class=" work_img_wrapper work_img_wrapper_3"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section>
+            <div class="container-fluid nulp-offers">
+                <div class="ms-3 me-3 ms-lg-5 me-lg-5">
+                    <div class=" mb-4 offer-title">
+                        <h1 class="mb-5">Testimonials</h1>
+                    </div>
+
+
+                    <div class=" owl-carousel owl-theme" id="testimonial-carousel">
+                        <div class="item">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="row ms-0 ms-lg-3">
+                                        <div class="col-12 col-md-4 col-lg-4">
+
+                                            <div class="person_img mb-4 sm-mx-auto">
+                                                <img src="images/testimonial1.webp" alt="Ms. Ayushi Bawsar">
+                                            </div>
+
+                                        </div>
+
+
+                                        <div class="col-12 col-md-8 col-lg-8">
+                                            <h5 class="fw-bold">Ms. Ayushi Bawsar</h4>
+                                                <h6 class="mb-3">Nagar Palika Parishad, Ashta
+                                            </h5>
+                                            <p class="pr-2">The workshop organized was informative and comprehensive. This is a new platform to share ideas with others, and learn from other’s ideas and apply them in our ULB. Any ideas shared may prove to be beneficial to us as well. And we can definitely take advantage of this platform and implement some good work for our ULB.
+
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="item">
+                            <div class="row">
+                                <div class="col-12 bl-white">
+                                    <div class="testi-carousel testimonials row">
+                                        <div class="col-12 col-md-4 col-lg-4">
+
+                                            <div class="person_img mb-4 sm-mx-auto">
+                                                <img src="images/testimonial2.webp" alt="Mr. Manimaran">
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-8 col-lg-8">
+
+                                            <h5 class="fw-bold">Mr. Manimaran </h4>
+                                                <h6 class="mb-3">Commissionerate of Municipal Administration, Chennai
+                                            </h5>
+                                            <p>
+                                                To find solutions to our cities challenges, we usually tend to use platforms such as YouTube. But what makes NULP the best platform to find solutions is  that it has expert options available for diverse domains.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="item">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="row ms-0 ms-lg-3">
+                                        <div class="col-12 col-md-4 col-lg-4">
+
+                                            <div class="person_img mb-4 sm-mx-auto">
+                                                <img src="images/testimonial3.webp" alt="Mr. S.K. Singh">
+                                            </div>
+
+                                        </div>
+
+
+                                        <div class="col-12 col-md-8 col-lg-8">
+                                            <h5 class="fw-bold">Mr. S.K. Singh</h4>
+                                                <h6 class="mb-3">Nagar Palika Parishad, Bisalpur
+                                            </h5>
+                                            <p>NULP is so vast as people from so many places are associated with it. It
+                                                showcases the best practices prevalent in other cities and states. Every
+                                                town in India faces basic urban problems and challenges. NULP helps us
+                                                understand how the ULBs of other cities are successfully tackling those
+                                                problems.
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="item">
+                            <div class="row">
+                                <div class="col-12 bl-white">
+                                    <div class="testi-carousel testimonials row">
+                                        <div class="col-12 col-md-4 col-lg-4">
+
+                                            <div class="person_img mb-4 sm-mx-auto">
+                                                <img src="images/testimonial4.webp" alt="Ms. Vandana Sharma ">
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-8 col-lg-8">
+
+                                            <h5 class="fw-bold">Ms. Vandana Sharma </h4>
+                                                <h6 class="mb-3">Nagar Nigam, Shahjahanpur
+                                            </h5>
+                                            <p>NULP will help immensely in resolving the challenges that ULBs face in
+                                                their
+                                                everyday functioning. It also provides a great opportunity for ULBs to
+                                                interact with each other. Through this platform, we will be able to
+                                                learn
+                                                from each other and also find solutions for our city’s challenges.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </section>
+        </div>
+
+        <div class="back2">
+            <section class="sections-padding">
+                <div class="ps-3 pe-3 ps-lg-5 pe-lg-5 pt-lg-5 offer-title">
+                    <h4 class="sb-se-title ">Urban Domains</h4>
+                </div>
+                <div class="carousel domain-carousel py-32 slick-slide-show-domain">
+
+                    <div ngxSlickItem class="slide">
+                        <div class=" d-flex domain-box">
+                            <div>
+                                <img src="images/housingPlanning.png" alt="Urban Planning and Housing">
+
+                            </div>
+                            <div class="domain-text">Urban Planning and Housing</div>
+
+                        </div>
+                    </div>
+                    <div ngxSlickItem class="slide">
+                        <div class=" d-flex domain-box">
+                            <div>
+                                <img src="images/transport.png" alt="Transport and Mobility">
+
+                            </div>
+                            <div class="domain-text">Transport and Mobility</div>
+
+                        </div>
+                    </div>
+                    <div ngxSlickItem class="slide">
+                        <div class=" d-flex domain-box">
+                            <div>
+                                <img src="images/social.png"
+                                    alt="Social Aspects">
+
+                            </div>
+                            <div class="domain-text">Social Aspects</div>
+
+                        </div>
+                    </div>
+                    <div ngxSlickItem class="slide">
+                        <div class=" d-flex domain-box">
+                            <div>
+                                <img src="images/gov.png" alt="Municipal Finance">
+
+                            </div>
+                            <div class="domain-text">Municipal Finance</div>
+
+                        </div>
+                    </div>
+                    <div ngxSlickItem class="slide">
+                        <div class=" d-flex domain-box">
+                            <div>
+                                <img src="images/adming.png" alt="General Administration">
+
+                            </div>
+                            <div class="domain-text">General Administration</div>
+
+                        </div>
+                    </div>
+                    <div ngxSlickItem class="slide">
+                        <div class=" d-flex domain-box">
+                            <div>
+                                <img src="images/admin.png" alt="Governance and Urban Management">
+
+                            </div>
+                            <div class="domain-text">Governance and Urban Management</div>
+
+                        </div>
+                    </div>
+
+                    <div ngxSlickItem class="slide">
+                        <div class=" d-flex domain-box">
+                            <div>
+                                <img src="images/miscellaneous1.png" alt="Miscellaneous/ Others">
+
+                            </div>
+                            <div class="domain-text">Miscellaneous/ Others</div>
+
+                        </div>
+                    </div>
+
+                    <div ngxSlickItem class="slide">
+                        <div class=" d-flex domain-box">
+                            <div>
+                                <img src="images/EnvironmentandClimate1.png"
+                                    alt="Environment and Climate">
+
+                            </div>
+                            <div class="domain-text">Environment and Climate</div>
+
+                        </div>
+                    </div>
+
+                    <div ngxSlickItem class="slide">
+                        <div class=" d-flex domain-box">
+                            <div>
+                                <img src="images/swm.png" alt="Solid Waste Management">
+
+                            </div>
+                            <div class="domain-text">Solid Waste Management</div>
+                        </div>
+                    </div>
+                    <div ngxSlickItem class="slide">
+                        <div class=" d-flex domain-box">
+                            <div>
+                                <img src="images/water.png" alt="WASH - Water, Sanitation and Hygiene">
+
+                            </div>
+                            <div class="domain-text">WASH - Water, Sanitation and Hygiene</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="sections-padding">
+                <div class="offer-title ps-3 pe-3  ps-lg-5 pe-lg-5">
+                    <h1 class="trending-title"> Trending Courses on NULP</h1>
+                </div>
+                <div class="carousel course-carousel py-32 slick-slide-show-course course">
+                    <div ngxSlickItem class="slide ">
+                        <div class="item">
+                            <div style="justify-content: center" class="d-flex">
+                                <div class="ui card p-0">
+                                    <div class="bg-img-cover">
+                                        <img src="images/urban-planning.jpg" alt="environment" class="card-bg" />
+                                    </div>
+                                    <div class="small-bow">
+                                        <a class="slider_info" href="/webapp/joinCourse?do_11422330454242099211">
+                                            <img class=" card_Circle" src="images/housingPlanning.png"
+                                                alt="Urban Planning and Housing" width="305px" />
+                                        </a>
+                                        <input type="hidden" value=${value.identifier} />
+                                        <div class="d-flex fw-bold pt-lg-5 mt-4 justify-content-end px-15">
+                                            Urban Planning and Housing
+                                        </div>
+                                        <div class="px-15 pb-3">
+                                            <div class="fw-bold truncate header py-15" title="${value.name}">Course on Adoption of Form Based Codes for Indian Cities</div>
+                                            <div class="truncate"></div>
+                                            <!--div>Tags/ Keywords</div-->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div ngxSlickItem class="slide ">
+                        <div class="item">
+                            <div style="justify-content: center" class="d-flex">
+                                <div class="ui card p-0">
+                                    <div class="bg-img-cover">
+                                        <img src="images/Urbane-governance.png" class="card-bg" alt="Governance and Urban Management" />
+                                    </div>
+                                    <div class="small-bow">
+                                        <a class="slider_info" href="/webapp/joinCourse?do_11420352388390912013">
+                                            <img class=" card_Circle" src="images/admin.png"
+                                                alt="Governance and Urban Management" width="305px" />
+                                        </a>
+                                        <input type="hidden" />
+                                        <div class="d-flex fw-bold pt-lg-5 mt-4 justify-content-end px-15">
+                                            Governance and Urban Management
+                                        </div>
+                                        <div class="px-15 pb-3">
+                                            <div class="fw-bold truncate header py-15">Monitoring and Evaluation</div>
+                                            <div class="truncate">This course offers a comprehensive introduction to Monitoring and Evaluation (M&E) in project management, emphasising its crucial role in ensuring project success and alignment with Sustainable Development Goals (SDGs). </div>
+                                            <!--div>Tags/ Keywords</div-->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div ngxSlickItem class="slide ">
+                        <div class="item">
+                            <div style="justify-content: center" class="d-flex">
+                                <div class="ui card p-0">
+                                    <div class="bg-img-cover">
+                                        <img src="images/envirnoment.jpg" class="card-bg" />
+                                    </div>
+                                    <div class="small-bow">
+                                        <a class="slider_info" href="/webapp/joinCourse?do_114284738848514048123">
+                                            <img class=" card_Circle" src="images/EnvironmentandClimate1.png"
+                                                alt="Environment and Climate" width="305px" />
+                                        </a>
+                                        <input type="hidden" />
+                                        <div class="d-flex fw-bold pt-lg-5 mt-4 justify-content-end px-15">
+                                            Environment and Climate
+                                        </div>
+                                        <div class="px-15 pb-3">
+                                            <div class="fw-bold truncate header py-15">Mainstream Inclusive Green Economy (IGE) Principles in the Urban Sector in India
+                                            </div>
+                                            <div class="truncate">The course provides a comprehensive understanding of Inclusive Green Economy (IGE) principles, as well as the existing and enabling legal, policy, and regulatory frameworks along with the strategic master planning process. It aims to equip learners with the knowledge and tools necessary to effectively support and implement IGE principles across various sectors and levels of government. Additionally, actionable strategies for addressing sector-specific challenges and concerns are incorporated. The course is divided into two set of modules: Module A: Strategic Sessions Session A01: Introduction: Why the transition to IGE is urgent and important Session A02: Existing and enabling institutional arrangements for the IGE transition Session A03: Implementing IGE Principles Module B: Thematic Sessions Session B01: Solid Waste Management Session B02: Wastewater Management Session B03: Blue-Green Infrastructure: Natural and Built environments Session B04: Sustainable Mobility Session B05: Air Quality Session B06: Climate Change for Course
+                                            </div>
+                                            <!--div>Tags/ Keywords</div-->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div ngxSlickItem class="slide ">
+                        <div class="item">
+                            <div style="justify-content: center" class="d-flex">
+                                <div class="ui card p-0">
+                                    <div class="bg-img-cover">
+                                        <img src="images/urban-management.png" class="card-bg" alt="Governance and Urban Management" />
+                                    </div>
+                                    <div class="small-bow">
+                                        <a class="slider_info" href="/webapp/joinCourse?do_1141747139141468161258">
+                                            <img class=" card_Circle" src="images/admin.png"
+                                                alt="Governance and Urban Management" width="305px" />
+                                        </a>
+                                        <input type="hidden" />
+                                        <div class="d-flex fw-bold pt-lg-5 mt-4 justify-content-end px-15">
+                                            Governance and Urban Management
+                                        </div>
+                                        <div class="px-15 pb-3">
+                                            <div class="fw-bold truncate header py-15">Data Analytics and Visualisation</div>
+                                            <div class="truncate">Cities are complex ecosystems, pulsating with life and brimming with challenges. From managing traffic flow to optimizing public services, ensuring the well-being of residents demands a deep understanding of their...</div>
+                                            <!--div>Tags/ Keywords</div-->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div ngxSlickItem class="slide ">
+                        <div class="item">
+                            <div style="justify-content: center" class="d-flex">
+                                <div class="ui card p-0">
+                                    <div class="bg-img-cover">
+                                        <img src="images/affordable-housing.jpg" class="card-bg" />
+                                    </div>
+                                    <div class="small-bow">
+                                        <a class="slider_info" href="/webapp/joinCourse?do_114165835604836352120">
+                                            <img class=" card_Circle" src="images/adming.png"
+                                                alt="General Administration" width="305px" />
+                                        </a>
+                                        <input type="hidden" />
+                                        <div class="d-flex fw-bold pt-lg-5 mt-4 justify-content-end px-15">
+                                            General Administration
+                                        </div>
+                                        <div class="px-15 pb-3">
+                                            <div class="fw-bold truncate header py-15">Public Procurement
+                                            </div>
+                                            <div class="truncate">The course is intended to simplify the complex world of public procurement and inspire further exploration of the vast subject. The entire module contains 15 Chapters and will be covering the basics of procurement and awarding of the contracts.</div>
+                                            <!--div>Tags/ Keywords</div-->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div ngxSlickItem class="slide ">
+                        <div class="item">
+                            <div style="justify-content: center" class="d-flex">
+                                <div class="ui card p-0">
+                                    <div class="bg-img-cover">
+                                        <img src="images/mobility.png" class="card-bg" />
+                                    </div>
+                                    <div class="small-bow">
+                                        <a class="slider_info" href="/webapp/joinCourse?do_1140067897586974721570">
+                                            <img class=" card_Circle" src="images/transport.png"
+                                                alt="Transport and Mobility" width="305px" />
+                                        </a>
+                                        <input type="hidden" />
+                                        <div class="d-flex fw-bold pt-lg-5 mt-4 justify-content-end px-15">
+                                            Transport and Mobility
+                                        </div>
+                                        <div class="px-15 pb-3">
+                                            <div class="fw-bold truncate header py-15">Introduction to Enabling Gender Responsive Urban Mobility and Public Spaces in India</div>
+                                            <div class="truncate">First module of the e-learning course, based on the toolkit "Enabling Gender Responsive Urban Mobility and Public Spaces in India." This initiative, a collaboration between World Bank and the National Institute of Urban Affairs, aims to empower urban planners and community leaders for adopting and implementing gender-inclusive principles in urban mobility and planning projects.
+                                            </div>
+                                            <!--div>Tags/ Keywords</div-->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div ngxSlickItem class="slide ">
+                        <div class="item">
+                            <div style="justify-content: center" class="d-flex">
+                                <div class="ui card p-0">
+                                    <div class="bg-img-cover">
+                                        <img src="images/solid-Waste-management.png" class="card-bg" alt="Solid Waste Management" />
+                                    </div>
+                                    <div class="small-bow">
+                                        <a class="slider_info" href="/webapp/joinCourse?do_1136587508229734401555">
+                                            <img class=" card_Circle" src="images/swm.png"
+                                                alt="Solid Waste Management" width="305px" />
+                                        </a>
+                                        <input type="hidden" />
+                                        <div class="d-flex fw-bold pt-lg-5 mt-4 justify-content-end px-15">
+                                            Solid Waste Management
+                                        </div>
+                                        <div class="px-15 pb-3">
+                                            <div class="fw-bold truncate header py-15">Intermediate level-Solid Waste Management
+                                            </div>
+                                            <div class="truncate">Solid Waste Management-Intermediate</div>
+                                            <!--div>Tags/ Keywords</div-->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div ngxSlickItem class="slide ">
+                        <div class="item">
+                            <div style="justify-content: center" class="d-flex">
+                                <div class="ui card p-0">
+                                    <div class="bg-img-cover">
+                                        <img src="images/Housing.jpg" class="card-bg" alt="Urban Planning and Housing" />
+                                    </div>
+                                    <div class="small-bow">
+                                        <a class="slider_info" href="/webapp/joinCourse?do_1136550052517314561308">
+                                            <img class=" card_Circle" src="images/housingPlanning.png"
+                                                alt="Urban Planning and Housing" width="305px" />
+                                        </a>
+                                        <input type="hidden" />
+                                        <div class="d-flex fw-bold pt-lg-5 mt-4 justify-content-end px-15">
+                                            Urban Planning and Housing
+                                        </div>
+                                        <div class="px-15 pb-3">
+                                            <div class="fw-bold truncate header py-15">Managing Urban Rivers: From Planning to Practice</div>
+                                            <div class="truncate">Managing urban rivers in a holistic manner is a relatively new and evolving field in India. Until now, the emphasis has solely been on controlling pollution. While this is undoubtedly...
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div ngxSlickItem class="slide ">
+                        <div class="item">
+                            <div style="justify-content: center" class="d-flex">
+                                <div class="ui card p-0">
+                                    <div class="bg-img-cover">
+                                        <img src="images/it.jpg" class="card-bg" />
+                                    </div>
+                                    <div class="small-bow">
+                                        <a class="slider_info" href="/webapp/joinCourse?do_1136598919702609921643">
+                                            <img class=" card_Circle" src="images/admin.png"
+                                                alt="Governance and Urban Management" width="305px" />
+                                        </a>
+                                        <input type="hidden" />
+                                        <div class="d-flex fw-bold pt-lg-5 mt-4 justify-content-end px-15">
+                                            Governance and Urban Management
+                                        </div>
+                                        <div class="px-15 pb-3">
+                                            <div class="fw-bold truncate header py-15">Introduction to NUDM Platforms, Program Governance and Implementation</div>
+                                            <div class="truncate">This is an introductory e-learning course offered to all empanelled vendors to provide an overview of the National Urban Digital Mission and its flagship platform -</div>
+                                            <!--div>Tags/ Keywords</div-->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                   
+
+                    <div ngxSlickItem class="slide ">
+                        <div class="item">
+                            <div style="justify-content: center" class="d-flex">
+                                <div class="ui card p-0">
+                                    <div class="bg-img-cover">
+                                        <img src="images/Housing.jpg" class="card-bg" />
+                                    </div>
+                                    <div class="small-bow">
+                                        <a class="slider_info" href="/webapp/joinCourse?do_1139973490818334721328">
+                                            <img class=" card_Circle" src="images/housingPlanning.png"
+                                                alt="Urban Planning and Housing" width="305px" />
+                                        </a>
+                                        <input type="hidden" />
+                                        <div class="d-flex fw-bold pt-lg-5 mt-4 justify-content-end px-15">
+                                            Urban Planning and Housing
+                                        </div>
+                                        <div class="px-15 pb-3">
+                                            <div class="fw-bold truncate header py-15">Urban Planning-Basic</div>
+                                            <div class="truncate"></div>
+                                            <!--div>Tags/ Keywords</div-->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <section class="sections-padding">
+                <div class="ps-3 pe-3 ps-lg-5 pe-lg-5 partners">
+                    <div>
+                        <h4 class="sb-se-title ">Trending Discussions on NULP</h4>
+                    </div>
+                    <div class="dcontent">
+                        <h3>Discussion Forums</h3>
+                    </div>
+                    <div class="carousel py-32 slick-slide-show-discussion">
+                        <div ngxSlickItem class="slide">
+                            <div class="item">
+                                <div style="justify-content: center" class="d-flex">
+                                    <div class="ui2 card2 p-0">
+                                        <div class="bg-img-cover2">
+                                            <img src="images/urban-planning.jpg" class="card-bg" alt="urban-planning" />
+                                        </div>
+                                        <div class="small-bow">
+                                            <div class="px-15 pb-3">
+                                                <div class="fw-bold">Urban Planning Forum</div>
+                                                <div>Urban Design, City Planning, Land Use & Zoning Regulations.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div ngxSlickItem class="slide">
+                            <div class="item">
+                                <div style="justify-content: center" class="d-flex">
+                                    <div class="ui2 card2 p-0">
+                                        <div class="bg-img-cover2">
+                                            <img src="images/sustainable-transport.jpg" class="card-bg"
+                                                alt="sustainable-transport" />
+                                        </div>
+                                        <div class="small-bow">
+                                            <div class="px-15 pb-3">
+                                                <div class="fw-bold">Sustainable Transportation Forum</div>
+                                                <div>Public Transit, Traffic Management, Cycling Infrastructure & Urban Mobility.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div ngxSlickItem class="slide">
+                            <div class="item">
+                                <div style="justify-content: center" class="d-flex">
+                                    <div class="ui2 card2 p-0">
+                                        <div class="bg-img-cover2">
+                                            <img src="images/affordable-housing.jpg" class="card-bg"
+                                                alt="affordable-housing" />
+                                        </div>
+                                        <div class="small-bow">
+                                            <div class="px-15 pb-3">
+                                                <div class="fw-bold">Affordable Housing Discussion</div>
+                                                <div>Low-Income Housing, Housing Policies, Social Housing & Homelessness.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div ngxSlickItem class="slide">
+                            <div class="item">
+                                <div style="justify-content: center" class="d-flex">
+                                    <div class="ui2 card2 p-0">
+                                        <div class="bg-img-cover2">
+                                            <img src="images/environment-hub.jpg" class="card-bg"
+                                                alt="environment-hub" />
+                                        </div>
+                                        <div class="small-bow">
+                                            <div class="px-15 pb-3">
+                                                <div class="fw-bold">Environmental Sustainability Hub</div>
+                                                <div>Green Infrastructure, Waste Management, Renewable Energy & Eco-Friendly Practices.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div ngxSlickItem class="slide">
+                            <div class="item">
+                                <div style="justify-content: center" class="d-flex">
+                                    <div class="ui2 card2 p-0">
+                                        <div class="bg-img-cover2">
+                                            <img src="images/smart-network.jpg" class="card-bg" alt="smart-network" />
+                                        </div>
+                                        <div class="small-bow">
+                                            <div class="px-15 pb-3">
+                                                <div class="fw-bold">Smart Cities Network</div>
+                                                <div>IoT, Technology, Data Analytics & Digital Governance.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div ngxSlickItem class="slide">
+                            <div class="item">
+                                <div style="justify-content: center" class="d-flex">
+                                    <div class="ui2 card2 p-0">
+                                        <div class="bg-img-cover2">
+                                            <img src="images/local-development.jpg" class="card-bg"
+                                                alt="local-development" />
+                                        </div>
+                                        <div class="small-bow">
+                                            <div class="px-15 pb-3">
+                                                <div class="fw-bold">Local Economic Development Exchange</div>
+                                                <div>Business Development, Entrepreneurship, Job Creation & Economic Growth.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div ngxSlickItem class="slide">
+                            <div class="item">
+                                <div style="justify-content: center" class="d-flex">
+                                    <div class="ui2 card2 p-0">
+                                        <div class="bg-img-cover2">
+                                            <img src="images/public-health.jpg" class="card-bg" alt="public-health" />
+                                        </div>
+                                        <div class="small-bow">
+                                            <div class="px-15 pb-3">
+                                                <div class="fw-bold">Public Health in Urban Areas</div>
+                                                <div>Healthcare Access, Sanitation, Disease Prevention & Well-Being.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div ngxSlickItem class="slide">
+                            <div class="item">
+                                <div style="justify-content: center" class="d-flex">
+                                    <div class="ui2 card2 p-0">
+                                        <div class="bg-img-cover2">
+                                            <img src="images/local-development.jpg" class="card-bg"
+                                                alt="local-development" />
+                                        </div>
+                                        <div class="small-bow">
+                                            <div class="px-15 pb-3">
+                                                <div class="fw-bold">Local Identity</div>
+                                                <div>Heritage Sites, Cultural Conservation & Historic Preservation.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div ngxSlickItem class="slide">
+                            <div class="item">
+                                <div style="justify-content: center" class="d-flex">
+                                    <div class="ui2 card2 p-0">
+                                        <div class="bg-img-cover2">
+                                            <img src="images/youth-urban.jpg" class="card-bg" alt="youth-urban" />
+                                        </div>
+                                        <div class="small-bow">
+                                            <div class="px-15 pb-3">
+                                                <div class="fw-bold">Youth Engagement in Urban Governance</div>
+                                                <div>Youth Empowerment, Civic Participation & Leadership.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div ngxSlickItem class="slide">
+                            <div class="item">
+                                <div style="justify-content: center" class="d-flex">
+                                    <div class="ui2 card2 p-0">
+                                        <div class="bg-img-cover2">
+                                            <img src="images/resilance-disaster.jpg" class="card-bg"
+                                                alt="resilance-disaster" />
+                                        </div>
+                                        <div class="small-bow">
+                                            <div class="px-15 pb-3">
+                                                <div class="fw-bold">Resilience and Disaster Preparedness Forum</div>
+                                                <div>Disaster Management, Climate Adaptation & Emergency Response.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+
+
+        <section id="galleryBx">
+            <div class="ps-3 pe-3 ps-lg-5 pe-lg-5 partners">
+                <div>
+                    <h4 class="sb-se-title">Gallery</h4>
+                </div>
+                <ul class="owl-carousel owl-theme">
+                    <li><a data-fancybox="gallery" href="images/1.jpg"
+                            data-caption="Launch of the Urban Learnathon by Honourable Union Minister Shri Hardeep Singh Puri"
+                            aria-label="Gallery images"><img src="images/1.jpg" alt="01"></a></li>
+                    <li><a data-fancybox="gallery" href="images/2.jpg"
+                            data-caption="NULP State Activation Workshop at Jabalpur, Madhya Pradesh"
+                            aria-label="Gallery images"><img src="images/2.jpg" alt="02"></a></li>
+                    <li><a data-fancybox="gallery" href="images/3.jpg"
+                            data-caption="NULP State Activation Workshop at Jabalpur, Madhya Pradesh"
+                            aria-label="Gallery images"><img src="images/3.jpg" alt="03"></a></li>
+                    <li><a data-fancybox="gallery" href="images/4.jpg"
+                            data-caption="NULP State Activation Workshop at Ranchi, Jharkhand"
+                            aria-label="Gallery images"><img src="images/4.jpg" alt="01"></a></li>
+                    <li><a data-fancybox="gallery" href="images/5.jpg"
+                            data-caption="NULP State Activation Workshop at Ranchi, Jharkhand"
+                            aria-label="Gallery images"><img src="images/5.jpg" alt="01"></a></li>
+
+                </ul>
+            </div>
+        </section>
+
+        <section>
+            <div class="ps-3 pe-3 ps-lg-5 pe-lg-5 partners">
+                <div>
+                    <h4 class="sb-se-title">Our Partners</h4>
+                </div>
+                <div class="carousel partner-carousel pt-3 pb-3 slick-slide-show-partners">
+                    <div class="slide"><img class="partners-img" src="images/partner1.webp" alt="partners"></div>
+                    <div class="slide"><img class="partners-img" src="images/partner2.webp" alt="partners"></div>
+                    <div class="slide"><img class="partners-img" src="images/partner3.webp" alt="partners"></div>
+                    <div class="slide"><img class="partners-img" src="images/partner4.webp" alt="partners"></div>
+                    <div class="slide"><img class="partners-img" src="images/partner5.webp" alt="partners"></div>
+                    <div class="slide"><img class="partners-img" src="images/partner6.webp" alt="partners"></div>
+                    <div class="slide"><img class="partners-img" src="images/partner7.webp" alt="partners"></div>
+                    <div class="slide"><img class="partners-img" src="images/partner8.webp" alt="partners"></div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- Modal -->
+        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog  modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">National Urban Learning Platform</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <iframe id="videoFrame" src="" width="100%" height="315" allowfullscreen
+                            title="Video Embed"></iframe>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <footer>
+            <div class="footer-bg">
+                <div class="ps-3 pe-4 ps-lg-5 pe-lg-5">
+                    <div class="row">
+                        <div class="footer-anchors col-12 col-lg-6">
+                            <div class="row">
+                                <a target="_blank" class="pb-4 text-dark col-12 col-sm-6 col-md-3" aria-label="About us"
+                                    href="https://nulp.niua.org/aboutus.html"><span>About Us</span></a>
+                                <a target="_blank" class="pb-4 text-dark col-12 col-sm-6 col-md-3" aria-label="NIUA"
+                                    href="https://niua.in/"><span>NIUA</span></a>
+                                <a target="_blank" class="pb-4 text-dark col-12 col-sm-6 col-md-6" aria-label="Centre
+                            for
+                            Digital Governance" href="https://niua.org/cdg/"><span>Centre for Digital Governance</span></a>
+                                <a target="_blank" class="pb-4 text-dark col-12 col-sm-6 col-md-3"
+                                    aria-label="Contact us" href="mailto:nulp@niua.org"><span>Contact
+                                        Us</span></a>
+                                <a class="pb-4 text-dark col-12 col-sm-6 col-md-3" href="https://mohua.gov.in"
+                                    aria-label="MOHUA" target="_blank"><span>MoHUA</span></a>
+                                <a target="_blank" class="pb-4 text-dark col-12 col-sm-6 col-md-6" aria-label="National
+                            Urban Digital Mission" href="https://nudm.mohua.gov.in/"><span>National
+                                        Urban Digital Mission</span></a>
+                                <a class="pb-4 text-dark col-12 col-sm-6 col-md-3" target="_blank"
+                                    aria-label="Learnathon" href="/learnathon.html"><span>Learnathon</span></a>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-2">&nbsp;</div>
+                        <div class="col-12 col-lg-4">
+                            <div class="footer-right">
+                                <div class="mt-4 mt-md-0 ">
+                                    <div class="footer-right">
+                                        <h4 class="mb-3">Nodal Ministry:</h4>
+                                        <p class="">Ministry of Housing and Urban Affairs, Government of India</p>
+                                        <p class="">Nirman Bhawan, New Delhi- 110001, INDIA</p>
+                                    </div>
+                                    <h4 class="mb-3">Anchor Institute:</h4>
+                                    <p class="">National Institute of Urban Affairs</p>
+                                    <p class=""> 1st Floor, Core 4B, India Habitat Centre, Lodhi Road, New Delhi -
+                                        110003, INDIA
+                                    </p>
+                                    <p class="">Phone: (+91 11) 24617517, 24617543, 24617595</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sb-social d-flex justify-content-center justify-content-lg-start gap-3">
+                        <a href="https://www.facebook.com/people/National-Institute-of-Urban-Affairs/100068273286928/
+                        " target="_blank" aria-label="National"><i
+                                class="text-dark fs-2 social-icons fa fa-facebook"></i></a>
+                        <a href="https://instagram.com/niua_india?igshid=MzRlODBiNWFlZA==" target="_blank"
+                            aria-label="Instagram"><i class="text-dark fs-2 social-icons fa fa-instagram"></i></a>
+                        <a href="https://www.twitter.com/NIUA_India" target="_blank" aria-label="Twitter"><i
+                                class="text-dark fs-2 social-icons fa fa-twitter"></i></a>
+                        <a href="https://www.linkedin.com/school/national-institute-of-urban-affairs/" target="_blank"
+                            aria-label="LinkedIn"><i class="text-dark fs-2 social-icons fa fa-linkedin"></i></a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+        <!-- Counter -->
+        <script src="js/jquery.min.js"></script>
+        <script src="js/jquery.waypoints.min.js"></script>
+        <script src="js/jquery.counterup.min.js"></script>
+        <script src="js/owl.carousel.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="js/splide.min.js"></script>
+
+        <script src="vendorowl/vendors/jquery.min.js"></script>
+        <script src="js/semantic.min.js"></script>
+        <!-- <script type="text/javascript" src="js/jquery-1.11.0.min.js"></script> -->
+        <script type="text/javascript" src="js/jquery-migrate-1.2.1.min.js"></script>
+        <script type="text/javascript" src="//cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
+        <script src="vendorowl/owlcarousel/owl.carousel.js"></script>
+        <script src="js/jquery.fancybox.min.js"></script>
+        <script type="text/javascript" src="../sunbird/js/new-custom.js"></script>
+        <script rel="preconnect" src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+        <script>
+            const currentUrl = window.location.href;
+
+            // Check if the URL is a production URL or a development URL
+            if (currentUrl.includes('https://nulp.niua.org/')) {
+                // If it's a production URL, show the /resource link
+                document.getElementById('resourceLink').style.display = 'block';
+                document.getElementById('loginLink').style.display = 'none';
+            } else if (currentUrl.includes('https://devnulp.niua.org/')) {
+                // If it's a development URL, show the Log/Sign In link
+                document.getElementById('loginLink').style.display = 'block';
+                document.getElementById('resourceLink').style.display = 'none';
+            }
+        </script>
+        <script>
+            // Get the modal and iframe elements
+            const modal = document.getElementById('exampleModal');
+            const videoFrame = document.getElementById('videoFrame');
+            // Store the initial src of the iframe
+            const videoSrc = "videos/26-Mooc-Modules-Launch.mp4";
+            // Add an event listener for when the modal is completely hidden
+            modal.addEventListener('hidden.bs.modal', function () {
+                // Reset the iframe src to stop the video
+                videoFrame.src = "";
+            });
+            // Add an event listener for when the modal is shown again
+            modal.addEventListener('shown.bs.modal', function () {
+                // Restore the iframe src to start the video again
+                videoFrame.src = videoSrc;
+            });
+        </script>
+
+</body>
+
+</html>

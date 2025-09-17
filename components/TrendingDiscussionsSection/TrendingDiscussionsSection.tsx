@@ -95,6 +95,18 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
             .filter(Boolean)
             .slice(0, 12); // limit for safety
 
+          // Optional: fetch description from homepage sliders
+          try {
+            const allRes = await slidersApi.getHomepageSliders();
+            if (allRes.success && Array.isArray(allRes.data)) {
+              const all = allRes.data || [];
+              const slider = (all as any[]).find(
+                (i) => (i.mode || "").toLowerCase() === "select_discussion"
+              );
+              setSliderDescription((slider?.description as string) || "");
+            }
+          } catch {}
+
           setIsVisible(slugs.length > 0);
           if (slugs.length === 0) {
             setDiscussions([]);
@@ -241,8 +253,8 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
   const updateCurrentSlide = useCallback(() => {
     if (!scrollContainerRef.current) return;
     const cardWidth = 340 + 24; // card width + gap (matching other sections)
-    const scrollLeft = scrollContainerRef.current.scrollLeft;
-    const newSlide = Math.round(scrollLeft / (cardWidth * 2));
+    const sl = scrollContainerRef.current.scrollLeft;
+    const newSlide = Math.round(sl / (cardWidth * 2));
     setCurrentSlide(Math.min(newSlide, totalSlides - 1));
   }, [totalSlides]);
 

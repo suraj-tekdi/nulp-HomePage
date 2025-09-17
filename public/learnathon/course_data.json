@@ -1,0 +1,386 @@
+{
+    "id": "api.content.search",
+    "ver": "1.0",
+    "ts": "2022-04-15T04:46:38.017Z",
+    "params": {
+      "resmsgid": "09062310-bc77-11ec-a47a-fbf92ce95291",
+      "msgid": "1dcbf91c-dfe6-c32d-9b73-7452629b4b7a",
+      "status": "successful",
+      "err": null,
+      "errmsg": null
+    },
+    "responseCode": "OK",
+    "result": {
+      "count": 71,
+      "content": [
+        {
+          "identifier": "do_1130500006519275521449",
+          "subject": [
+            "Routine Job Requirement"
+          ],
+          "channel": "0130152125009674241",
+          "organisation": [
+            "NULPddd"
+          ],
+          "mimeType": "application/pdf",
+          "medium": [
+            "English"
+          ],
+          "pkgVersion": 1,
+          "objectType": "Content",
+          "appIcon": "https://nuisprod.blob.core.windows.net/content/content/do_113021678562983936195/artifact/500_f_119607961_yujmuo0vqeg7jewggo6sggm6lbxpukgs_1557810773022.thumb_1589560371815.png",
+          "gradeLevel": [
+            "Knowledge"
+          ],
+          "primaryCategory": "Learning Resource",
+          "name": "Course Outline for Certificate Course on Non-Networked Sanitation Management",
+          "contentType": "Resource",
+          "board": "Environment/SWM",
+          "resourceType": "Learn",
+          "orgDetails": {
+            "email": null,
+            "orgName": "NULP"
+          }
+        },
+        {
+          "identifier": "do_1130512572609658881467",
+          "subject": [
+            "How To"
+          ],
+          "channel": "0130152125009674241",
+          "organisation": [
+            "NULP"
+          ],
+          "mimeType": "video/mp4",
+          "medium": [
+            "English"
+          ],
+          "pkgVersion": 1,
+          "objectType": "Content",
+          "appIcon": "https://nuisprod.blob.core.windows.net/content/content/do_1130217006520647681115/artifact/nulp4nulp_1555068626907_1589563068125.png",
+          "gradeLevel": [
+            "Knowledge"
+          ],
+          "primaryCategory": "Explanation Content",
+          "name": "NULP-Approve Course",
+          "contentType": "Resource",
+          "board": "NULP 4 NULP",
+          "resourceType": "Learn",
+          "orgDetails": {
+            "email": null,
+            "orgName": "NULP"
+          }
+        },
+        {
+          "trackable": {
+            "enabled": "Yes",
+            "autoBatch": "Yes"
+          },
+          "identifier": "do_1133288210323210241442",
+          "subject": [
+            "Best Practices"
+          ],
+          "channel": "01321059672560435210",
+          "organisation": [
+            "Madhya Pradesh",
+            "Bhopal Municipal Corporation"
+          ],
+          "mimeType": "application/vnd.ekstep.content-collection",
+          "medium": [
+            "English"
+          ],
+          "pkgVersion": 2,
+          "objectType": "Content",
+          "appIcon": "https://nuisprod.blob.core.windows.net/content/content/do_1133287983286927361455/artifact/3.3_1627050577741.png",
+          "gradeLevel": [
+            "Solution"
+          ],
+          "primaryCategory": "Course",
+          "name": "Intelligent Traffic Management System at Bhopal ",
+          "contentType": "Course",
+          "board": "IT",
+          "resourceType": "Course",
+          "orgDetails": {
+            "email": null,
+            "orgName": "Madhya Pradesh"
+          }
+        },
+        {
+          "trackable": {
+            "enabled": "Yes",
+            "autoBatch": "Yes"
+          },
+          "identifier": "do_1133216680608563201206",
+          "subject": [
+            "Overview"
+          ],
+          "channel": "0133172281204899844",
+          "organisation": [
+            "BMTPC"
+          ],
+          "mimeType": "application/vnd.ekstep.content-collection",
+          "medium": [
+            "English"
+          ],
+          "pkgVersion": 3,
+          "objectType": "Content",
+          "gradeLevel": [
+            "Knowledge"
+          ],
+          "appIcon": "https://nuisprod.blob.core.windows.net/content/content/do_1133216680608563201206/artifact/vul-cover_1626169995505.thumb.png",
+          "primaryCategory": "Course",
+          "name": "E-Course on Vulnerability Atlas of India",
+          "contentType": "Course",
+          "board": "Town Plan",
+          "resourceType": "Course",
+          "orgDetails": {
+            "email": null,
+            "orgName": "BMTPC"
+          }
+        },
+        {
+          "trackable": {
+            "enabled": "Yes",
+            "autoBatch": "Yes"
+          },
+          "identifier": "do_1133216680608563201206",
+          "subject": [
+            "Overview"
+          ],
+          "channel": "0133172281204899844",
+          "organisation": [
+            "BMTPC"
+          ],
+          "mimeType": "application/vnd.ekstep.content-collection",
+          "medium": [
+            "English"
+          ],
+          "pkgVersion": 3,
+          "objectType": "Content",
+          "gradeLevel": [
+            "Knowledge"
+          ],
+          "appIcon": "https://nuisprod.blob.core.windows.net/content/content/do_1133216680608563201206/artifact/vul-cover_1626169995505.thumb.png",
+          "primaryCategory": "Course",
+          "name": "E-Course on Vulnerability Atlas of India",
+          "contentType": "Course",
+          "board": "Town Plan",
+          "resourceType": "Course",
+          "orgDetails": {
+            "email": null,
+            "orgName": "BMTPC"
+          }
+        },
+        {
+          "trackable": {
+            "enabled": "Yes",
+            "autoBatch": "Yes"
+          },
+          "identifier": "do_1133216680608563201206",
+          "subject": [
+            "Overview"
+          ],
+          "channel": "0133172281204899844",
+          "organisation": [
+            "BMTPC"
+          ],
+          "mimeType": "application/vnd.ekstep.content-collection",
+          "medium": [
+            "English"
+          ],
+          "pkgVersion": 3,
+          "objectType": "Content",
+          "gradeLevel": [
+            "Knowledge"
+          ],
+          "appIcon": "https://nuisprod.blob.core.windows.net/content/content/do_1133216680608563201206/artifact/vul-cover_1626169995505.thumb.png",
+          "primaryCategory": "Course",
+          "name": "E-Course on Vulnerability Atlas of India",
+          "contentType": "Course",
+          "board": "Town Plan",
+          "resourceType": "Course",
+          "orgDetails": {
+            "email": null,
+            "orgName": "BMTPC"
+          }
+        },
+        {
+          "trackable": {
+            "enabled": "Yes",
+            "autoBatch": "Yes"
+          },
+          "identifier": "do_1133216680608563201206",
+          "subject": [
+            "Overview"
+          ],
+          "channel": "0133172281204899844",
+          "organisation": [
+            "BMTPC"
+          ],
+          "mimeType": "application/vnd.ekstep.content-collection",
+          "medium": [
+            "English"
+          ],
+          "pkgVersion": 3,
+          "objectType": "Content",
+          "gradeLevel": [
+            "Knowledge"
+          ],
+          "appIcon": "https://nuisprod.blob.core.windows.net/content/content/do_1133216680608563201206/artifact/vul-cover_1626169995505.thumb.png",
+          "primaryCategory": "Course",
+          "name": "E-Course on Vulnerability Atlas of India",
+          "contentType": "Course",
+          "board": "Town Plan",
+          "resourceType": "Course",
+          "orgDetails": {
+            "email": null,
+            "orgName": "BMTPC"
+          }
+        }
+     
+      ],
+      "facets": [
+        {
+          "values": [
+            {
+              "name": "english",
+              "count": 67
+            },
+            {
+              "name": "hindi",
+              "count": 4
+            }
+          ],
+          "name": "se_mediums"
+        },
+        {
+          "values": [
+            {
+              "name": "town plan",
+              "count": 21
+            },
+            {
+              "name": "accessibility",
+              "count": 13
+            },
+            {
+              "name": "environment/swm",
+              "count": 16
+            },
+            {
+              "name": "ucd",
+              "count": 1
+            },
+            {
+              "name": "general administration",
+              "count": 2
+            },
+            {
+              "name": "it",
+              "count": 7
+            },
+            {
+              "name": "mobility/brts",
+              "count": 2
+            },
+            {
+              "name": "land and assets",
+              "count": 1
+            },
+            {
+              "name": "municipal finance",
+              "count": 1
+            },
+            {
+              "name": "water",
+              "count": 2
+            },
+            {
+              "name": "nulp 4 nulp",
+              "count": 5
+            }
+          ],
+          "name": "se_boards"
+        },
+        {
+          "values": [
+            {
+              "name": "learning resource",
+              "count": 21
+            },
+            {
+              "name": "explanation content",
+              "count": 5
+            },
+            {
+              "name": "course",
+              "count": 45
+            }
+          ],
+          "name": "primaryCategory"
+        },
+        {
+          "values": [
+            {
+              "name": "process",
+              "count": 4
+            },
+            {
+              "name": "mission",
+              "count": 1
+            },
+            {
+              "name": "solution",
+              "count": 7
+            },
+            {
+              "name": "software",
+              "count": 2
+            },
+            {
+              "name": "program",
+              "count": 6
+            },
+            {
+              "name": "knowledge",
+              "count": 51
+            }
+          ],
+          "name": "se_gradeLevels"
+        },
+        {
+          "values": [
+            {
+              "name": "innovation",
+              "count": 6
+            },
+            {
+              "name": "overview",
+              "count": 36
+            },
+            {
+              "name": "how to",
+              "count": 6
+            },
+            {
+              "name": "firefighting knowledge",
+              "count": 4
+            },
+            {
+              "name": "best practices",
+              "count": 15
+            },
+            {
+              "name": "standard operating procedure",
+              "count": 3
+            },
+            {
+              "name": "routine job requirement",
+              "count": 2
+            }
+          ],
+          "name": "se_subjects"
+        }
+      ]
+    }
+  }

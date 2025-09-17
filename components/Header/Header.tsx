@@ -122,6 +122,8 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
     const label = m.title?.trim() || m.slug;
     const target: "_self" | "_blank" =
       m.target_window === "New_Window" ? "_blank" : "_self";
+    const isExternalType = (m.menu_type || "").toLowerCase() === "external";
+    const forceExternal = isExternalType || target === "_blank";
 
     // Classify by actual link target first
     let href = "/";
@@ -141,11 +143,12 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
       const path = url.pathname || "/";
       const hash = url.hash ? url.hash.replace("#", "") : "";
 
-      // If this URL points to one of our app routes, always treat as internal SPA
+      // If this URL points to one of our app routes
       if (treatAsInternal(path)) {
         href = path === "" ? "/" : path;
         scrollTo = hash || undefined;
-        return { label, href, scrollTo, external: false, target };
+        // Respect CMS settings: open in new tab if External or New_Window
+        return { label, href, scrollTo, external: forceExternal, target };
       }
 
       // Otherwise, treat as external (respect menu type and target)
@@ -157,6 +160,25 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
       const hasHash = hashIndex >= 0;
       const basePath = hasHash ? link.substring(0, hashIndex) : link;
       const hash = hasHash ? link.substring(hashIndex + 1) : "";
+
+      // Treat static HTML files under public (e.g., /sunbird/index.html) as external
+      if (basePath.toLowerCase().endsWith(".html")) {
+        return { label, href: basePath, external: true, target };
+      }
+
+      // Normalize relative path
+      const normalized = basePath
+        ? basePath.startsWith("/")
+          ? basePath
+          : `/${basePath}`
+        : "/";
+
+      // If CMS marks as External or New_Window, open directly as external even for relative paths
+      if (forceExternal) {
+        const hrefWithHash = hash ? `${normalized}#${hash}` : normalized;
+        return { label, href: hrefWithHash, external: true, target };
+      }
+
       if (!basePath || basePath === "/") {
         href = "/";
         scrollTo = hash || undefined;
@@ -170,7 +192,7 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
       if (basePath.startsWith("http")) {
         return { label, href: link, external: true, target };
       }
-      href = basePath.startsWith("/") ? basePath : `/${basePath}`;
+      href = normalized;
       return { label, href, scrollTo, external: false, target };
     }
   };
@@ -228,12 +250,11 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
           })
           .filter(Boolean) as NavItem[];
 
-        if (mapped.length) {
-          setNavItems(mapped);
-          try {
-            sessionStorage.setItem(MENU_CACHE_KEY, JSON.stringify(mapped));
-          } catch {}
-        }
+        // Use only CMS-provided menus
+        setNavItems(mapped);
+        try {
+          sessionStorage.setItem(MENU_CACHE_KEY, JSON.stringify(mapped));
+        } catch {}
 
         // Build CTA Button from category 'button'
         const buttonsRaw = res.data.filter((m) => {
@@ -545,8 +566,11 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
       setIsMobileMenuOpen(false);
     }
 
-    // External link handling
-    if (item.external && item.href) {
+    const hrefStr = (item.href || "").toLowerCase();
+    const isStaticHtml = hrefStr.endsWith(".html");
+
+    // External link handling (also force .html paths to open directly)
+    if (item.external || isStaticHtml) {
       const target = item.target || "_blank";
       if (target === "_blank") {
         window.open(item.href, "_blank", "noopener,noreferrer");
