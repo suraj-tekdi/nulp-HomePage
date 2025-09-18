@@ -29,8 +29,8 @@ interface HeaderProps {
   className?: string;
 }
 
-const MENU_CACHE_KEY = "nulp_header_menus_v1";
-const BUTTON_CACHE_KEY = "nulp_header_button_v1";
+const MENU_CACHE_KEY = "nulp_header_menus_v2";
+const BUTTON_CACHE_KEY = "nulp_header_button_v2";
 
 const Header: React.FC<HeaderProps> = ({ className = "" }) => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -140,15 +140,20 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
         throw new Error("relative");
       }
       const url = new URL(linkStr);
-      const path = url.pathname || "/";
+      const rawPath = url.pathname || "/";
+      const path =
+        rawPath !== "/" && rawPath.endsWith("/")
+          ? rawPath.slice(0, -1)
+          : rawPath;
       const hash = url.hash ? url.hash.replace("#", "") : "";
 
       // If this URL points to one of our app routes
       if (treatAsInternal(path)) {
-        href = path === "" ? "/" : path;
+        const hrefNormalized = path === "" ? "/" : path;
+        href = hrefNormalized;
         scrollTo = hash || undefined;
-        // Respect CMS settings: open in new tab if External or New_Window
-        return { label, href, scrollTo, external: forceExternal, target };
+        // Always treat in-app routes as internal for smooth scroll support
+        return { label, href, scrollTo, external: false, target };
       }
 
       // Otherwise, treat as external (respect menu type and target)
@@ -167,14 +172,20 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
       }
 
       // Normalize relative path
-      const normalized = basePath
+      const normalizedBase = basePath
         ? basePath.startsWith("/")
           ? basePath
           : `/${basePath}`
         : "/";
+      const normalized =
+        normalizedBase !== "/" && normalizedBase.endsWith("/")
+          ? normalizedBase.slice(0, -1)
+          : normalizedBase;
 
-      // If CMS marks as External or New_Window, open directly as external even for relative paths
-      if (forceExternal) {
+      // If CMS marks as External/New_Window but path is internal, still treat as internal
+      const isInternalPath =
+        normalized === "/" || normalized.startsWith("/about");
+      if (forceExternal && !isInternalPath) {
         const hrefWithHash = hash ? `${normalized}#${hash}` : normalized;
         return { label, href: hrefWithHash, external: true, target };
       }
