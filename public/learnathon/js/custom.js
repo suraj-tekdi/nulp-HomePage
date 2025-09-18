@@ -175,7 +175,26 @@ $(".playlist-cover").delegate(".playlist-list-item", "click", function () {
   }
 
   document.addEventListener("DOMContentLoaded", function () {
-    // Update hrefs in DOM
+    // 1) Clean current URL in-place if needed
+    try {
+      var current =
+        window.location.pathname +
+        window.location.search +
+        window.location.hash;
+      var normalizedCurrent = normalizeLearnathonHref(current);
+      if (
+        normalizedCurrent &&
+        normalizedCurrent !==
+          window.location.pathname +
+            window.location.search +
+            window.location.hash
+      ) {
+        // Replace in the address bar without reloading
+        history.replaceState(null, "", normalizedCurrent);
+      }
+    } catch (e) {}
+
+    // 2) Update hrefs in DOM
     var anchors = document.querySelectorAll("a[href]");
     anchors.forEach(function (a) {
       var normalized = normalizeLearnathonHref(a.getAttribute("href"));
@@ -184,7 +203,7 @@ $(".playlist-cover").delegate(".playlist-list-item", "click", function () {
       }
     });
 
-    // Intercept clicks and navigate to clean URL
+    // 3) Intercept clicks and navigate to clean URL
     document.addEventListener(
       "click",
       function (e) {
