@@ -94,6 +94,21 @@ const isWithinPublishWindow = (
   return startOk && endOk;
 };
 
+// Map CMS sort field/order to NULP API sort_by payload
+const normalizeSort = (
+  sortField?: string | null,
+  sortOrder?: string | null
+): Record<string, "asc" | "desc"> => {
+  const field = (sortField || "createdOn").toLowerCase();
+  const order = (sortOrder || "DESC").toLowerCase() === "asc" ? "asc" : "desc";
+
+  // Common sort keys supported by NULP search
+  if (field.includes("created")) return { createdOn: order } as const;
+  if (field.includes("update")) return { lastUpdatedOn: order } as const;
+  if (field.includes("publish")) return { lastPublishedOn: order } as const;
+  return { createdOn: order } as const;
+};
+
 export const slidersApi = {
   getHomepageSliders: async (): Promise<ApiResponse<HomepageSliderItem[]>> => {
     try {
@@ -262,6 +277,102 @@ export const slidersApi = {
     }
   },
 
+  // Dynamic Courses: use sort_field/sort_order instead of explicit IDs
+  getCoursesDynamic: async (
+    sortField?: string | null,
+    sortOrder?: string | null,
+    selectedDomain?: string | null,
+    limit: number = 5
+  ): Promise<ApiResponse<NulpCourse[]>> => {
+    try {
+      const urls = getDynamicNulpUrls();
+      const baseUrl = urls.base;
+
+      const payload: any = {
+        filters: {
+          status: ["Live"],
+          visibility: ["Default", "Parent"],
+          se_boards: [null],
+        },
+        limit: Math.max(1, Math.min(100, limit)),
+        sort_by: normalizeSort(sortField, sortOrder),
+        fields: [
+          "name",
+          "appIcon",
+          "mimeType",
+          "gradeLevel",
+          "identifier",
+          "medium",
+          "pkgVersion",
+          "board",
+          "subject",
+          "resourceType",
+          "primaryCategory",
+          "contentType",
+          "channel",
+          "organisation",
+          "trackable",
+          "primaryCategory",
+          "se_boards",
+          "se_gradeLevels",
+          "se_subjects",
+          "se_mediums",
+        ],
+        facets: [
+          "se_boards",
+          "se_gradeLevels",
+          "se_subjects",
+          "se_mediums",
+          "primaryCategory",
+        ],
+        offset: 0,
+        query: "",
+      };
+
+      if (selectedDomain && selectedDomain.trim()) {
+        payload.filters.se_boards = [selectedDomain.trim()];
+      }
+
+      const response = await fetch(
+        `${baseUrl}/api/content/v1/search?orgdetails=orgName,email&licenseDetails=name,description,url`,
+        {
+          method: "POST",
+          headers: {
+            Accept: "*/*",
+            "Accept-Language": "en-GB,en-US;q=0.9,en;q=0.8",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ request: payload }),
+        }
+      );
+
+      if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status}`);
+      const data = await response.json();
+      if (data?.responseCode === "OK" && Array.isArray(data?.result?.content)) {
+        return {
+          success: true,
+          data: data.result.content as NulpCourse[],
+          status: response.status,
+        };
+      }
+      return {
+        success: false,
+        error: "Invalid response from NULP API",
+        status: response.status,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch dynamic courses",
+        status: 0,
+      };
+    }
+  },
+
   // IDs for Trending Good Practices from sliders
   getTrendingGoodPracticeIds: async (): Promise<ApiResponse<string[]>> => {
     const res = await slidersApi.getHomepageSliders();
@@ -417,6 +528,103 @@ export const slidersApi = {
           error instanceof Error
             ? error.message
             : "Failed to fetch good practices by ids",
+        status: 0,
+      };
+    }
+  },
+
+  // Dynamic Good Practices: use sort_field/sort_order instead of explicit IDs
+  getGoodPracticesDynamic: async (
+    sortField?: string | null,
+    sortOrder?: string | null,
+    selectedDomain?: string | null,
+    limit: number = 5
+  ): Promise<ApiResponse<NulpGoodPractice[]>> => {
+    try {
+      const urls = getDynamicNulpUrls();
+      const baseUrl = urls.base;
+
+      const payload: any = {
+        filters: {
+          status: ["Live"],
+          visibility: ["Default", "Parent"],
+          se_boards: [null],
+        },
+        limit: Math.max(1, Math.min(100, limit)),
+        sort_by: normalizeSort(sortField, sortOrder),
+        fields: [
+          "name",
+          "appIcon",
+          "mimeType",
+          "gradeLevel",
+          "identifier",
+          "medium",
+          "pkgVersion",
+          "board",
+          "subject",
+          "resourceType",
+          "primaryCategory",
+          "contentType",
+          "channel",
+          "organisation",
+          "trackable",
+          "primaryCategory",
+          "se_boards",
+          "se_gradeLevels",
+          "se_subjects",
+          "se_mediums",
+          "primaryCategory",
+        ],
+        facets: [
+          "se_boards",
+          "se_gradeLevels",
+          "se_subjects",
+          "se_mediums",
+          "primaryCategory",
+        ],
+        offset: 0,
+        query: "",
+      };
+
+      if (selectedDomain && selectedDomain.trim()) {
+        payload.filters.se_boards = [selectedDomain.trim()];
+      }
+
+      const response = await fetch(
+        `${baseUrl}/api/content/v1/search?orgdetails=orgName,email&licenseDetails=name,description,url`,
+        {
+          method: "POST",
+          headers: {
+            Accept: "*/*",
+            "Accept-Language": "en-GB,en-US;q=0.9,en;q=0.8",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ request: payload }),
+        }
+      );
+
+      if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status}`);
+      const data = await response.json();
+      if (data?.responseCode === "OK" && Array.isArray(data?.result?.content)) {
+        return {
+          success: true,
+          data: data.result.content as NulpGoodPractice[],
+          status: response.status,
+        };
+      }
+      return {
+        success: false,
+        error: "Invalid response from NULP API",
+        status: response.status,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch dynamic good practices",
         status: 0,
       };
     }

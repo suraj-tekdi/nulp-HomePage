@@ -9,7 +9,11 @@ import Image from "next/image";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import styles from "./TrendingGoodPracticesSection.module.css";
-import { slidersApi, type NulpGoodPractice } from "../../services";
+import {
+  slidersApi,
+  type NulpGoodPractice,
+  getDynamicNulpUrls,
+} from "../../services";
 import domainImages from "../../services/domain-images.json";
 
 interface GoodPractice {
@@ -113,7 +117,7 @@ const TrendingGoodPracticesSection: React.FC<
         setLoading(true);
         setError(null);
 
-        // 1) Read good-practice IDs from sliders API
+        // 1) Read good-practice configuration from sliders
         const allRes = await slidersApi.getHomepageSliders();
         if (!allRes.success || !Array.isArray(allRes.data)) {
           setIsVisible(false);
@@ -122,30 +126,47 @@ const TrendingGoodPracticesSection: React.FC<
           return;
         }
         const all = allRes.data || [];
-        const slider = (all as any[]).find(
+
+        const gpDynamic = (all as any[]).find(
+          (i) =>
+            (i.name || "").toLowerCase() === "trending good practices" &&
+            (i.mode || "").toLowerCase() === "dynamic"
+        );
+        const gpSelected = (all as any[]).find(
           (i) => (i.mode || "").toLowerCase() === "select_good_practices"
         );
-        setSliderDescription((slider?.description as string) || "");
+        const chosen = (gpDynamic as any) || (gpSelected as any);
+        setSliderDescription((chosen?.description as string) || "");
+
+        // 2) Fetch data based on mode
+        if (gpDynamic) {
+          const response = await slidersApi.getGoodPracticesDynamic(
+            (gpDynamic as any).sort_field,
+            (gpDynamic as any).sort_order,
+            selectedDomain || null,
+            5
+          );
+          if (response.success && response.data) {
+            const transformed = response.data.map(transformNulpGoodPractice);
+            setGoodPractices(transformed);
+            setIsVisible((response.data || []).length > 0);
+          } else {
+            setError(response.error || "Failed to fetch good practices");
+            setGoodPractices([]);
+            setIsVisible(false);
+          }
+          return;
+        }
+
+        // Fallback: use selected IDs
         const ids = (
-          (slider?.trending_good_practices as string[]) || []
+          ((gpSelected as any)?.trending_good_practices as string[]) || []
         ).filter(Boolean);
         setIsVisible(ids.length > 0);
         if (ids.length === 0) {
           setGoodPractices([]);
           return;
         }
-
-        // Fetch slider description (optional)
-        try {
-          const allRes = await slidersApi.getHomepageSliders();
-          if (allRes.success && Array.isArray(allRes.data)) {
-            const all = allRes.data || [];
-            const slider = (all as any[]).find(
-              (i) => (i.mode || "").toLowerCase() === "select_good_practices"
-            );
-            setSliderDescription((slider?.description as string) || "");
-          }
-        } catch {}
 
         // 2) Fetch good practices constrained to those IDs with optional domain filter
         const response = await slidersApi.getGoodPracticesByIds(
@@ -330,7 +351,8 @@ const TrendingGoodPracticesSection: React.FC<
 
   // Handle practice navigation
   const handlePracticeClick = useCallback((practiceId: string) => {
-    const practiceUrl = `/webapp/player?id=${practiceId}`;
+    const { base } = getDynamicNulpUrls();
+    const practiceUrl = `${base}/webapp/player?id=${practiceId}`;
     window.location.href = practiceUrl;
   }, []);
 

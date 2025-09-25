@@ -77,7 +77,7 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
             setError(response.error || "Failed to fetch domain discussions");
           }
         } else {
-          // No domain selected -> use sliders to get curated trending discussions
+          // No domain selected -> read sliders to decide mode
           const allRes = await slidersApi.getHomepageSliders();
           if (!allRes.success || !Array.isArray(allRes.data)) {
             setIsVisible(false);
@@ -86,45 +86,77 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
             return;
           }
           const all = allRes.data || [];
-          const slider = (all as any[]).find(
+
+          const disDynamic = (all as any[]).find(
+            (i) =>
+              (i.name || "").toLowerCase() === "trending discussions" &&
+              (i.mode || "").toLowerCase() === "dynamic"
+          );
+          const disSelected = (all as any[]).find(
             (i) => (i.mode || "").toLowerCase() === "select_discussion"
           );
-          setSliderDescription((slider?.description as string) || "");
+          const chosen = (disDynamic as any) || (disSelected as any);
+          setSliderDescription((chosen?.description as string) || "");
 
-          const slugs = ((slider?.trending_discussions as string[]) || [])
-            .filter(Boolean)
-            .slice(0, 12); // limit for safety
+          if (disDynamic) {
+            // Use popular discussions as dynamic source
+            const popRes = await discussionApi.getPopularDiscussions();
+            if (popRes.success && Array.isArray(popRes.data)) {
+              const rawTopics = popRes.data as DiscussionTopic[];
 
-          // Optional: fetch description from homepage sliders
-          try {
-            const allRes = await slidersApi.getHomepageSliders();
-            if (allRes.success && Array.isArray(allRes.data)) {
-              const all = allRes.data || [];
-              const slider = (all as any[]).find(
-                (i) => (i.mode || "").toLowerCase() === "select_discussion"
-              );
-              setSliderDescription((slider?.description as string) || "");
+              const sf = ((disDynamic as any).sort_field || "").toLowerCase();
+              const so = (
+                (disDynamic as any).sort_order || "DESC"
+              ).toLowerCase();
+              const dir = so === "asc" ? 1 : -1;
+              const sortedRaw = [...rawTopics].sort((a, b) => {
+                if (sf.includes("updated"))
+                  return dir * ((a.lastposttime || 0) - (b.lastposttime || 0));
+                if (sf.includes("repl"))
+                  return dir * ((a.postcount || 0) - (b.postcount || 0));
+                if (sf.includes("view"))
+                  return dir * ((a.viewcount || 0) - (b.viewcount || 0));
+                return dir * ((a.tid || 0) - (b.tid || 0));
+              });
+
+              transformedDiscussions = sortedRaw
+                .slice(0, 12)
+                .map((t) =>
+                  transformDiscussionTopic(t)
+                ) as unknown as Discussion[];
+              setIsVisible((transformedDiscussions || []).length > 0);
+            } else {
+              setError(popRes.error || "Failed to fetch discussions");
+              setIsVisible(false);
+              setDiscussions([]);
+              return;
             }
-          } catch {}
+          } else {
+            // Selected mode: use curated slugs
+            const slugs =
+              ((disSelected as any)?.trending_discussions as string[])
+                ?.filter(Boolean)
+                ?.slice(0, 12) || [];
 
-          setIsVisible(slugs.length > 0);
-          if (slugs.length === 0) {
-            setDiscussions([]);
-            return;
+            setIsVisible(slugs.length > 0);
+            if (slugs.length === 0) {
+              setDiscussions([]);
+              return;
+            }
+
+            // Fetch each topic by slug path in parallel
+            const topicPromises = slugs.map((slugPath) =>
+              discussionApi.getTopicBySlugPath(slugPath as string)
+            );
+            const topicsResults = await Promise.all(topicPromises);
+            const topics: DiscussionTopic[] = topicsResults
+              .filter((r) => r.success && r.data)
+              .map((r) => r.data as DiscussionTopic);
+
+            transformedDiscussions = topics.map((t) =>
+              transformDiscussionTopic(t)
+            ) as unknown as Discussion[];
           }
-
-          // Fetch each topic by slug path in parallel
-          const topicPromises = slugs.map((slugPath) =>
-            discussionApi.getTopicBySlugPath(slugPath as string)
-          );
-          const topicsResults = await Promise.all(topicPromises);
-          const topics: DiscussionTopic[] = topicsResults
-            .filter((r) => r.success && r.data)
-            .map((r) => r.data as DiscussionTopic);
-
-          transformedDiscussions = topics.map((t) =>
-            transformDiscussionTopic(t)
-          ) as unknown as Discussion[];
         }
 
         if (transformedDiscussions) {

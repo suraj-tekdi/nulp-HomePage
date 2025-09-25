@@ -9,7 +9,11 @@ import Image from "next/image";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import styles from "./TrendingCoursesSection.module.css";
-import { slidersApi, type NulpCourse } from "../../services";
+import {
+  slidersApi,
+  type NulpCourse,
+  getDynamicNulpUrls,
+} from "../../services";
 import domainImages from "../../services/domain-images.json";
 
 interface Course {
@@ -106,7 +110,7 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
         setLoading(true);
         setError(null);
 
-        // 1) Read course IDs from sliders API and pick description
+        // 1) Read course config from sliders and pick description
         const sliderRes = await slidersApi.getHomepageSliders();
         if (!sliderRes.success || !Array.isArray(sliderRes.data)) {
           setIsVisible(false);
@@ -115,17 +119,47 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
           return;
         }
         const all = sliderRes.data || [];
-        const slider = (all as any[]).find(
+
+        // Prefer Dynamic mode for courses if available
+        const coursesDynamic = (all as any[]).find(
+          (i) =>
+            (i.name || "").toLowerCase() === "trending courses" &&
+            (i.mode || "").toLowerCase() === "dynamic"
+        );
+
+        const coursesSelected = (all as any[]).find(
           (i) => (i.mode || "").toLowerCase() === "select_course"
         );
-        setSliderDescription((slider?.description as string) || "");
 
-        const ids = ((slider?.trending_courses as string[]) || []).filter(
-          Boolean
-        );
+        const chosen = (coursesDynamic as any) || (coursesSelected as any);
+        setSliderDescription((chosen?.description as string) || "");
+
+        // 2) Fetch courses based on mode
+        if (coursesDynamic) {
+          const response = await slidersApi.getCoursesDynamic(
+            (coursesDynamic as any).sort_field,
+            (coursesDynamic as any).sort_order,
+            selectedDomain || null,
+            5
+          );
+          if (response.success && response.data) {
+            const transformed = response.data.map(transformNulpCourse);
+            setCourses(transformed);
+            setIsVisible((response.data || []).length > 0);
+          } else {
+            setError(response.error || "Failed to fetch courses");
+            setCourses([]);
+            setIsVisible(false);
+          }
+          return;
+        }
+
+        // Fallback: use selected IDs
+        const ids = (
+          ((coursesSelected as any)?.trending_courses as string[]) || []
+        ).filter(Boolean);
         setIsVisible(ids.length > 0);
 
-        // 2) Fetch courses using NULP search constrained to IDs via sliders API
         const response = await slidersApi.getCoursesByIds(
           ids,
           selectedDomain || null
@@ -303,7 +337,8 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
 
   // Handle course navigation
   const handleCourseClick = useCallback((courseId: string) => {
-    const courseUrl = `/webapp/join-Course?${courseId}`;
+    const { base } = getDynamicNulpUrls();
+    const courseUrl = `${base}/webapp/player?id=${courseId}`;
     window.location.href = courseUrl;
   }, []);
 

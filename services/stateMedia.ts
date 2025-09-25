@@ -15,15 +15,56 @@ export interface StateAvailability {
 
 // Map API category slug/name to state id and display name
 const CATEGORY_TO_STATE_ID: Record<string, { id: string; name: string }> = {
-  maharashtra: { id: "mh", name: "Maharashtra" },
-  maharashra: { id: "mh", name: "Maharashtra" },
-  karnataka: { id: "ka", name: "Karnataka" },
-  "uttar-pradesh": { id: "up", name: "Uttar Pradesh" },
-  uttarpradesh: { id: "up", name: "Uttar Pradesh" },
-  "west-bengal": { id: "wb", name: "West Bengal" },
-  west_bengal: { id: "wb", name: "West Bengal" },
+  // States
+  "andhra-pradesh": { id: "ap", name: "Andhra Pradesh" },
+  andhrapradesh: { id: "ap", name: "Andhra Pradesh" },
+  "arunachal-pradesh": { id: "ar", name: "Arunachal Pradesh" },
+  arunachalpradesh: { id: "ar", name: "Arunachal Pradesh" },
+  assam: { id: "as", name: "Assam" },
+  bihar: { id: "br", name: "Bihar" },
+  chhattisgarh: { id: "cg", name: "Chhattisgarh" },
+  goa: { id: "ga", name: "Goa" },
+  gujarat: { id: "gj", name: "Gujarat" },
+  haryana: { id: "hr", name: "Haryana" },
   "himachal-pradesh": { id: "hp", name: "Himachal Pradesh" },
   himachalpradesh: { id: "hp", name: "Himachal Pradesh" },
+  "jammu-and-kashmir": { id: "jk", name: "Jammu and Kashmir" },
+  jammu: { id: "jk", name: "Jammu and Kashmir" },
+  kashmir: { id: "jk", name: "Jammu and Kashmir" },
+  jharkhand: { id: "jh", name: "Jharkhand" },
+  karnataka: { id: "ka", name: "Karnataka" },
+  kerala: { id: "kl", name: "Kerala" },
+  "madhya-pradesh": { id: "mp", name: "Madhya Pradesh" },
+  madhyapradesh: { id: "mp", name: "Madhya Pradesh" },
+  maharashtra: { id: "mh", name: "Maharashtra" },
+  maharashra: { id: "mh", name: "Maharashtra" },
+  manipur: { id: "mn", name: "Manipur" },
+  meghalaya: { id: "ml", name: "Meghalaya" },
+  mizoram: { id: "mz", name: "Mizoram" },
+  nagaland: { id: "nl", name: "Nagaland" },
+  odisha: { id: "od", name: "Odisha" },
+  punjab: { id: "pb", name: "Punjab" },
+  rajasthan: { id: "rj", name: "Rajasthan" },
+  sikkim: { id: "sk", name: "Sikkim" },
+  "tamil-nadu": { id: "tn", name: "Tamil Nadu" },
+  tamilnadu: { id: "tn", name: "Tamil Nadu" },
+  telangana: { id: "tg", name: "Telangana" },
+  tripura: { id: "tr", name: "Tripura" },
+  "uttar-pradesh": { id: "up", name: "Uttar Pradesh" },
+  uttarpradesh: { id: "up", name: "Uttar Pradesh" },
+  uttarakhand: { id: "uk", name: "Uttarakhand" },
+  "west-bengal": { id: "wb", name: "West Bengal" },
+  west_bengal: { id: "wb", name: "West Bengal" },
+  // Union Territories
+  "andaman-and-nicobar-islands": { id: "an", name: "Andaman & Nicobar" },
+  chandigarh: { id: "ch", name: "Chandigarh" },
+  "dadra-and-nagar-haveli-and-daman-and-diu": { id: "dn", name: "DNH & DD" },
+  daman: { id: "dn", name: "DNH & DD" },
+  diu: { id: "dn", name: "DNH & DD" },
+  delhi: { id: "dl", name: "Delhi" },
+  ladakh: { id: "la", name: "Ladakh" },
+  lakshadweep: { id: "ld", name: "Lakshadweep" },
+  puducherry: { id: "py", name: "Puducherry" },
 };
 
 function normalizeStateFromCategory(
@@ -55,6 +96,12 @@ function parseDateMs(value?: any): number | null {
   if (!value) return null;
   const ms = Date.parse(value);
   return Number.isNaN(ms) ? null : ms;
+}
+
+function hasStarted(start?: any, nowMs: number = Date.now()): boolean {
+  const s = parseDateMs(start);
+  if (s !== null && nowMs < s) return false;
+  return true;
 }
 
 function isWithinWindow(
@@ -98,28 +145,23 @@ export const stateMediaApi = {
       items.forEach((entry: any) => {
         const isPublished = (entry?.state || "").toLowerCase() === "published";
         const menuTitle = (entry?.menu?.title || "").trim().toLowerCase();
-        const isStateEngagement = menuTitle === "state engagement";
+        const isStateEngagement =
+          !entry?.menu ||
+          menuTitle === "state engagement" ||
+          menuTitle === "state-engagement";
         const hasImages =
           Array.isArray(entry?.upload_image) && entry.upload_image.length > 0;
 
-        // Visibility window checks
-        const entryVisible = isWithinWindow(
-          entry?.display_start_date,
-          entry?.display_end_date,
-          nowMs
-        );
-        const menuVisible = isWithinWindow(
-          entry?.menu?.start_publish_date,
-          entry?.menu?.end_publish_date,
-          nowMs
-        );
+        // Relaxed visibility: only require that it has started (ignore end dates)
+        const entryVisible = hasStarted(entry?.display_start_date, nowMs);
+        const menuVisible = hasStarted(entry?.menu?.start_publish_date, nowMs);
 
         if (
           !isPublished ||
           !isStateEngagement ||
           !hasImages ||
           !entryVisible ||
-          !menuVisible
+          (entry?.menu ? !menuVisible : false)
         )
           return;
 
