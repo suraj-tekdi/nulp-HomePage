@@ -20,10 +20,10 @@ import domainImages from "../../services/domain-images.json";
 interface Course {
   id: string;
   title: string;
-  description: string;
+  description?: string;
   image?: string;
-  category: string;
-  organization: string;
+  category?: string;
+  organization?: string;
 }
 
 interface TrendingCoursesSectionProps {
@@ -101,9 +101,6 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
       id: trendingCourse.identifier,
       title: trendingCourse.name.trim(),
       description: trendingCourse.description || "Course available on NULP platform",
-      image: undefined, // No image provided in trending course data
-      category: "General", // Default category since not provided
-      organization: "NULP", // Default organization since not provided
     };
   }, []);
 
@@ -445,7 +442,7 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
                     <img
                       src={
                         (domainImages as Record<string, string>)[
-                          course.category
+                          course.category || "General"
                         ] || "/images/placeholder-img.png"
                       }
                       alt={course.title}
@@ -462,9 +459,9 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
                         {course.title}
                       </h4>
                       <p className={styles.trending__card__description}>
-                        {course.description.length > 120
+                        {course.description && course.description.length > 120
                           ? `${course.description.substring(0, 120)}...`
-                          : course.description}
+                          : course.description || "Course available on NULP platform"}
                       </p>
                     </div>
 
@@ -474,7 +471,7 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
                         {course.title}
                       </h4>
                       <p className={styles.trending__card__description__full}>
-                        {course.description}
+                        {course.description || "Course available on NULP platform"}
                       </p>
                       <button
                         className={styles.trending__card__button}

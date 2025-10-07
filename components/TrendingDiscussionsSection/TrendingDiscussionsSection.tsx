@@ -23,12 +23,12 @@ import styles from "./TrendingDiscussionsSection.module.css";
 interface Discussion {
   id: number;
   title: string;
-  description: string;
-  category: string;
-  replies: number;
-  views: number;
-  isSolved: boolean;
-  author: string;
+  description?: string;
+  category?: string;
+  replies?: number;
+  views?: number;
+  isSolved?: boolean;
+  author?: string;
   designation?: string;
   location?: string;
   slug: string;
@@ -62,14 +62,6 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
       return {
         id: trendingDiscussion.id,
         title: trendingDiscussion.title.trim(),
-        description: "Join the discussion and share your thoughts on this topic.",
-        category: "General", // Default category since not provided
-        replies: 0, // Default value since not provided
-        views: 0, // Default value since not provided
-        isSolved: false, // Default value since not provided
-        author: "NULP Community", // Default author
-        designation: "Community Member", // Default designation
-        location: "India", // Default location
         slug: trendingDiscussion.slug,
       };
     },
@@ -342,7 +334,8 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
   };
 
   // Clean HTML tags from description
-  const cleanHtmlTags = (html: string) => {
+  const cleanHtmlTags = (html: string | undefined) => {
+    if (!html) return "";
     const div = document.createElement("div");
     div.innerHTML = html;
     return div.textContent || div.innerText || "";
@@ -532,7 +525,7 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
                   <img
                     src={
                       (domainImages as Record<string, string>)[
-                        discussion.category
+                        discussion.category || "General"
                       ] || "/images/placeholder-img.png"
                     }
                     alt={discussion.title}
@@ -549,7 +542,7 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
                       {truncateText(discussion.title, 60)}
                     </h4>
                     <p className={styles.discussions__card__description}>
-                      {truncateText(cleanHtmlTags(discussion.description), 100)}
+                      {truncateText(cleanHtmlTags(discussion.description || "Join the discussion and share your thoughts on this topic."), 100)}
                     </p>
                   </div>
 
@@ -559,7 +552,7 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
                       {discussion.title}
                     </h4>
                     <p className={styles.discussions__card__description__full}>
-                      {truncateText(cleanHtmlTags(discussion.description), 200)}
+                      {truncateText(cleanHtmlTags(discussion.description || "Join the discussion and share your thoughts on this topic."), 200)}
                     </p>
                     <button
                       className={styles.discussions__card__button}

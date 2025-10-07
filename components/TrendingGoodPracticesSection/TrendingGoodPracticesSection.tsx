@@ -20,12 +20,12 @@ import domainImages from "../../services/domain-images.json";
 interface GoodPractice {
   id: string;
   title: string;
-  description: string;
+  description?: string;
   image?: string;
-  category: string;
-  organization: string;
-  primaryCategory: string;
-  mimeType: string;
+  category?: string;
+  organization?: string;
+  primaryCategory?: string;
+  mimeType?: string;
 }
 
 interface TrendingGoodPracticesSectionProps {
@@ -109,11 +109,6 @@ const TrendingGoodPracticesSection: React.FC<
         id: trendingPractice.identifier,
         title: trendingPractice.name.trim(),
         description: trendingPractice.description || "Good practice available on NULP platform",
-        image: undefined, // No image provided in trending practice data
-        category: "General", // Default category since not provided
-        organization: "NULP", // Default organization since not provided
-        primaryCategory: "Good Practice", // Default primary category
-        mimeType: "application/pdf", // Default mime type
       };
     },
     []
@@ -456,7 +451,7 @@ const TrendingGoodPracticesSection: React.FC<
                     <img
                       src={
                         (domainImages as Record<string, string>)[
-                          practice.category
+                          practice.category || "General"
                         ] || "/images/placeholder-img.png"
                       }
                       alt={practice.title}
@@ -473,9 +468,9 @@ const TrendingGoodPracticesSection: React.FC<
                         {practice.title}
                       </h4>
                       <p className={styles.practices__card__description}>
-                        {practice.description.length > 120
+                        {practice.description && practice.description.length > 120
                           ? `${practice.description.substring(0, 120)}...`
-                          : practice.description}
+                          : practice.description || "Good practice available on NULP platform"}
                       </p>
                     </div>
 
@@ -485,7 +480,7 @@ const TrendingGoodPracticesSection: React.FC<
                         {practice.title}
                       </h4>
                       <p className={styles.practices__card__description__full}>
-                        {practice.description}
+                        {practice.description || "Good practice available on NULP platform"}
                       </p>
                       <button
                         className={styles.practices__card__button}
