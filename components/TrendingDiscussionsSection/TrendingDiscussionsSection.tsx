@@ -16,19 +16,19 @@ import {
   DomainDiscussionPost,
   getDynamicNulpUrls,
 } from "../../services/api";
-import { slidersApi } from "../../services/sliders";
+import { slidersApi, type TrendingDiscussionItem } from "../../services/sliders";
 import domainImages from "../../services/domain-images.json";
 import styles from "./TrendingDiscussionsSection.module.css";
 
 interface Discussion {
   id: number;
   title: string;
-  description: string;
-  category: string;
-  replies: number;
-  views: number;
-  isSolved: boolean;
-  author: string;
+  description?: string;
+  category?: string;
+  replies?: number;
+  views?: number;
+  isSolved?: boolean;
+  author?: string;
   designation?: string;
   location?: string;
   slug: string;
@@ -55,6 +55,18 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
   const [isVisible, setIsVisible] = useState<boolean>(true);
   const [sliderDescription, setSliderDescription] = useState<string>("");
   const [isMobile, setIsMobile] = useState<boolean>(false);
+
+  // Transform TrendingDiscussionItem from sliders API to our Discussion interface
+  const transformTrendingDiscussion = useCallback(
+    (trendingDiscussion: TrendingDiscussionItem): Discussion => {
+      return {
+        id: trendingDiscussion.id,
+        title: trendingDiscussion.title.trim(),
+        slug: trendingDiscussion.slug,
+      };
+    },
+    []
+  );
 
   // Fetch discussions from API
   useEffect(() => {
@@ -132,7 +144,16 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
               return;
             }
           } else {
-            // Selected mode: use curated slugs
+            // Selected mode: check if discussions are directly provided
+            if (disSelected.trending_discussions && Array.isArray(disSelected.trending_discussions) && disSelected.trending_discussions.length > 0) {
+              // New API structure: discussions are directly provided
+              const transformedDiscussions = disSelected.trending_discussions.map(transformTrendingDiscussion);
+              setDiscussions(transformedDiscussions);
+              setIsVisible(transformedDiscussions.length > 0);
+              return;
+            }
+
+            // Fallback: use curated slugs (old API structure)
             const slugs =
               ((disSelected as any)?.trending_discussions as string[])
                 ?.filter(Boolean)
@@ -172,7 +193,7 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
     };
 
     fetchDiscussions();
-  }, [selectedDomain]); // Add selectedDomain as dependency
+  }, [selectedDomain, transformTrendingDiscussion]); // Add selectedDomain and transformTrendingDiscussion as dependencies
 
   const discussionsPerPage = 4;
   const totalSlides = useMemo(
@@ -313,7 +334,8 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
   };
 
   // Clean HTML tags from description
-  const cleanHtmlTags = (html: string) => {
+  const cleanHtmlTags = (html: string | undefined) => {
+    if (!html) return "";
     const div = document.createElement("div");
     div.innerHTML = html;
     return div.textContent || div.innerText || "";
@@ -503,7 +525,7 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
                   <img
                     src={
                       (domainImages as Record<string, string>)[
-                        discussion.category
+                        discussion.category || ""
                       ] || "/images/placeholder-img.png"
                     }
                     alt={discussion.title}
@@ -520,7 +542,7 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
                       {truncateText(discussion.title, 60)}
                     </h4>
                     <p className={styles.discussions__card__description}>
-                      {truncateText(cleanHtmlTags(discussion.description), 100)}
+                      {truncateText(cleanHtmlTags(discussion.description || ""), 100)}
                     </p>
                   </div>
 
@@ -530,7 +552,7 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
                       {discussion.title}
                     </h4>
                     <p className={styles.discussions__card__description__full}>
-                      {truncateText(cleanHtmlTags(discussion.description), 200)}
+                      {truncateText(cleanHtmlTags(discussion.description || ""), 200)}
                     </p>
                     <button
                       className={styles.discussions__card__button}

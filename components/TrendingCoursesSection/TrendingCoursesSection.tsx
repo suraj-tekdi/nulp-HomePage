@@ -12,6 +12,7 @@ import styles from "./TrendingCoursesSection.module.css";
 import {
   slidersApi,
   type NulpCourse,
+  type TrendingCourseItem,
   getDynamicNulpUrls,
 } from "../../services";
 import domainImages from "../../services/domain-images.json";
@@ -19,10 +20,10 @@ import domainImages from "../../services/domain-images.json";
 interface Course {
   id: string;
   title: string;
-  description: string;
+  description?: string;
   image?: string;
-  category: string;
-  organization: string;
+  category?: string;
+  organization?: string;
 }
 
 interface TrendingCoursesSectionProps {
@@ -94,6 +95,15 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
     };
   }, []);
 
+  // Transform TrendingCourseItem from sliders API to our Course interface
+  const transformTrendingCourse = useCallback((trendingCourse: TrendingCourseItem): Course => {
+    return {
+      id: trendingCourse.identifier,
+      title: trendingCourse.name.trim(),
+      description: trendingCourse.description,
+    };
+  }, []);
+
   // Helper: recalculate pagination based on number of cards
   const recalculatePagination = useCallback(() => {
     const total = Array.isArray(courses) ? courses.length : 0;
@@ -103,7 +113,7 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
     setCurrentSlide((prev) => Math.min(prev, slides - 1));
   }, [courses]);
 
-  // Fetch course IDs from sliders, then fetch courses from NULP
+  // Fetch courses from sliders API
   useEffect(() => {
     const fetchCourses = async () => {
       try {
@@ -120,25 +130,40 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
         }
         const all = sliderRes.data || [];
 
-        // Prefer Dynamic mode for courses if available
-        const coursesDynamic = (all as any[]).find(
+        // Find the trending courses slider
+        const coursesSlider = all.find(
+          (i) => (i.mode || "").toLowerCase() === "select_course"
+        );
+
+        if (!coursesSlider) {
+          setIsVisible(false);
+          setCourses([]);
+          setError("No trending courses slider found");
+          return;
+        }
+
+        setSliderDescription(coursesSlider.description || "");
+
+        // 2) Check if courses are directly provided in the slider response
+        if (coursesSlider.trending_courses && Array.isArray(coursesSlider.trending_courses) && coursesSlider.trending_courses.length > 0) {
+          // New API structure: courses are directly provided
+          const transformedCourses = coursesSlider.trending_courses.map(transformTrendingCourse);
+          setCourses(transformedCourses);
+          setIsVisible(transformedCourses.length > 0);
+          return;
+        }
+
+        // 3) Fallback: try dynamic mode if no direct courses provided
+        const coursesDynamic = all.find(
           (i) =>
             (i.name || "").toLowerCase() === "trending courses" &&
             (i.mode || "").toLowerCase() === "dynamic"
         );
 
-        const coursesSelected = (all as any[]).find(
-          (i) => (i.mode || "").toLowerCase() === "select_course"
-        );
-
-        const chosen = (coursesDynamic as any) || (coursesSelected as any);
-        setSliderDescription((chosen?.description as string) || "");
-
-        // 2) Fetch courses based on mode
         if (coursesDynamic) {
           const response = await slidersApi.getCoursesDynamic(
-            (coursesDynamic as any).sort_field,
-            (coursesDynamic as any).sort_order,
+            coursesDynamic.sort_field,
+            coursesDynamic.sort_order,
             selectedDomain || null,
             5
           );
@@ -154,34 +179,21 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
           return;
         }
 
-        // Fallback: use selected IDs
-        const ids = (
-          ((coursesSelected as any)?.trending_courses as string[]) || []
-        ).filter(Boolean);
-        setIsVisible(ids.length > 0);
-
-        const response = await slidersApi.getCoursesByIds(
-          ids,
-          selectedDomain || null
-        );
-
-        if (response.success && response.data) {
-          const transformedCourses = response.data.map(transformNulpCourse);
-          setCourses(transformedCourses);
-        } else {
-          setError(response.error || "Failed to fetch courses");
-          setCourses([]);
-        }
+        // 4) Final fallback: no courses available
+        setIsVisible(false);
+        setCourses([]);
+        setError("No courses available in trending courses slider");
       } catch (err) {
         setError("Network error occurred while fetching courses");
         setCourses([]);
+        setIsVisible(false);
       } finally {
         setLoading(false);
       }
     };
 
     fetchCourses();
-  }, [transformNulpCourse, selectedDomain]);
+  }, [transformNulpCourse, transformTrendingCourse, selectedDomain]);
 
   // After courses change, reset scroll and recalc pagination
   useEffect(() => {
@@ -430,7 +442,7 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
                     <img
                       src={
                         (domainImages as Record<string, string>)[
-                          course.category
+                          course.category || ""
                         ] || "/images/placeholder-img.png"
                       }
                       alt={course.title}
@@ -447,7 +459,7 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
                         {course.title}
                       </h4>
                       <p className={styles.trending__card__description}>
-                        {course.description.length > 120
+                        {course.description && course.description.length > 120
                           ? `${course.description.substring(0, 120)}...`
                           : course.description}
                       </p>

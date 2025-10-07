@@ -42,12 +42,15 @@ export {
 // Banners API exports
 export { bannersApi, type HomepageBannerItem } from "./banners";
 
-// Sliders API exports
+// Sliders API exports - Updated with new trending types
 export {
   slidersApi,
   type HomepageSliderItem,
   type NulpCourse,
   type NulpGoodPractice,
+  type TrendingCourseItem,
+  type TrendingGoodPracticeItem,
+  type TrendingDiscussionItem,
 } from "./sliders";
 
 // Articles API exports
