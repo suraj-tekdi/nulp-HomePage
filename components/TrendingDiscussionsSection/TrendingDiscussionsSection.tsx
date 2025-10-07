@@ -525,7 +525,7 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
                   <img
                     src={
                       (domainImages as Record<string, string>)[
-                        discussion.category || "General"
+                        discussion.category || ""
                       ] || "/images/placeholder-img.png"
                     }
                     alt={discussion.title}
@@ -542,7 +542,7 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
                       {truncateText(discussion.title, 60)}
                     </h4>
                     <p className={styles.discussions__card__description}>
-                      {truncateText(cleanHtmlTags(discussion.description || "Join the discussion and share your thoughts on this topic."), 100)}
+                      {truncateText(cleanHtmlTags(discussion.description || ""), 100)}
                     </p>
                   </div>
 
@@ -552,7 +552,7 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
                       {discussion.title}
                     </h4>
                     <p className={styles.discussions__card__description__full}>
-                      {truncateText(cleanHtmlTags(discussion.description || "Join the discussion and share your thoughts on this topic."), 200)}
+                      {truncateText(cleanHtmlTags(discussion.description || ""), 200)}
                     </p>
                     <button
                       className={styles.discussions__card__button}

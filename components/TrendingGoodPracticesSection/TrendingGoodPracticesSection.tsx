@@ -108,7 +108,7 @@ const TrendingGoodPracticesSection: React.FC<
       return {
         id: trendingPractice.identifier,
         title: trendingPractice.name.trim(),
-        description: trendingPractice.description || "Good practice available on NULP platform",
+        description: trendingPractice.description,
       };
     },
     []
@@ -451,7 +451,7 @@ const TrendingGoodPracticesSection: React.FC<
                     <img
                       src={
                         (domainImages as Record<string, string>)[
-                          practice.category || "General"
+                          practice.category || ""
                         ] || "/images/placeholder-img.png"
                       }
                       alt={practice.title}
@@ -470,7 +470,7 @@ const TrendingGoodPracticesSection: React.FC<
                       <p className={styles.practices__card__description}>
                         {practice.description && practice.description.length > 120
                           ? `${practice.description.substring(0, 120)}...`
-                          : practice.description || "Good practice available on NULP platform"}
+                          : practice.description || ""}
                       </p>
                     </div>
 
@@ -480,7 +480,7 @@ const TrendingGoodPracticesSection: React.FC<
                         {practice.title}
                       </h4>
                       <p className={styles.practices__card__description__full}>
-                        {practice.description || "Good practice available on NULP platform"}
+                        {practice.description || ""}
                       </p>
                       <button
                         className={styles.practices__card__button}

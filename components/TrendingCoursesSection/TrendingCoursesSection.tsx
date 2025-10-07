@@ -100,7 +100,7 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
     return {
       id: trendingCourse.identifier,
       title: trendingCourse.name.trim(),
-      description: trendingCourse.description || "Course available on NULP platform",
+      description: trendingCourse.description,
     };
   }, []);
 
@@ -442,7 +442,7 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
                     <img
                       src={
                         (domainImages as Record<string, string>)[
-                          course.category || "General"
+                          course.category || ""
                         ] || "/images/placeholder-img.png"
                       }
                       alt={course.title}
@@ -461,7 +461,7 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
                       <p className={styles.trending__card__description}>
                         {course.description && course.description.length > 120
                           ? `${course.description.substring(0, 120)}...`
-                          : course.description || "Course available on NULP platform"}
+                          : course.description}
                       </p>
                     </div>
 
@@ -471,7 +471,7 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
                         {course.title}
                       </h4>
                       <p className={styles.trending__card__description__full}>
-                        {course.description || "Course available on NULP platform"}
+                        {course.description}
                       </p>
                       <button
                         className={styles.trending__card__button}
