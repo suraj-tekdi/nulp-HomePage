@@ -12,6 +12,7 @@ import styles from "./TrendingGoodPracticesSection.module.css";
 import {
   slidersApi,
   type NulpGoodPractice,
+  type TrendingGoodPracticeItem,
   getDynamicNulpUrls,
 } from "../../services";
 import domainImages from "../../services/domain-images.json";
@@ -101,6 +102,23 @@ const TrendingGoodPracticesSection: React.FC<
     []
   );
 
+  // Transform TrendingGoodPracticeItem from sliders API to our GoodPractice interface
+  const transformTrendingGoodPractice = useCallback(
+    (trendingPractice: TrendingGoodPracticeItem): GoodPractice => {
+      return {
+        id: trendingPractice.identifier,
+        title: trendingPractice.name.trim(),
+        description: trendingPractice.description || "Good practice available on NULP platform",
+        image: undefined, // No image provided in trending practice data
+        category: "General", // Default category since not provided
+        organization: "NULP", // Default organization since not provided
+        primaryCategory: "Good Practice", // Default primary category
+        mimeType: "application/pdf", // Default mime type
+      };
+    },
+    []
+  );
+
   // Helper: recalculate pagination based on item count
   const recalculatePagination = useCallback(() => {
     const total = Array.isArray(goodPractices) ? goodPractices.length : 0;
@@ -110,7 +128,7 @@ const TrendingGoodPracticesSection: React.FC<
     setCurrentSlide((prev) => Math.min(prev, slides - 1));
   }, [goodPractices]);
 
-  // Fetch good practices IDs from sliders, then fetch items by IDs
+  // Fetch good practices from sliders API
   useEffect(() => {
     const fetchGoodPractices = async () => {
       try {
@@ -127,22 +145,40 @@ const TrendingGoodPracticesSection: React.FC<
         }
         const all = allRes.data || [];
 
-        const gpDynamic = (all as any[]).find(
+        // Find the trending good practices slider
+        const gpSlider = all.find(
+          (i) => (i.mode || "").toLowerCase() === "select_good_practices"
+        );
+
+        if (!gpSlider) {
+          setIsVisible(false);
+          setGoodPractices([]);
+          setError("No trending good practices slider found");
+          return;
+        }
+
+        setSliderDescription(gpSlider.description || "");
+
+        // 2) Check if good practices are directly provided in the slider response
+        if (gpSlider.trending_good_practices && Array.isArray(gpSlider.trending_good_practices) && gpSlider.trending_good_practices.length > 0) {
+          // New API structure: good practices are directly provided
+          const transformedPractices = gpSlider.trending_good_practices.map(transformTrendingGoodPractice);
+          setGoodPractices(transformedPractices);
+          setIsVisible(transformedPractices.length > 0);
+          return;
+        }
+
+        // 3) Fallback: try dynamic mode if no direct practices provided
+        const gpDynamic = all.find(
           (i) =>
             (i.name || "").toLowerCase() === "trending good practices" &&
             (i.mode || "").toLowerCase() === "dynamic"
         );
-        const gpSelected = (all as any[]).find(
-          (i) => (i.mode || "").toLowerCase() === "select_good_practices"
-        );
-        const chosen = (gpDynamic as any) || (gpSelected as any);
-        setSliderDescription((chosen?.description as string) || "");
 
-        // 2) Fetch data based on mode
         if (gpDynamic) {
           const response = await slidersApi.getGoodPracticesDynamic(
-            (gpDynamic as any).sort_field,
-            (gpDynamic as any).sort_order,
+            gpDynamic.sort_field,
+            gpDynamic.sort_order,
             selectedDomain || null,
             5
           );
@@ -158,41 +194,21 @@ const TrendingGoodPracticesSection: React.FC<
           return;
         }
 
-        // Fallback: use selected IDs
-        const ids = (
-          ((gpSelected as any)?.trending_good_practices as string[]) || []
-        ).filter(Boolean);
-        setIsVisible(ids.length > 0);
-        if (ids.length === 0) {
-          setGoodPractices([]);
-          return;
-        }
-
-        // 2) Fetch good practices constrained to those IDs with optional domain filter
-        const response = await slidersApi.getGoodPracticesByIds(
-          ids,
-          selectedDomain || null
-        );
-
-        if (response.success && response.data) {
-          const transformedPractices = response.data.map(
-            transformNulpGoodPractice
-          );
-          setGoodPractices(transformedPractices);
-        } else {
-          setError(response.error || "Failed to fetch good practices");
-          setGoodPractices([]);
-        }
+        // 4) Final fallback: no good practices available
+        setIsVisible(false);
+        setGoodPractices([]);
+        setError("No good practices available in trending good practices slider");
       } catch (err) {
         setError("Network error occurred while fetching good practices");
         setGoodPractices([]);
+        setIsVisible(false);
       } finally {
         setLoading(false);
       }
     };
 
     fetchGoodPractices();
-  }, [transformNulpGoodPractice, selectedDomain]);
+  }, [transformNulpGoodPractice, transformTrendingGoodPractice, selectedDomain]);
 
   // After practices change, reset and recalc pagination
   useEffect(() => {

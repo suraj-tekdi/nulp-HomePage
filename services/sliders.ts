@@ -19,9 +19,9 @@ export interface HomepageSliderItem {
   createdAt: string;
   updatedAt: string;
   publishedAt: string;
-  trending_courses?: string[] | null;
-  trending_good_practices?: string[] | null;
-  trending_discussions?: string[] | null;
+  trending_courses?: TrendingCourseItem[] | null;
+  trending_good_practices?: TrendingGoodPracticeItem[] | null;
+  trending_discussions?: TrendingDiscussionItem[] | null;
   state: string;
   display_order: number;
   category: HomepageSliderCategory;
@@ -29,6 +29,57 @@ export interface HomepageSliderItem {
   end_publish_date?: string | null;
   is_active?: boolean;
   description?: string | null;
+  menu?: {
+    id: number;
+    documentId: string;
+    title: string;
+    slug: string;
+    menu_type: string;
+    link: string;
+    target_window: string;
+    state: string;
+    start_publish_date?: string | null;
+    end_publish_date?: string | null;
+    display_order: number;
+    createdAt: string;
+    updatedAt: string;
+    publishedAt: string;
+  } | null;
+}
+
+export interface TrendingCourseItem {
+  id: number;
+  documentId: string;
+  name: string;
+  identifier: string;
+  course_status: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
+}
+
+export interface TrendingGoodPracticeItem {
+  id: number;
+  documentId: string;
+  name: string;
+  identifier: string;
+  course_status: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
+}
+
+export interface TrendingDiscussionItem {
+  id: number;
+  documentId: string;
+  title: string;
+  slug: string;
+  tid: number;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
 }
 
 export interface HomepageSlidersResponseMeta {
@@ -170,7 +221,8 @@ export const slidersApi = {
     const slider =
       items.find((i) => (i.mode || "").toLowerCase() === "select_course") ||
       items.find((i) => (i.name || "").toLowerCase() === "trending courses");
-    const ids = (slider?.trending_courses || []).filter(Boolean) as string[];
+    const courses = slider?.trending_courses || [];
+    const ids = courses.map(course => course.identifier).filter(Boolean);
     return { success: true, data: ids, status: res.status };
   },
 
@@ -395,9 +447,8 @@ export const slidersApi = {
           Array.isArray(i.trending_good_practices) &&
           i.trending_good_practices.length > 0
       );
-    const ids = (slider?.trending_good_practices || []).filter(
-      Boolean
-    ) as string[];
+    const practices = slider?.trending_good_practices || [];
+    const ids = practices.map(practice => practice.identifier).filter(Boolean);
     return { success: true, data: ids, status: res.status };
   },
 
@@ -422,9 +473,8 @@ export const slidersApi = {
           Array.isArray(i.trending_discussions) &&
           i.trending_discussions.length > 0
       );
-    const slugs = (slider?.trending_discussions || []).filter(
-      Boolean
-    ) as string[];
+    const discussions = slider?.trending_discussions || [];
+    const slugs = discussions.map(discussion => discussion.slug).filter(Boolean);
     return { success: true, data: slugs, status: res.status };
   },
 
