@@ -130,36 +130,49 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
         }
         const all = sliderRes.data || [];
 
-        // Find the trending courses slider
+        // Find the trending courses slider (selected mode)
         const coursesSlider = all.find(
           (i) => (i.mode || "").toLowerCase() === "select_course"
         );
 
-        if (!coursesSlider) {
-          setIsVisible(false);
-          setCourses([]);
-          setError("No trending courses slider found");
-          return;
-        }
-
-        setSliderDescription(coursesSlider.description || "");
-
-        // 2) Check if courses are directly provided in the slider response
-        if (coursesSlider.trending_courses && Array.isArray(coursesSlider.trending_courses) && coursesSlider.trending_courses.length > 0) {
-          // New API structure: courses are directly provided
-          const transformedCourses = coursesSlider.trending_courses.map(transformTrendingCourse);
-          setCourses(transformedCourses);
-          setIsVisible(transformedCourses.length > 0);
-          return;
-        }
-
-        // 3) Fallback: try dynamic mode if no direct courses provided
+        // Find dynamic mode slider
         const coursesDynamic = all.find(
           (i) =>
             (i.name || "").toLowerCase() === "trending courses" &&
             (i.mode || "").toLowerCase() === "dynamic"
         );
 
+        // Set description from whichever mode we'll be using
+        const chosen = coursesDynamic || coursesSlider;
+        setSliderDescription((chosen?.description as string) || "");
+
+        // 2) Check if courses are directly provided in the slider response
+        if (coursesSlider && coursesSlider.trending_courses && Array.isArray(coursesSlider.trending_courses) && coursesSlider.trending_courses.length > 0) {
+          // New API structure: extract identifiers from trending_courses array
+          const ids = coursesSlider.trending_courses
+            .map((course: TrendingCourseItem) => course.identifier)
+            .filter(Boolean)
+            .slice(0, 12);
+          
+          if (ids.length > 0) {
+            const response = await slidersApi.getCoursesByIds(
+              ids,
+              selectedDomain || null
+            );
+            if (response.success && response.data) {
+              const transformed = response.data.map(transformNulpCourse);
+              setCourses(transformed);
+              setIsVisible(transformed.length > 0);
+            } else {
+              setError(response.error || "Failed to fetch courses");
+              setCourses([]);
+              setIsVisible(false);
+            }
+            return;
+          }
+        }
+
+        // 3) Use dynamic mode if available
         if (coursesDynamic) {
           const response = await slidersApi.getCoursesDynamic(
             coursesDynamic.sort_field,
