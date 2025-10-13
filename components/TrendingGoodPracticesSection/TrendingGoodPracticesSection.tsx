@@ -140,36 +140,49 @@ const TrendingGoodPracticesSection: React.FC<
         }
         const all = allRes.data || [];
 
-        // Find the trending good practices slider
+        // Find the trending good practices slider (selected mode)
         const gpSlider = all.find(
           (i) => (i.mode || "").toLowerCase() === "select_good_practices"
         );
 
-        if (!gpSlider) {
-          setIsVisible(false);
-          setGoodPractices([]);
-          setError("No trending good practices slider found");
-          return;
-        }
-
-        setSliderDescription(gpSlider.description || "");
-
-        // 2) Check if good practices are directly provided in the slider response
-        if (gpSlider.trending_good_practices && Array.isArray(gpSlider.trending_good_practices) && gpSlider.trending_good_practices.length > 0) {
-          // New API structure: good practices are directly provided
-          const transformedPractices = gpSlider.trending_good_practices.map(transformTrendingGoodPractice);
-          setGoodPractices(transformedPractices);
-          setIsVisible(transformedPractices.length > 0);
-          return;
-        }
-
-        // 3) Fallback: try dynamic mode if no direct practices provided
+        // Find dynamic mode slider
         const gpDynamic = all.find(
           (i) =>
             (i.name || "").toLowerCase() === "trending good practices" &&
             (i.mode || "").toLowerCase() === "dynamic"
         );
 
+        // Set description from whichever mode we'll be using
+        const chosen = gpDynamic || gpSlider;
+        setSliderDescription((chosen?.description as string) || "");
+
+        // 2) Check if good practices are directly provided in the slider response
+        if (gpSlider && gpSlider.trending_good_practices && Array.isArray(gpSlider.trending_good_practices) && gpSlider.trending_good_practices.length > 0) {
+          // New API structure: extract identifiers from trending_good_practices array
+          const ids = gpSlider.trending_good_practices
+            .map((practice: TrendingGoodPracticeItem) => practice.identifier)
+            .filter(Boolean)
+            .slice(0, 12);
+          
+          if (ids.length > 0) {
+            const response = await slidersApi.getGoodPracticesByIds(
+              ids,
+              selectedDomain || null
+            );
+            if (response.success && response.data) {
+              const transformed = response.data.map(transformNulpGoodPractice);
+              setGoodPractices(transformed);
+              setIsVisible(transformed.length > 0);
+            } else {
+              setError(response.error || "Failed to fetch good practices");
+              setGoodPractices([]);
+              setIsVisible(false);
+            }
+            return;
+          }
+        }
+
+        // 3) Use dynamic mode if available
         if (gpDynamic) {
           const response = await slidersApi.getGoodPracticesDynamic(
             gpDynamic.sort_field,
