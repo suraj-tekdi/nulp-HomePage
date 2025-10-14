@@ -149,10 +149,10 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
         // 2) Check if courses are directly provided in the slider response
         if (coursesSlider && coursesSlider.trending_courses && Array.isArray(coursesSlider.trending_courses) && coursesSlider.trending_courses.length > 0) {
           // New API structure: extract identifiers from trending_courses array
-          const ids = coursesSlider.trending_courses
+          const trendingCourses = coursesSlider.trending_courses.slice(0, 12);
+          const ids = trendingCourses
             .map((course: TrendingCourseItem) => course.identifier)
-            .filter(Boolean)
-            .slice(0, 12);
+            .filter(Boolean);
           
           if (ids.length > 0) {
             const response = await slidersApi.getCoursesByIds(
@@ -160,9 +160,17 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
               selectedDomain || null
             );
             if (response.success && response.data) {
-              const transformed = response.data.map(transformNulpCourse);
-              setCourses(transformed);
-              setIsVisible(transformed.length > 0);
+              // Preserve the original order from trending_courses array
+              const courseMap = new Map(
+                response.data.map(course => [course.identifier, course])
+              );
+              const orderedCourses = ids
+                .map(id => courseMap.get(id))
+                .filter((course): course is NulpCourse => course !== undefined)
+                .map(transformNulpCourse);
+              
+              setCourses(orderedCourses);
+              setIsVisible(orderedCourses.length > 0);
             } else {
               setError(response.error || "Failed to fetch courses");
               setCourses([]);
