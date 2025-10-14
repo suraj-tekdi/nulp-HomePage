@@ -159,10 +159,10 @@ const TrendingGoodPracticesSection: React.FC<
         // 2) Check if good practices are directly provided in the slider response
         if (gpSlider && gpSlider.trending_good_practices && Array.isArray(gpSlider.trending_good_practices) && gpSlider.trending_good_practices.length > 0) {
           // New API structure: extract identifiers from trending_good_practices array
-          const ids = gpSlider.trending_good_practices
+          const trendingPractices = gpSlider.trending_good_practices.slice(0, 12);
+          const ids = trendingPractices
             .map((practice: TrendingGoodPracticeItem) => practice.identifier)
-            .filter(Boolean)
-            .slice(0, 12);
+            .filter(Boolean);
           
           if (ids.length > 0) {
             const response = await slidersApi.getGoodPracticesByIds(
@@ -170,9 +170,17 @@ const TrendingGoodPracticesSection: React.FC<
               selectedDomain || null
             );
             if (response.success && response.data) {
-              const transformed = response.data.map(transformNulpGoodPractice);
-              setGoodPractices(transformed);
-              setIsVisible(transformed.length > 0);
+              // Preserve the original order from trending_good_practices array
+              const practiceMap = new Map(
+                response.data.map(practice => [practice.identifier, practice])
+              );
+              const orderedPractices = ids
+                .map(id => practiceMap.get(id))
+                .filter((practice): practice is NulpGoodPractice => practice !== undefined)
+                .map(transformNulpGoodPractice);
+              
+              setGoodPractices(orderedPractices);
+              setIsVisible(orderedPractices.length > 0);
             } else {
               setError(response.error || "Failed to fetch good practices");
               setGoodPractices([]);
