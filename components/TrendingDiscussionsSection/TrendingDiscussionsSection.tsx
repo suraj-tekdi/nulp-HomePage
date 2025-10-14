@@ -85,8 +85,12 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
             transformedDiscussions = (
               response.data as DomainDiscussionPost[]
             ).map(transformDomainDiscussionPost) as unknown as Discussion[];
+            setIsVisible((transformedDiscussions || []).length > 0);
           } else if (!response.success) {
-            setError(response.error || "Failed to fetch domain discussions");
+            // Hide section when discussions are not found for the domain
+            setIsVisible(false);
+            setDiscussions([]);
+            return;
           }
         } else {
           // No domain selected -> read sliders to decide mode
@@ -341,139 +345,9 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
     return div.textContent || div.innerText || "";
   };
 
-  if (!isVisible) return null;
-
-  if (loading) {
-    return (
-      <section
-        id="trending-discussions"
-        className={`${styles.discussions} ${className}`}
-      >
-        <div className={styles.discussions__container}>
-          <div className={styles.discussions__accent}></div>
-          <div className={styles.discussions__header}>
-            <h2 className={styles.discussions__title}>
-              Trending{" "}
-              <span className={styles.discussions__title__highlight}>
-                Discussions
-              </span>
-            </h2>
-            <h3 className={styles.discussions__subtitle}>
-              {selectedDomain || "All Domains"}
-            </h3>
-          </div>
-          <div className={styles.discussions__content}>
-            <div className={styles.discussions__loading}>
-              Loading discussions...
-            </div>
-            {sliderDescription && (
-              <p
-                className={styles.discussions__subtitle}
-                style={{ textAlign: "center", marginTop: "12px" }}
-              >
-                {sliderDescription}
-              </p>
-            )}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (error) {
-    return (
-      <section
-        id="trending-discussions"
-        className={`${styles.discussions} ${className}`}
-      >
-        <div className={styles.discussions__container}>
-          <div className={styles.discussions__header}>
-            <div className="title-wrapper">
-              <Image
-                src="/images/Arrow.svg"
-                alt="Arrow decoration"
-                width={280}
-                height={18}
-                className="title-arrow"
-              />
-              <h2 className={styles.discussions__title}>
-                Trending{" "}
-                <span className={styles.discussions__title__highlight}>
-                  Discussions
-                </span>
-              </h2>
-            </div>
-            <h3 className={styles.discussions__subtitle}>{selectedDomain}</h3>
-          </div>
-          <div className={styles.discussions__content}>
-            <div className={styles.discussions__error}>
-              Error loading discussions: {error}
-            </div>
-            {sliderDescription && (
-              <p
-                className={styles.discussions__subtitle}
-                style={{ textAlign: "center", marginTop: "12px" }}
-              >
-                {sliderDescription}
-              </p>
-            )}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Show "No discussions available" when there are no discussions but no error
-  if (!loading && discussions.length === 0) {
-    return (
-      <section
-        id="trending-discussions"
-        className={`${styles.discussions} ${className}`}
-      >
-        <div className={styles.discussions__container}>
-          <div className={styles.discussions__header}>
-            <div className="title-wrapper">
-              <Image
-                src="/images/Arrow.svg"
-                alt="Arrow decoration"
-                width={280}
-                height={18}
-                className="title-arrow"
-              />
-              <h2 className={styles.discussions__title}>
-                Trending{" "}
-                <span className={styles.discussions__title__highlight}>
-                  Discussions
-                </span>
-              </h2>
-            </div>
-            <h3 className={styles.discussions__subtitle}>
-              {selectedDomain || "All Domains"}
-            </h3>
-          </div>
-          <div className={styles.discussions__content}>
-            <div className={styles.discussions__empty}>
-              <div className={styles.discussions__empty__message}>
-                {selectedDomain
-                  ? `No discussions available for "${selectedDomain}" domain.`
-                  : "No discussions available at the moment."}
-              </div>
-              <div className={styles.discussions__empty__suggestion}>
-                Try selecting a different domain or check back later.
-              </div>
-            </div>
-            {sliderDescription && (
-              <p
-                className={styles.discussions__subtitle}
-                style={{ textAlign: "center", marginTop: "12px" }}
-              >
-                {sliderDescription}
-              </p>
-            )}
-          </div>
-        </div>
-      </section>
-    );
+  // Hide section completely if not visible, loading, has error, or no discussions
+  if (!isVisible || loading || error || discussions.length === 0) {
+    return null;
   }
 
   return (
