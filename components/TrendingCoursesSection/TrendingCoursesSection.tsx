@@ -149,7 +149,7 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
         // 2) Check if courses are directly provided in the slider response
         if (coursesSlider && coursesSlider.trending_courses && Array.isArray(coursesSlider.trending_courses) && coursesSlider.trending_courses.length > 0) {
           // New API structure: extract identifiers from trending_courses array
-          const trendingCourses = coursesSlider.trending_courses.slice(0, 12);
+          const trendingCourses = coursesSlider.trending_courses;
           const ids = trendingCourses
             .map((course: TrendingCourseItem) => course.identifier)
             .filter(Boolean);

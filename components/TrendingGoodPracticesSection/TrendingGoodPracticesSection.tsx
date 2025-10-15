@@ -159,7 +159,7 @@ const TrendingGoodPracticesSection: React.FC<
         // 2) Check if good practices are directly provided in the slider response
         if (gpSlider && gpSlider.trending_good_practices && Array.isArray(gpSlider.trending_good_practices) && gpSlider.trending_good_practices.length > 0) {
           // New API structure: extract identifiers from trending_good_practices array
-          const trendingPractices = gpSlider.trending_good_practices.slice(0, 12);
+          const trendingPractices = gpSlider.trending_good_practices;
           const ids = trendingPractices
             .map((practice: TrendingGoodPracticeItem) => practice.identifier)
             .filter(Boolean);

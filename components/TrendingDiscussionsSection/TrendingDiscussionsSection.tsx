@@ -136,7 +136,6 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
               });
 
               transformedDiscussions = sortedRaw
-                .slice(0, 12)
                 .map((t) =>
                   transformDiscussionTopic(t)
                 ) as unknown as Discussion[];
