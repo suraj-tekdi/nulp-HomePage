@@ -110,7 +110,7 @@
 .mapSection__svgMap path[id="mh"],
 .mapSection__svgMap path[id="ka"],
 .mapSection__svgMap path[id="up"],
-.mapSection__svgMap path[id="wb"],
+/* .mapSection__svgMap path[id="wb"], */
 .mapSection__svgMap path[id="hp"],
 .mapSection__svgMap path[id="tn"],
 .mapSection__svgMap path[id="kl"],
@@ -137,7 +137,7 @@
 .mapSection__svgMap path[id="mh"]:hover,
 .mapSection__svgMap path[id="ka"]:hover,
 .mapSection__svgMap path[id="up"]:hover,
-.mapSection__svgMap path[id="wb"]:hover,
+/* .mapSection__svgMap path[id="wb"]:hover, */
 .mapSection__svgMap path[id="hp"]:hover,
 .mapSection__svgMap path[id="tn"]:hover,
 .mapSection__svgMap path[id="kl"]:hover,
