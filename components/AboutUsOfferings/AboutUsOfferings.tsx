@@ -14,7 +14,13 @@ const sanitizeCmsHtml = (html: string): string => {
       container.innerHTML = html;
       const cleanse = (el: Element) => {
         const e = el as HTMLElement;
-        if (e && e.style) {
+        const tagName = e.tagName?.toLowerCase();
+        
+        // Skip style removal for anchor tags (buttons) and elements within raw-html-embed
+        const isButton = tagName === "a";
+        const isInRawHtmlEmbed = e.closest('.raw-html-embed') !== null;
+        
+        if (e && e.style && !isButton && !isInRawHtmlEmbed) {
           e.style.removeProperty("background");
           e.style.removeProperty("background-color");
           e.style.removeProperty("margin");
