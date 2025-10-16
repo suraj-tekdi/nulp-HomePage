@@ -423,7 +423,7 @@ const IndiaMapSection: React.FC = () => {
       <div className={styles.mapSection__container}>
         <header className={styles.mapSection__header}>
           <h2 className={styles.mapSection__title}>
-            Highlight what's great in pictures
+            Onboarded states and their pictures
           </h2>
           <p className={styles.mapSection__subtitle}>
             On‑boarded States and Union Territories
