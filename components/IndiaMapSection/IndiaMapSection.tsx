@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from "react";
-// @ts-ignore
-import { SVGMap } from "react-svg-map";
-// @ts-ignore
-import India from "@svg-maps/india";
-import "react-svg-map/lib/index.css";
+import India from "@react-map/india";
 import styles from "./IndiaMapSection.module.css";
 import { stateMediaApi, type StateMediaImage } from "../../services";
 import { stacksApi } from "../../services";
@@ -103,6 +99,48 @@ function slugifyName(value: string | null | undefined): string {
     .replace(/\s+/g, "-")
     .replace(/[^a-z-]/g, "");
 }
+
+// Map state names from @react-map/india to our state IDs
+const STATE_NAME_TO_ID: Record<string, string> = {
+  "Andhra Pradesh": "ap",
+  "Arunachal Pradesh": "ar",
+  "Assam": "as",
+  "Bihar": "br",
+  "Chhattisgarh": "cg",
+  "Goa": "ga",
+  "Gujarat": "gj",
+  "Haryana": "hr",
+  "Himachal Pradesh": "hp",
+  "Jammu and Kashmir": "jk",
+  "Jharkhand": "jh",
+  "Karnataka": "ka",
+  "Kerala": "kl",
+  "Madhya Pradesh": "mp",
+  "Maharashtra": "mh",
+  "Manipur": "mn",
+  "Meghalaya": "ml",
+  "Mizoram": "mz",
+  "Nagaland": "nl",
+  "Odisha": "od",
+  "Punjab": "pb",
+  "Rajasthan": "rj",
+  "Sikkim": "sk",
+  "Tamil Nadu": "tn",
+  "Telangana": "tg",
+  "Tripura": "tr",
+  "Uttarakhand": "uk",
+  "Uttar Pradesh": "up",
+  "West Bengal": "wb",
+  // Union Territories
+  "Andaman and Nicobar Islands": "an",
+  "Chandigarh": "ch",
+  "Dadra and Nagar Haveli": "dn",
+  "Daman and Diu": "dn",
+  "Delhi": "dl",
+  "Ladakh": "la",
+  "Lakshadweep": "ld",
+  "Puducherry": "py",
+};
 
 const IndiaMapSection: React.FC = () => {
   const [selectedState, setSelectedState] = useState<string | null>(null);
@@ -218,86 +256,72 @@ const IndiaMapSection: React.FC = () => {
     };
   }, []);
 
-  // Apply dynamic highlight classes to map based on available states and selection
-  useEffect(() => {
-    const paths = document.querySelectorAll(
-      `.${styles.mapSection__svgMap} path`
-    );
-    paths.forEach((path) => path.classList.remove("hasData"));
-
-    // Build robust lookup sets (availability + highlighted JSON)
-    const idKeys = new Set<string>();
+  // Build cityColors map for highlighting states with data
+  const cityColors = React.useMemo(() => {
+    const colors: Record<string, string> = {};
+    const highlightColor = "#03174999"; // Color for states with data
+    
+    // Build sets of state names that have data
+    const stateNamesWithData = new Set<string>();
+    
+    // Add states from availableStateIds
     availableStateIds.forEach((id) => {
-      const lc = (id || "").toLowerCase();
-      if (!lc) return;
-      idKeys.add(lc);
-      idKeys.add(`in-${lc}`);
-      idKeys.add(`in_${lc}`);
-    });
-    highlightedStateIds.forEach((id) => {
-      const lc = (id || "").toLowerCase();
-      if (!lc) return;
-      idKeys.add(lc);
-      idKeys.add(`in-${lc}`);
-      idKeys.add(`in_${lc}`);
-    });
-
-    const nameKeys = new Set<string>();
-    availableStateNames.forEach((name) => {
-      const key = slugifyName(name);
-      if (key) nameKeys.add(key);
-    });
-
-    paths.forEach((pathEl) => {
-      const pid = (pathEl.getAttribute("id") || "").trim().toLowerCase();
-      const pname = (
-        pathEl.getAttribute("name") ||
-        pathEl.getAttribute("aria-label") ||
-        ""
-      )
-        .toString()
-        .trim();
-      const pnameKey = slugifyName(pname);
-      if (
-        idKeys.has(pid) ||
-        idKeys.has(pid.replace(/_/g, "-")) ||
-        nameKeys.has(pnameKey)
-      ) {
-        pathEl.classList.add("hasData");
+      // Find state name by ID
+      const entry = Object.entries(STATE_NAME_TO_ID).find(
+        ([, stateId]) => stateId === id.toLowerCase()
+      );
+      if (entry) {
+        stateNamesWithData.add(entry[0]);
       }
     });
+    
+    // Add states from highlightedStateIds
+    highlightedStateIds.forEach((id) => {
+      const entry = Object.entries(STATE_NAME_TO_ID).find(
+        ([, stateId]) => stateId === id.toLowerCase()
+      );
+      if (entry) {
+        stateNamesWithData.add(entry[0]);
+      }
+    });
+    
+    // Add states from availableStateNames
+    availableStateNames.forEach((name) => {
+      // Try to match the name directly
+      if (STATE_NAME_TO_ID[name]) {
+        stateNamesWithData.add(name);
+      }
+      // Try to find by slugified name
+      const entry = Object.entries(STATE_NAME_TO_ID).find(
+        ([stateName]) => slugifyName(stateName) === slugifyName(name)
+      );
+      if (entry) {
+        stateNamesWithData.add(entry[0]);
+      }
+    });
+    
+    // Apply highlight color to states with data
+    stateNamesWithData.forEach((stateName) => {
+      colors[stateName] = highlightColor;
+    });
+    
+    return colors;
   }, [availableStateIds, availableStateNames, highlightedStateIds]);
 
-  const handleLocationClick = (event: any) => {
-    const stateId = (event?.target?.id as string | undefined) || null;
-    const stateName =
-      event?.target?.getAttribute("name") ||
-      event?.target?.getAttribute("aria-label") ||
-      null;
+  const handleStateSelect = (stateName: string | null) => {
+    // Convert state name from library to our state ID
+    const stateId = stateName ? STATE_NAME_TO_ID[stateName] || null : null;
+    const mappedStateName = stateName || null;
 
     // Toggle select/deselect when clicking same state
     if (stateId && selectedState === stateId.toLowerCase()) {
-      // Clear selection styling
-      const paths = document.querySelectorAll(
-        `.${styles.mapSection__svgMap} path`
-      );
-      paths.forEach((path) => path.classList.remove("selected"));
       setSelectedState(null);
       setSelectedStateName(null);
       return;
     }
 
-    setSelectedState((stateId || "").toLowerCase());
-    setSelectedStateName(stateName);
-
-    // Immediately apply selection highlight to clicked path for consistent color
-    const paths = document.querySelectorAll(
-      `.${styles.mapSection__svgMap} path`
-    );
-    paths.forEach((path) => path.classList.remove("selected"));
-    if (event?.target && (event.target as Element).classList) {
-      (event.target as Element).classList.add("selected");
-    }
+    setSelectedState(stateId ? stateId.toLowerCase() : null);
+    setSelectedStateName(mappedStateName);
   };
 
   // Filter images by selection
@@ -383,35 +407,7 @@ const IndiaMapSection: React.FC = () => {
 
   const visibleImages = getVisibleImages();
 
-  // Visual highlight for selected state (kept to sync with state changes)
-  useEffect(() => {
-    const paths = document.querySelectorAll(
-      `.${styles.mapSection__svgMap} path`
-    );
-    paths.forEach((path) => path.classList.remove("selected"));
-
-    const targetNameKey = slugifyName(selectedStateName || "");
-    paths.forEach((el) => {
-      const pid = (el.getAttribute("id") || "").trim().toLowerCase();
-      const pnameKey = slugifyName(
-        (
-          el.getAttribute("name") ||
-          el.getAttribute("aria-label") ||
-          ""
-        ).toString()
-      );
-      if (!selectedState && !targetNameKey) return;
-      if (
-        (selectedState &&
-          (pid === selectedState ||
-            pid === `in-${selectedState}` ||
-            pid === `in_${selectedState}`)) ||
-        (targetNameKey && pnameKey === targetNameKey)
-      ) {
-        el.classList.add("selected");
-      }
-    });
-  }, [selectedState, selectedStateName]);
+  // Note: Selected state highlighting is handled by @react-map/india library via selectColor prop
 
   // Resolve metrics for currently selected state
   const stateMetrics = selectedState
@@ -456,11 +452,19 @@ const IndiaMapSection: React.FC = () => {
               {/* Interactive Map */}
               <div className={styles.mapSection__mapWrapper}>
                 <div className={styles.mapSection__svgMapContainer}>
-                  <SVGMap
-                    map={India}
-                    onLocationClick={handleLocationClick}
-                    className={styles.mapSection__svgMap}
-                  />
+                  <div className={styles.mapSection__indiaMapWrapper}>
+                    <India
+                      type="select-single"
+                      size={800}
+                      mapColor="rgba(179, 204, 222, 0.29)"
+                      strokeColor="#ffffff"
+                      strokeWidth={1}
+                      hoverColor="rgba(179, 204, 222, 0.5)"
+                      selectColor="#054365"
+                      onSelect={handleStateSelect}
+                      cityColors={cityColors}
+                    />
+                  </div>
                 </div>
               </div>
             </div>

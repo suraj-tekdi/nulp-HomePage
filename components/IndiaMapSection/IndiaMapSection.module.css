@@ -72,14 +72,35 @@
 
 .mapSection__svgMapContainer {
   width: 100%;
-  max-width: 1200px;
+  max-width: 800px;
   height: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.mapSection__indiaMapWrapper {
+  width: 100%;
+  max-width: 800px;
+  height: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Style for @react-map/india SVG */
+.mapSection__indiaMapWrapper svg {
+  width: 100% !important;
+  max-width: 800px !important;
+  height: auto !important;
+  max-height: 800px;
+  min-height: 600px;
 }
 
 .mapSection__svgMap {
   width: 100% !important;
   height: auto !important;
-  max-height: 1200px;
+  max-height: 800px;
   min-height: 600px;
 }
 
@@ -87,7 +108,7 @@
 .mapSection__svgMap svg {
   width: 100%;
   height: auto;
-  max-height: 1200px;
+  max-height: 800px;
   min-height: 600px;
 }
 
@@ -481,10 +502,13 @@
   }
 
   .mapSection__svgMapContainer,
+  .mapSection__indiaMapWrapper,
   .mapSection__svgMap,
-  .mapSection__svgMap svg {
+  .mapSection__svgMap svg,
+  .mapSection__indiaMapWrapper svg {
     max-height: 420px;
     min-height: 420px; /* reduce tall blank space on tablets */
+    max-width: 100%;
   }
 
   .mapSection__stateInfo {
@@ -590,10 +614,13 @@
   }
 
   .mapSection__svgMapContainer,
+  .mapSection__indiaMapWrapper,
   .mapSection__svgMap,
-  .mapSection__svgMap svg {
+  .mapSection__svgMap svg,
+  .mapSection__indiaMapWrapper svg {
     max-height: 320px;
     min-height: 320px;
+    max-width: 100%;
   }
 
   .mapSection__stateInfo {
