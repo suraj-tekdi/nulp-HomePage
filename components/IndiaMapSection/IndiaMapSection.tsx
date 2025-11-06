@@ -459,7 +459,7 @@ const IndiaMapSection: React.FC = () => {
                       mapColor="rgba(179, 204, 222, 0.29)"
                       strokeColor="#ffffff"
                       strokeWidth={1}
-                      hoverColor="rgba(179, 204, 222, 0.5)"
+                      hoverColor="rgba(103, 137, 171, 0.7)"
                       selectColor="#054365"
                       onSelect={handleStateSelect}
                       cityColors={cityColors}
