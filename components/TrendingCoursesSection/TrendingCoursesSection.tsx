@@ -368,12 +368,69 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
     [getCardWidthWithGap]
   );
 
+  // Check if user is authenticated
+  const isAuthenticated = useCallback((): boolean => {
+    if (typeof window === "undefined") return false;
+    
+    // Check for token in sessionStorage
+    const sessionToken = sessionStorage.getItem("token");
+    if (sessionToken) return true;
+    
+    // Check for token in localStorage
+    const localToken = localStorage.getItem("token");
+    if (localToken) return true;
+    
+    // Check for authentication cookie (common pattern)
+    const cookies = document.cookie.split(";");
+    const hasAuthCookie = cookies.some(
+      (cookie) =>
+        cookie.trim().startsWith("token=") ||
+        cookie.trim().startsWith("authToken=") ||
+        cookie.trim().startsWith("access_token=")
+    );
+    if (hasAuthCookie) return true;
+    
+    return false;
+  }, []);
+
+  // Normalize course ID to ensure it doesn't have duplicate "do_" prefix
+  const normalizeCourseId = useCallback((courseId: string): string => {
+    // Remove any existing "do_" prefix if present
+    return courseId.startsWith("do_") ? courseId.substring(3) : courseId;
+  }, []);
+
+  // Generate a random state UUID for OAuth
+  const generateState = useCallback((): string => {
+    return `${Date.now()}-${Math.random().toString(36).substring(2, 15)}-${Math.random().toString(36).substring(2, 15)}`;
+  }, []);
+
+  // Build login URL with OAuth parameters
+  const buildLoginUrl = useCallback((courseId: string): string => {
+    const { base } = getDynamicNulpUrls();
+    const normalizedId = normalizeCourseId(courseId);
+    const courseUrl = `${base}/webapp/joinCourse?do_${normalizedId}`;
+    const state = generateState();
+    const redirectUri = encodeURIComponent(courseUrl);
+    
+    return `${base}/auth/realms/sunbird/protocol/openid-connect/auth?client_id=portal&state=${state}&redirect_uri=${redirectUri}&scope=openid&response_type=code&version=4`;
+  }, [generateState, normalizeCourseId]);
+
   // Handle course navigation
   const handleCourseClick = useCallback((courseId: string) => {
     const { base } = getDynamicNulpUrls();
-    const courseUrl = `${base}/webapp/player?id=${courseId}`;
-    window.location.href = courseUrl;
-  }, []);
+    const normalizedId = normalizeCourseId(courseId);
+    const courseUrl = `${base}/webapp/joinCourse?do_${normalizedId}`;
+    
+    // Check if user is authenticated
+    if (isAuthenticated()) {
+      // User is authenticated, redirect to course
+      window.location.href = courseUrl;
+    } else {
+      // User is not authenticated, redirect to login page
+      const loginUrl = buildLoginUrl(courseId);
+      window.location.href = loginUrl;
+    }
+  }, [isAuthenticated, buildLoginUrl, normalizeCourseId]);
 
   // Handle explore button click
   const handleExploreCourse = useCallback(
