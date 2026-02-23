@@ -368,12 +368,20 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
     [getCardWidthWithGap]
   );
 
+  // Normalize course ID to ensure it doesn't have duplicate "do_" prefix
+  const normalizeCourseId = useCallback((courseId: string): string => {
+    // Remove any existing "do_" prefix if present
+    return courseId.startsWith("do_") ? courseId.substring(3) : courseId;
+  }, []);
+
   // Handle course navigation
   const handleCourseClick = useCallback((courseId: string) => {
     const { base } = getDynamicNulpUrls();
-    const courseUrl = `${base}/webapp/player?id=${courseId}`;
+    const normalizedId = normalizeCourseId(courseId);
+    // Always redirect to joinCourse page (handles authentication internally)
+    const courseUrl = `${base}/webapp/joinCourse?do_${normalizedId}`;
     window.location.href = courseUrl;
-  }, []);
+  }, [normalizeCourseId]);
 
   // Handle explore button click
   const handleExploreCourse = useCallback(
