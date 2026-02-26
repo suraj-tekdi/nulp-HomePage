@@ -14,6 +14,8 @@ import {
   type NulpGoodPractice,
   type TrendingGoodPracticeItem,
   getDynamicNulpUrls,
+  createGoodPracticeInteractEvent,
+  queueTelemetry,
 } from "../../services";
 import domainImages from "../../services/domain-images.json";
 
@@ -383,6 +385,18 @@ const TrendingGoodPracticesSection: React.FC<
 
   // Handle practice navigation
   const handlePracticeClick = useCallback((practiceId: string) => {
+    // Track INTERACT event for good practice click
+    try {
+      const interactEvent = createGoodPracticeInteractEvent(practiceId);
+      console.log("Tracking INTERACT event:", interactEvent);
+      queueTelemetry(interactEvent);
+    } catch (error) {
+      // Fail silently - don't block navigation if telemetry fails
+      if (process.env.NODE_ENV === "development") {
+        console.error("Telemetry tracking error:", error);
+      }
+    }
+    
     const { base } = getDynamicNulpUrls();
     const practiceUrl = `${base}/webapp/player?id=${practiceId}`;
     window.location.href = practiceUrl;

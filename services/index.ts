@@ -82,3 +82,17 @@ export {
   type StateMediaImage,
   type StateAvailability,
 } from "./stateMedia";
+
+// Telemetry exports
+export {
+  createInteractEvent,
+  createDiscussionInteractEvent,
+  createGoodPracticeInteractEvent,
+  createImpressionEvent,
+  buildTelemetryEnvelope,
+  sendTelemetry,
+  queueTelemetry,
+  flushTelemetry,
+  telemetryUtils,
+  type TelemetryConfig,
+} from "./telemetry";

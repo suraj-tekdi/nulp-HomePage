@@ -17,6 +17,10 @@ import {
   getDynamicNulpUrls,
 } from "../../services/api";
 import { slidersApi, type TrendingDiscussionItem } from "../../services/sliders";
+import {
+  createDiscussionInteractEvent,
+  queueTelemetry,
+} from "../../services";
 import domainImages from "../../services/domain-images.json";
 import styles from "./TrendingDiscussionsSection.module.css";
 
@@ -316,6 +320,18 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
 
   // Handle discussion click to redirect to detailed page
   const handleDiscussionClick = useCallback((slug: string) => {
+    // Track INTERACT event for discussion click
+    try {
+      const interactEvent = createDiscussionInteractEvent(slug);
+      console.log("Tracking INTERACT event:", interactEvent);
+      queueTelemetry(interactEvent);
+    } catch (error) {
+      // Fail silently - don't block navigation if telemetry fails
+      if (process.env.NODE_ENV === "development") {
+        console.error("Telemetry tracking error:", error);
+      }
+    }
+    
     const { base } = getDynamicNulpUrls();
     const discussionUrl = `${base}/discussion-forum/topic/${slug}`;
     window.location.href = discussionUrl;

@@ -14,6 +14,8 @@ import {
   type NulpCourse,
   type TrendingCourseItem,
   getDynamicNulpUrls,
+  createInteractEvent,
+  queueTelemetry,
 } from "../../services";
 import domainImages from "../../services/domain-images.json";
 
@@ -378,6 +380,18 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
   const handleCourseClick = useCallback((courseId: string) => {
     const { base } = getDynamicNulpUrls();
     const normalizedId = normalizeCourseId(courseId);
+    
+    // Track INTERACT event for course click
+    try {
+      const interactEvent = createInteractEvent(normalizedId);
+      queueTelemetry(interactEvent);
+    } catch (error) {
+      // Fail silently - don't block navigation if telemetry fails
+      if (process.env.NODE_ENV === "development") {
+        console.error("Telemetry tracking error:", error);
+      }
+    }
+    
     // Always redirect to joinCourse page (handles authentication internally)
     const courseUrl = `${base}/webapp/joinCourse?do_${normalizedId}`;
     window.location.href = courseUrl;
