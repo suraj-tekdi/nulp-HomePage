@@ -38,6 +38,7 @@
       "object": {
         "id": "1135863066891550721919",
         "type": "Course",
+        "name": "Course Title Here",
         "ver": "1.0"
       },
       "tags": [
@@ -91,6 +92,7 @@
       "object": {
         "id": "1135863066891550721919",
         "type": "Course",
+        "name": "Course Title Here",
         "ver": "1.0"
       },
       "tags": [
@@ -189,11 +191,12 @@ curl -X POST https://devnulp.niua.org/content/data/v1/telemetry \
           },
           "uid": "anonymous"
         },
-        "object": {
-          "id": "1135863066891550721919",
-          "type": "Course",
-          "ver": "1.0"
-        },
+      "object": {
+        "id": "1135863066891550721919",
+        "type": "Course",
+        "name": "Course Title Here",
+        "ver": "1.0"
+      },
         "tags": ["0134851936225607680"],
         "edata": {
           "type": "click",

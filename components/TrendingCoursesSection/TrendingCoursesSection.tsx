@@ -377,13 +377,13 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
   }, []);
 
   // Handle course navigation
-  const handleCourseClick = useCallback((courseId: string) => {
+  const handleCourseClick = useCallback((courseId: string, courseName: string = "") => {
     const { base } = getDynamicNulpUrls();
     const normalizedId = normalizeCourseId(courseId);
     
     // Track INTERACT event for course click
     try {
-      const interactEvent = createInteractEvent(normalizedId);
+      const interactEvent = createInteractEvent(normalizedId, courseName);
       queueTelemetry(interactEvent);
     } catch (error) {
       // Fail silently - don't block navigation if telemetry fails
@@ -399,9 +399,9 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
 
   // Handle explore button click
   const handleExploreCourse = useCallback(
-    (e: React.MouseEvent, courseId: string) => {
+    (e: React.MouseEvent, courseId: string, courseName: string = "") => {
       e.stopPropagation(); // Prevent card click if we want different behaviors
-      handleCourseClick(courseId);
+      handleCourseClick(courseId, courseName);
     },
     [handleCourseClick]
   );
@@ -478,7 +478,7 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
                 <div
                   key={course.id}
                   className={styles.trending__card}
-                  onClick={() => handleCourseClick(course.id)}
+                  onClick={() => handleCourseClick(course.id, course.title)}
                   style={{ cursor: "pointer" }}
                 >
                   <div className={styles.trending__card__image}>
@@ -518,7 +518,7 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
                       </p>
                       <button
                         className={styles.trending__card__button}
-                        onClick={(e) => handleExploreCourse(e, course.id)}
+                        onClick={(e) => handleExploreCourse(e, course.id, course.title)}
                       >
                         Explore Course
                       </button>

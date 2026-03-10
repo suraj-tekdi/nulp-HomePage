@@ -319,10 +319,10 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
   }, [totalSlides]);
 
   // Handle discussion click to redirect to detailed page
-  const handleDiscussionClick = useCallback((slug: string) => {
+  const handleDiscussionClick = useCallback((slug: string, discussionName: string = "") => {
     // Track INTERACT event for discussion click
     try {
-      const interactEvent = createDiscussionInteractEvent(slug);
+      const interactEvent = createDiscussionInteractEvent(slug, discussionName);
       console.log("Tracking INTERACT event:", interactEvent);
       queueTelemetry(interactEvent);
     } catch (error) {
@@ -407,7 +407,7 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
               <div
                 key={discussion.id}
                 className={styles.discussions__card}
-                onClick={() => handleDiscussionClick(discussion.slug)}
+                onClick={() => handleDiscussionClick(discussion.slug, discussion.title)}
                 style={{ cursor: "pointer" }}
               >
                 <div className={styles.discussions__card__image}>
@@ -447,7 +447,7 @@ const TrendingDiscussionsSection: React.FC<TrendingDiscussionsSectionProps> = ({
                       className={styles.discussions__card__button}
                       onClick={(e) => {
                         e.stopPropagation(); // Prevent card click when button is clicked
-                        handleDiscussionClick(discussion.slug);
+                        handleDiscussionClick(discussion.slug, discussion.title);
                       }}
                     >
                       Join Discussion

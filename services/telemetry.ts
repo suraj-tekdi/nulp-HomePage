@@ -173,11 +173,13 @@ function buildBaseEvent(
  * INTERACT Event - Course Card Click
  * 
  * @param courseId - Course identifier
+ * @param courseName - Course name/title
  * @param config - Optional telemetry configuration
  * @returns Telemetry event payload
  */
 export function createInteractEvent(
   courseId: string,
+  courseName: string = "",
   config: Partial<TelemetryConfig> = {}
 ): any {
   const baseEvent = buildBaseEvent("INTERACT", config);
@@ -187,6 +189,7 @@ export function createInteractEvent(
     object: {
       id: courseId,
       type: "Course",
+      name: courseName,
       ver: "1.0"
     },
     edata: {
@@ -201,11 +204,13 @@ export function createInteractEvent(
  * INTERACT Event - Discussion Card Click
  * 
  * @param discussionId - Discussion identifier (slug or ID)
+ * @param discussionName - Discussion name/title
  * @param config - Optional telemetry configuration
  * @returns Telemetry event payload
  */
 export function createDiscussionInteractEvent(
   discussionId: string,
+  discussionName: string = "",
   config: Partial<TelemetryConfig> = {}
 ): any {
   const baseEvent = buildBaseEvent("INTERACT", config);
@@ -215,6 +220,7 @@ export function createDiscussionInteractEvent(
     object: {
       id: discussionId,
       type: "Discussion",
+      name: discussionName,
       ver: "1.0"
     },
     edata: {
@@ -229,11 +235,13 @@ export function createDiscussionInteractEvent(
  * INTERACT Event - Good Practice Card Click
  * 
  * @param practiceId - Good practice identifier
+ * @param practiceName - Good practice name/title
  * @param config - Optional telemetry configuration
  * @returns Telemetry event payload
  */
 export function createGoodPracticeInteractEvent(
   practiceId: string,
+  practiceName: string = "",
   config: Partial<TelemetryConfig> = {}
 ): any {
   const baseEvent = buildBaseEvent("INTERACT", config);
@@ -243,6 +251,7 @@ export function createGoodPracticeInteractEvent(
     object: {
       id: practiceId,
       type: "GoodPractice",
+      name: practiceName,
       ver: "1.0"
     },
     edata: {
@@ -258,12 +267,14 @@ export function createGoodPracticeInteractEvent(
  * 
  * @param courseId - Course identifier
  * @param source - Source of the impression (e.g., "from_home")
+ * @param courseName - Course name/title (optional)
  * @param config - Optional telemetry configuration
  * @returns Telemetry event payload
  */
 export function createImpressionEvent(
   courseId: string,
   source: string = "from_home",
+  courseName: string = "",
   config: Partial<TelemetryConfig> = {}
 ): any {
   const baseEvent = buildBaseEvent("IMPRESSION", config);
@@ -273,6 +284,7 @@ export function createImpressionEvent(
     object: {
       id: courseId,
       type: "Course",
+      name: courseName,
       ver: "1.0"
     },
     edata: {

@@ -384,10 +384,10 @@ const TrendingGoodPracticesSection: React.FC<
   );
 
   // Handle practice navigation
-  const handlePracticeClick = useCallback((practiceId: string) => {
+  const handlePracticeClick = useCallback((practiceId: string, practiceName: string = "") => {
     // Track INTERACT event for good practice click
     try {
-      const interactEvent = createGoodPracticeInteractEvent(practiceId);
+      const interactEvent = createGoodPracticeInteractEvent(practiceId, practiceName);
       console.log("Tracking INTERACT event:", interactEvent);
       queueTelemetry(interactEvent);
     } catch (error) {
@@ -404,9 +404,9 @@ const TrendingGoodPracticesSection: React.FC<
 
   // Handle explore button click
   const handleExplorePractice = useCallback(
-    (e: React.MouseEvent, practiceId: string) => {
+    (e: React.MouseEvent, practiceId: string, practiceName: string = "") => {
       e.stopPropagation(); // Prevent card click if we want different behaviors
-      handlePracticeClick(practiceId);
+      handlePracticeClick(practiceId, practiceName);
     },
     [handlePracticeClick]
   );
@@ -479,7 +479,7 @@ const TrendingGoodPracticesSection: React.FC<
                 <div
                   key={practice.id}
                   className={styles.practices__card}
-                  onClick={() => handlePracticeClick(practice.id)}
+                  onClick={() => handlePracticeClick(practice.id, practice.title)}
                   style={{ cursor: "pointer" }}
                 >
                   <div className={styles.practices__card__image}>
@@ -519,7 +519,7 @@ const TrendingGoodPracticesSection: React.FC<
                       </p>
                       <button
                         className={styles.practices__card__button}
-                        onClick={(e) => handleExplorePractice(e, practice.id)}
+                        onClick={(e) => handleExplorePractice(e, practice.id, practice.title)}
                       >
                         View Practice
                       </button>
