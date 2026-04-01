@@ -393,7 +393,7 @@ const TrendingCoursesSection: React.FC<TrendingCoursesSectionProps> = ({
     }
     
     // Always redirect to joinCourse page (handles authentication internally)
-    const courseUrl = `${base}/webapp/joinCourse?do_${normalizedId}`;
+    const courseUrl = `${base}/webapp/join-course?do_${normalizedId}`;
     window.location.href = courseUrl;
   }, [normalizeCourseId]);
 
