@@ -14,6 +14,7 @@ export default function Document() {
         
         {/* Meta tags */}
         <meta name="description" content="NULP Home Page - National Urban Learning Platform" />
+        <meta name="google-site-verification" content="mif8No52QSVEUI2Oi5Y14btzYiMf9BBKS0O8VVaODfo" />
         
         {/* Favicon */}
         <link rel="icon" href="/images/icons/favicon.ico" />
