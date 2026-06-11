@@ -37,7 +37,7 @@
   transform: translateZ(0); /* Force hardware acceleration */
 }
 
-/* .banner__background-overlay {
+.banner__background-overlay {
   position: absolute;
   top: 0;
   left: 0;
@@ -50,7 +50,7 @@
   );
   z-index: 1;
   transition: opacity 0.3s ease-in-out;
-} */
+}
 
 .banner::before {
   content: "";
