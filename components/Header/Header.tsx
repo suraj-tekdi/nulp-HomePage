@@ -498,7 +498,7 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
     };
 
     const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768);
+      setIsMobile(window.innerWidth <= 1100);
     };
 
     // Initial check

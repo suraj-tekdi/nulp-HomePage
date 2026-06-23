@@ -20,7 +20,6 @@
   z-index: 1000 !important;
   background-color: var(--color-neutral-white) !important;
   box-shadow: var(--shadow-lg);
-  /* Force hardware acceleration for smooth animations */
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
   -webkit-backface-visibility: hidden;
@@ -28,7 +27,7 @@
 }
 
 .header__container {
-  max-width: auto;
+  max-width: 100%;
   margin: 0 auto;
   padding: 0 var(--spacing-lg);
   display: flex;
@@ -37,11 +36,12 @@
   height: 70px;
 }
 
-/* Mobile Logos Section - Only visible on mobile */
+/* Mobile Logos Section - Only visible on mobile/tablet */
 .header__mobile-logos {
   display: none;
   align-items: center;
   gap: var(--spacing-md);
+  flex-shrink: 0;
 }
 
 .header__mobile-logo-link {
@@ -67,7 +67,9 @@
 .header__nav {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xl);
+  gap: var(--spacing-md);
+  min-width: 0;
+  flex: 1;
 }
 
 .header__logo {
@@ -76,13 +78,16 @@
   font-weight: 700;
   font-size: 1.5rem;
   color: var(--color-primary-dark-blue);
+  flex-shrink: 0;
 }
+
 /* Brand Logos - Desktop (left side) */
 .header__brand {
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
-  margin-right: var(--spacing-lg);
+  margin-right: var(--spacing-md);
+  flex-shrink: 0;
 }
 
 .header__brandLink {
@@ -99,25 +104,29 @@
 .header__nav-list {
   display: flex;
   align-items: center;
-  gap: var(--spacing-lg);
+  gap: 2px;
   list-style: none;
   margin: 0;
   padding: 0;
+  flex-wrap: nowrap;
+  min-width: 0;
 }
 
 .header__nav-item {
   position: relative;
+  flex-shrink: 0;
 }
 
 .header__nav-link {
   color: var(--color-neutral-dark);
   font-weight: 500;
-  font-size: 1rem;
-  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 0.9rem;
+  padding: 6px 10px;
   border-radius: var(--border-radius-md);
   transition: all 0.3s ease;
   text-decoration: none;
   display: block;
+  white-space: nowrap;
 }
 
 .header__nav-link:hover {
@@ -155,16 +164,18 @@ button.header__nav-link:focus {
 .header__actions {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: var(--spacing-sm);
   margin-left: auto;
+  flex-shrink: 0;
 }
 
 .header__search {
   position: relative;
+  flex-shrink: 1;
 }
 
 .header__search-input {
-  width: 300px;
+  width: clamp(140px, 14vw, 300px);
   height: 42px;
   padding: var(--spacing-sm) var(--spacing-xl) var(--spacing-sm)
     var(--spacing-md);
@@ -209,10 +220,10 @@ button.header__nav-link:focus {
 .header__auth-button {
   background-color: #054365;
   color: var(--color-neutral-white);
-  padding: var(--spacing-sm) var(--spacing-lg);
+  padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--border-radius-lg);
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   border: none;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -220,6 +231,9 @@ button.header__nav-link:focus {
   display: flex;
   align-items: center;
   justify-content: center;
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: max-content;
 }
 
 .header__auth-button:hover {
@@ -238,6 +252,7 @@ button.header__nav-link:focus {
   color: var(--color-neutral-dark);
   border-radius: var(--border-radius-sm);
   transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 
 .header__mobile-toggle:hover {
@@ -387,6 +402,7 @@ button.header__nav-link:focus {
   display: flex;
   align-items: center;
   justify-content: center;
+  white-space: nowrap;
 }
 
 .header__mobile-auth-button:hover {
@@ -395,71 +411,25 @@ button.header__nav-link:focus {
   box-shadow: var(--shadow-lg);
 }
 
-/* Tablet/Laptop tweaks to avoid cropping */
-@media (max-width: 1280px) {
-  .header__nav-list {
-    gap: var(--spacing-md);
-  }
-  .header__nav-link {
-    font-size: 0.95rem;
-    padding: var(--spacing-xs) var(--spacing-sm);
-  }
-  .header__search-input {
-    width: 260px;
-  }
-  .header__auth-button {
-    padding: var(--spacing-xs) var(--spacing-md);
-    height: 40px;
-    font-size: 0.85rem;
-  }
-}
-
+/* Collapse to hamburger at 1100px —
+   covers 125% zoom on 1280-1440px screens (effective ~1024-1152px CSS px) */
 @media (max-width: 1100px) {
-  .header__nav-list {
-    gap: var(--spacing-sm);
-  }
-  .header__nav-link {
-    font-size: 0.9rem;
-    padding: var(--spacing-xs) var(--spacing-sm);
-  }
-  .header__search-input {
-    width: 220px;
-  }
-}
-
-/* Mobile Responsiveness */
-@media (max-width: 1024px) {
-  .header__container {
-    padding: 0 var(--spacing-md);
-  }
-
-  .header__search-input {
-    width: 250px;
-  }
-
-  .header__nav-list {
-    gap: var(--spacing-md);
-  }
-}
-
-/* Collapse to hamburger earlier on tablets */
-@media (max-width: 900px) {
   .header__container {
     height: 60px;
     padding: 0 var(--spacing-md);
   }
 
-  /* Show mobile logos earlier */
+  /* Show mobile logos */
   .header__mobile-logos {
     display: flex;
   }
 
-  /* Hide brand logos on mobile/tablet */
+  /* Hide brand logos */
   .header__brand {
     display: none;
   }
 
-  /* Hide desktop navigation and search to avoid cropping */
+  /* Hide desktop nav, search, and auth button */
   .header__nav-list {
     display: none;
   }
@@ -470,7 +440,7 @@ button.header__nav-link:focus {
     display: none;
   }
 
-  /* Show mobile toggle */
+  /* Show hamburger toggle */
   .header__mobile-toggle {
     display: flex;
     align-items: center;
@@ -483,36 +453,6 @@ button.header__nav-link:focus {
     height: 60px;
     padding: 0 var(--spacing-md);
   }
-
-  /* Show mobile logos */
-  .header__mobile-logos {
-    display: flex;
-  }
-
-  /* Hide brand logos on mobile */
-  .header__brand {
-    display: none;
-  }
-
-  /* Hide desktop navigation and search */
-  .header__nav-list {
-    display: none;
-  }
-
-  .header__search {
-    display: none;
-  }
-
-  .header__auth-button {
-    display: none;
-  }
-
-  /* Show mobile toggle */
-  .header__mobile-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
 }
 
 @media (max-width: 480px) {
@@ -524,7 +464,6 @@ button.header__nav-link:focus {
     padding: var(--spacing-md);
   }
 
-  /* Adjust logo sizes for smaller screens */
   .header__mobile-logo {
     width: 60px;
     height: 60px;
