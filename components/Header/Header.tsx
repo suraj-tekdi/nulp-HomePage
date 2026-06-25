@@ -36,6 +36,13 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSection, setActiveSection] = useState<string>("home");
+  const pendingSectionRef = React.useRef<string | null>(null);
+  // Tracks last committed section so scroll handler skips no-op state updates
+  const currentSectionRef = React.useRef<string>("home");
+  // Tracks the pending cross-page routeChangeComplete listener so stale ones are cancelled
+  const pendingRouteListenerRef = React.useRef<(() => void) | null>(null);
+  // Stable ref for home-page section IDs so the scroll effect doesn't re-run on navItems refresh
+  const sectionIdsRef = React.useRef<string[]>([]);
   const [isContactInView, setIsContactInView] = useState<boolean>(false);
   const [clickedMenu, setClickedMenu] = useState<string>(""); // Track clicked menu for contact us
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Mobile menu state
@@ -386,10 +393,17 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
       threshold: 0.1,
     } as IntersectionObserverInit;
 
+    const clearContactHash = () => {
+      if (typeof window !== "undefined" && window.location.hash === "#contact-us") {
+        history.replaceState(null, "", window.location.pathname);
+      }
+    };
+
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.target === element) {
           setIsContactInView(entry.isIntersecting);
+          if (!entry.isIntersecting) clearContactHash();
         }
       });
     }, observerOptions);
@@ -399,6 +413,7 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
     const handleScrollTop = () => {
       if (window.scrollY < 100) {
         setIsContactInView(false);
+        clearContactHash();
       }
     };
 
@@ -433,61 +448,74 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
     };
   }, [isMobileMenuOpen]);
 
-  // Intersection Observer to detect which section is in view (Home page)
+  // Keep sectionIdsRef in sync whenever navItems changes without re-running the scroll effect
   useEffect(() => {
-    if (router.pathname !== "/") return; // Only on home page
-
-    const observerOptions = {
-      root: null,
-      rootMargin: "-20% 0px -60% 0px", // Trigger when section is 20% from top
-      threshold: 0.1,
-    };
-
-    const observerCallback = (entries: IntersectionObserverEntry[]) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          const sectionId = entry.target.id;
-          setActiveSection(sectionId || "home");
-        }
-      });
-
-      // Check if we're at the very top of the page
-      if (window.scrollY < 100) {
-        setActiveSection("home");
-      }
-    };
-
-    const observer = new IntersectionObserver(
-      observerCallback,
-      observerOptions
-    );
-
-    // Observe sections derived from menus that scroll on home
-    const sections = navItems
+    sectionIdsRef.current = navItems
       .filter((i) => i.href === "/" && i.scrollTo)
       .map((i) => i.scrollTo as string);
+  }, [navItems]);
 
-    sections.forEach((sectionId) => {
-      const element = document.getElementById(sectionId);
-      if (element) {
-        observer.observe(element);
-      }
-    });
+  // Scroll-position-based section detection (Home page)
+  useEffect(() => {
+    if (router.pathname !== "/") return;
 
-    // Handle scroll to detect when at top
-    const handleScroll = () => {
-      if (window.scrollY < 100) {
-        setActiveSection("home");
-      }
+    const HEADER_HEIGHT = 80;
+
+    const getSectionAtScroll = (): string => {
+      if (window.scrollY < 100) return "home";
+      const triggerY = window.scrollY + HEADER_HEIGHT + 40;
+      let active = "home";
+      sectionIdsRef.current.forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) {
+          const elTop = el.getBoundingClientRect().top + window.scrollY;
+          if (elTop <= triggerY) active = id;
+        }
+      });
+      return active;
     };
 
-    window.addEventListener("scroll", handleScroll);
+    let rafId: number | null = null;
+
+    const handleScroll = () => {
+      // Throttle to one update per animation frame
+      if (rafId !== null) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+
+        if (window.scrollY < 100) {
+          pendingSectionRef.current = null;
+          if (currentSectionRef.current !== "home") {
+            currentSectionRef.current = "home";
+            setActiveSection("home");
+          }
+          return;
+        }
+
+        const current = getSectionAtScroll();
+
+        if (pendingSectionRef.current) {
+          // Keep clicked tab lit until scroll physically arrives at its section
+          if (current === pendingSectionRef.current) {
+            pendingSectionRef.current = null;
+            currentSectionRef.current = current;
+            setActiveSection(current);
+          }
+        } else if (current !== currentSectionRef.current) {
+          // Only re-render when section actually changes
+          currentSectionRef.current = current;
+          setActiveSection(current);
+        }
+      });
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
 
     return () => {
-      observer.disconnect();
+      if (rafId !== null) cancelAnimationFrame(rafId);
       window.removeEventListener("scroll", handleScroll);
     };
-  }, [router.pathname, navItems]);
+  }, [router.pathname]); // navItems removed — sectionIdsRef keeps it live without re-registering
 
   useEffect(() => {
     setIsClient(true); // Mark as client-side rendered
@@ -580,14 +608,30 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
     const hrefStr = (item.href || "").toLowerCase();
     const isStaticHtml = hrefStr.endsWith(".html");
 
-    if (item.external || isStaticHtml) {
-      const target = item.target || "_blank";
-      if (target === "_blank") {
-        window.open(item.href, "_blank", "noopener,noreferrer");
-      } else {
-        window.location.href = item.href;
-      }
+    if (isStaticHtml) {
+      window.open(item.href, item.target || "_blank");
       return;
+    }
+
+    if (item.external) {
+      // Only bypass router for truly external (different-origin) URLs
+      let trulyExternal = true;
+      try {
+        trulyExternal =
+          new URL(item.href, window.location.origin).origin !==
+          window.location.origin;
+      } catch {}
+
+      if (trulyExternal) {
+        const target = item.target || "_blank";
+        if (target === "_blank") {
+          window.open(item.href, "_blank", "noopener,noreferrer");
+        } else {
+          window.location.href = item.href;
+        }
+        return;
+      }
+      // Same-origin path marked external — fall through to router.push
     }
 
     if (item.scrollTo) {
@@ -596,6 +640,7 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
 
       if (isSamePage) {
         if (targetPage === "/") {
+          pendingSectionRef.current = item.scrollTo;
           setActiveSection(item.scrollTo);
         }
 
@@ -608,26 +653,45 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
 
         handleSmoothScroll(item.scrollTo);
       } else {
+        // Cancel any stale listener from a previous click before registering a new one
+        if (pendingRouteListenerRef.current) {
+          router.events.off("routeChangeComplete", pendingRouteListenerRef.current);
+          pendingRouteListenerRef.current = null;
+        }
+
         const onComplete = () => {
           router.events.off("routeChangeComplete", onComplete);
+          pendingRouteListenerRef.current = null;
+          if (item.scrollTo === "contact-us") {
+            if (typeof window !== "undefined") {
+              history.replaceState(null, "", `#${item.scrollTo}`);
+            }
+            setIsContactInView(true);
+          }
           setTimeout(() => {
             const el = document.getElementById(item.scrollTo!);
             if (el) {
               const rect = el.getBoundingClientRect();
               const top = rect.top + window.pageYOffset - 80;
               window.scrollTo({ top, behavior: "smooth" });
-              if (typeof window !== "undefined") {
-                history.replaceState(null, "", `#${item.scrollTo}`);
-              }
             }
           }, 100);
         };
+        pendingRouteListenerRef.current = onComplete;
         router.events.on("routeChangeComplete", onComplete);
-        router.push(targetPage).catch(() => {
-          window.location.href = `${targetPage}#${item.scrollTo}`;
-        });
+        router.push(targetPage);
       }
       return;
+    }
+
+    if (item.href === "/about" && !item.scrollTo) {
+      // Always reset contact state when navigating to the About Us top —
+      // router.push('/about') from '/about' is a no-op so the useEffect won't fire.
+      setIsContactInView(false);
+      if (typeof window !== "undefined") {
+        history.replaceState(null, "", "/about");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
     }
 
     if (item.href === "/") {
