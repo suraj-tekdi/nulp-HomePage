@@ -580,7 +580,6 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
     const hrefStr = (item.href || "").toLowerCase();
     const isStaticHtml = hrefStr.endsWith(".html");
 
-    // External link handling (also force .html paths to open directly)
     if (item.external || isStaticHtml) {
       const target = item.target || "_blank";
       if (target === "_blank") {
@@ -591,16 +590,24 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
       return;
     }
 
-    // Generic in-page section navigation based on hash from CMS
     if (item.scrollTo) {
       const targetPage = item.href || "/";
       const isSamePage = router.pathname === targetPage;
 
       if (isSamePage) {
-        // Already on the target page → smooth scroll
+        if (targetPage === "/") {
+          setActiveSection(item.scrollTo);
+        }
+
+        if (targetPage === "/about" && item.scrollTo === "contact-us") {
+          if (typeof window !== "undefined") {
+            history.replaceState(null, "", `#${item.scrollTo}`);
+          }
+          setIsContactInView(true);
+        }
+
         handleSmoothScroll(item.scrollTo);
       } else {
-        // Navigate to page first, then precise smooth scroll and set hash
         const onComplete = () => {
           router.events.off("routeChangeComplete", onComplete);
           setTimeout(() => {
@@ -610,7 +617,6 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
               const top = rect.top + window.pageYOffset - 80;
               window.scrollTo({ top, behavior: "smooth" });
               if (typeof window !== "undefined") {
-                // Update hash without scrolling again
                 history.replaceState(null, "", `#${item.scrollTo}`);
               }
             }
@@ -624,30 +630,10 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
       return;
     }
 
-    if (item.scrollTo) {
-      if (router.pathname === "/") {
-        // If already on home page, just scroll
-        handleSmoothScroll(item.scrollTo);
-      } else {
-        // If on different page, navigate to home then scroll using route event
-        const scroll = () => handleSmoothScroll(item.scrollTo!);
-        const handler = () => {
-          router.events.off("routeChangeComplete", handler);
-          scroll();
-        };
-        router.events.on("routeChangeComplete", handler);
-        router.push("/").finally(() => {
-          // Safety fallback
-          setTimeout(scroll, 200);
-        });
-      }
-    } else {
-      // Regular navigation
-      if (item.href === "/") {
-        setActiveSection("home");
-      }
-      router.push(item.href);
+    if (item.href === "/") {
+      setActiveSection("home");
     }
+    router.push(item.href);
   };
 
   // Toggle mobile menu
