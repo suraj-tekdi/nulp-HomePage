@@ -1,7 +1,6 @@
 import React from "react";
 import Head from "next/head";
 import type { GetStaticProps } from "next";
-import { Header, Footer } from "../components";
 import AboutUsHero from "../components/AboutUsHero/AboutUsHero";
 import AboutUsVision from "../components/AboutUsVision/AboutUsVision";
 import AboutUsMission from "../components/AboutUsMission/AboutUsMission";
@@ -15,6 +14,7 @@ import { useEffect, useMemo, useState } from "react";
 
 type AboutPageProps = {
   orderedSectionSlugs?: string[];
+  spaActive?: boolean;
 };
 
 const sectionComponents: Record<string, React.FC> = {
@@ -37,6 +37,7 @@ const DEFAULT_SECTION_ORDER: string[] = [
 
 const AboutPage: React.FC<AboutPageProps> = ({
   orderedSectionSlugs = DEFAULT_SECTION_ORDER,
+  spaActive = true,
 }) => {
   const [liveOrder, setLiveOrder] = useState<string[] | null>(null);
 
@@ -76,16 +77,16 @@ const AboutPage: React.FC<AboutPageProps> = ({
 
   return (
     <>
-      <Head>
-        <title>About Us - NULP | National Urban Learning Platform</title>
-        <meta
-          name="description"
-          content="Learn about NULP's vision, mission, and approach to urban learning and capacity building for urban practitioners."
-        />
-      </Head>
-
-      {/* Header */}
-      <Header />
+      {/* Only render meta when this page is the active SPA tab */}
+      {spaActive && (
+        <Head>
+          <title>About Us - NULP | National Urban Learning Platform</title>
+          <meta
+            name="description"
+            content="Learn about NULP's vision, mission, and approach to urban learning and capacity building for urban practitioners."
+          />
+        </Head>
+      )}
 
       {/* About Us Hero Section */}
       <AboutUsHero />
@@ -98,9 +99,6 @@ const AboutPage: React.FC<AboutPageProps> = ({
 
       {/* Get in Touch Section (not part of ordering) */}
       <AboutUsContact />
-
-      {/* Footer */}
-      <Footer />
     </>
   );
 };

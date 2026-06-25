@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import Head from "next/head";
 import {
-  Header,
   Banner,
   LaunchVideoSection,
   DomainsSection,
@@ -11,7 +10,6 @@ import {
   IndiaMapSection,
   TestimonialsSection,
   PartnersSection,
-  Footer,
 } from "../components";
 import {
   partnersApi,
@@ -23,26 +21,28 @@ import {
 interface HomePageProps {
   initialPartners: HomepagePartnerItem[];
   initialTestimonials: HomepageTestimonialItem[];
+  spaActive?: boolean;
 }
 
 const HomePage: React.FC<HomePageProps> = ({
   initialPartners,
   initialTestimonials,
+  spaActive = true,
 }) => {
   const [selectedDomain, setSelectedDomain] = useState<string | null>(null);
 
   return (
     <>
-      <Head>
-        <title>NULP - National Urban Learning Platform</title>
-        <meta
-          name="description"
-          content="Learn from well-curated courses and content. Explore domain experts from other cities and develop skills."
-        />
-      </Head>
-
-      {/* Header */}
-      <Header />
+      {/* Only render meta when this page is the active SPA tab */}
+      {spaActive && (
+        <Head>
+          <title>NULP - National Urban Learning Platform</title>
+          <meta
+            name="description"
+            content="Learn from well-curated courses and content. Explore domain experts from other cities and develop skills."
+          />
+        </Head>
+      )}
 
       {/* Banner Section */}
       <Banner />
@@ -75,9 +75,6 @@ const HomePage: React.FC<HomePageProps> = ({
 
       {/* Partners Section */}
       <PartnersSection className="" initialPartners={initialPartners} />
-
-      {/* Footer */}
-      <Footer />
     </>
   );
 };
